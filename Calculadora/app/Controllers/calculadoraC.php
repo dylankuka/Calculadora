@@ -4,6 +4,7 @@ use App\Models\UsuarioModel;
 class Usuario extends BaseController {
 public function registro() {     
 return view('registro'); 
+
 } 
 public function registrar() {
 $usuarioModel = new UsuarioModel(); 
