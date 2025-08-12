@@ -15,7 +15,6 @@ class Usuario extends BaseController
     {
         helper(['form']);
 
-        // Reglas de validación
         $rules = [
             'nombredeusuario' => 'required|min_length[3]|max_length[50]',
             'email'           => 'required|valid_email|is_unique[usuarios.email]',
@@ -35,7 +34,7 @@ class Usuario extends BaseController
             'nombredeusuario' => $this->request->getPost('nombredeusuario'),
             'email'           => $this->request->getPost('email'),
             'password'        => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
-            'fecha_registro'  => date('Y-m-d H:i:s') // Se genera en backend
+            'fecha_registro'  => date('Y-m-d H:i:s')
         ];
 
         $usuarioModel->insert($datos);
@@ -58,14 +57,14 @@ class Usuario extends BaseController
         $usuario = $usuarioModel->where('email', $email)->first();
 
         if ($usuario && password_verify($password, $usuario['password'])) {
-            // Guardar solo datos esenciales en sesión
             session()->set([
                 'usuario_id' => $usuario['id'],
                 'usuario_nombre' => $usuario['nombredeusuario'],
                 'logueado' => true
             ]);
 
-            return redirect()->to('/dashboard');
+return redirect()->to('/formulario'); // en vez de /dashboard
+
         }
 
         return view('login', [
