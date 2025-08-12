@@ -14,7 +14,7 @@ class Calculadora extends BaseController
     public function formulario()
     {
         $this->validarSesion();
-        return view('pegar_url');
+        return view('url');
     }
 
     public function calcular()

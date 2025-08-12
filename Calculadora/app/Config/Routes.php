@@ -5,6 +5,7 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
+$routes->get('/', 'Calculadora::formulario');
 $routes->get('usuario/registro', 'Usuario::registro');
 $routes->post('usuario/registrar', 'Usuario::registrar');
 $routes->get('usuario/login', 'Usuario::login');
