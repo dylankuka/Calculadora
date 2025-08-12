@@ -5,7 +5,7 @@ class Calculadora extends BaseController
 {
     public function formulario()
     {
-        return view('pegar_url');
+        return view('url.php');
     }
 
     public function calcular()
