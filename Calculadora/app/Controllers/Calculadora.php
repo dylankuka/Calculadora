@@ -3,14 +3,13 @@ namespace App\Controllers;
 
 class Calculadora extends BaseController
 {
-    private function validarSesion()
-    {
-        if (!session()->get('logueado')) {
-            return redirect()->to('/usuario/login')->with('error', 'Debes iniciar sesión para continuar')->send();
-            exit;
-        }
+private function validarSesion()
+{
+    if (!session()->get('logueado')) {
+        return false;
     }
-
+    return true;
+}
     public function formulario()
     {
         $this->validarSesion();
