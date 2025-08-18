@@ -5,8 +5,15 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 
+// ✅ RUTA RAÍZ PARA DEBUG
+$routes->get('/', 'Usuario::login');
+
+// ✅ RUTAS DE DEBUG (eliminar después)
+$routes->get('test', function() {
+    return "✅ Las rutas funcionan correctamente!";
+});
+
 // ✅ RUTAS PÚBLICAS
-$routes->get('/', 'Usuario::login'); // Cambiar página de inicio a login
 $routes->group('usuario', function($routes) {
     $routes->get('registro', 'Usuario::registro');
     $routes->post('registrar', 'Usuario::registrar');
@@ -26,7 +33,12 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     $routes->post('historial/actualizar/(:num)', 'Historial::actualizar/$1');
     $routes->get('historial/eliminar/(:num)', 'Historial::eliminar/$1');
     
-    // Calculadora original (opcional, para más adelante)
+    // Calculadora original
     $routes->get('calculadora', 'Calculadora::formulario');
     $routes->post('calcular', 'Calculadora::calcular');
+});
+
+// ✅ RUTAS PARA VERIFICAR CONFIGURACIÓN
+$routes->get('info', function() {
+    return view('debug_info');
 });
