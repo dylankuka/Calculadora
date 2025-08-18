@@ -26,9 +26,9 @@ class Database extends Config
      */
     public array $default = [
         'DSN'          => '',
-        'hostname'     => 'localhost',
-        'username'     => '',
-        'password'     => '',
+        'hostname'     => '127.0.0.1',     // Cambiado de localhost
+        'username'     => 'root',           // Tu usuario de MariaDB
+        'password'     => '',               // Tu contraseña (si tienes)
         'database'     => 'calculadora',
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
