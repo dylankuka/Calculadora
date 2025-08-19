@@ -15,3 +15,231 @@ body {
 .textcolor{
   color: #333e48;
 }
+
+.textcolor1{
+  color: rgb(146, 146, 146);
+}
+.texto-transparente {
+  background-color: rgba(0, 0, 0, 0.4); /* negro con 40% opacidad */
+  color: white; /* texto en blanco para contraste */
+  border-radius: 10px; /* esquinas redondeadas opcionales */
+  max-width: 600px; /* limitar ancho */
+}
+
+.card-custom2{
+  background-color: #37475a;
+  color: white;
+}
+
+/* Estilos para el formulario de búsqueda */
+.form-custom {
+    color: white !important;
+}
+
+.input-custom {
+    background-color: #37475a !important;
+    color: white !important;
+    border: 2px solid white !important;
+    border-radius: 5px !important;
+}
+
+.input-custom::placeholder {
+    color: #cccccc !important;
+    opacity: 1;
+}
+
+.btn-search-custom {
+    background-color: #ff9900 !important;
+    color: #333e48 !important;
+    border: 2px solid #000000 !important;
+    font-weight: bold;
+}
+
+.btn-search-custom:hover {
+    background-color: #e68a00 !important;
+    border-color: #000000 !important;
+}
+
+.btn-clear-custom {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border: 2px solid #000000 !important;
+}
+
+.btn-clear-custom:hover {
+    background-color: #c82333 !important;
+    border-color: #000000 !important;
+}
+
+.input-group {
+    border: 2px solid #000000;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.input-group .form-control,
+.input-group .btn {
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+/* ESTILOS PARA LA TABLA DE HISTORIAL */
+.card-historial {
+    background-color: #37475a !important;
+    border: 2px solid #000000;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+}
+
+.card-header-historial {
+    background: linear-gradient(135deg, #ff9900, #e68a00) !important;
+    color: #333e48 !important;
+    font-weight: bold;
+    border-bottom: 2px solid #000000;
+    padding: 15px 20px;
+}
+
+.table-historial {
+    background-color: #37475a;
+    color: white;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.table-historial th {
+    background-color: #46566a;
+    color: #ff9900;
+    font-weight: 600;
+    padding: 15px;
+    border-bottom: 2px solid #000000;
+    vertical-align: middle;
+}
+
+.table-historial td {
+    padding: 15px;
+    border-bottom: 1px solid #46566a;
+    vertical-align: middle;
+}
+
+.table-historial tr:hover {
+    background-color: #46566a;
+    transition: background-color 0.3s;
+}
+
+.badge-historial-usd {
+    background-color: #ff9900;
+    color: #333e48;
+    font-weight: bold;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.badge-historial-ars {
+    background-color: #28a745;
+    color: white;
+    font-weight: bold;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.btn-amazon-link {
+    color: #ff9900;
+    border-color: #ff9900;
+    border-radius: 5px;
+}
+
+.btn-amazon-link:hover {
+    background-color: #ff9900;
+    color: #333e48;
+    border-color: #ff9900;
+}
+
+.btn-group-historial {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-action-view,
+.btn-action-edit,
+.btn-action-delete {
+    border-radius: 5px;
+    padding: 0.25rem 0.5rem;
+}
+
+.btn-action-view {
+    color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.btn-action-view:hover {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-action-edit {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-action-edit:hover {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-action-delete {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-action-delete:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Estilos para estado vacío */
+.card-empty-state {
+    background-color: #37475a;
+    border: 2px solid #000000;
+    border-radius: 10px;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    color: #6c757d;
+    opacity: 0.7;
+}
+
+.btn-empty-action {
+    background-color: #ff9900;
+    color: #333e48;
+    border: none;
+    font-weight: bold;
+    padding: 10px 20px;
+}
+
+.btn-empty-action:hover {
+    background-color: #e68a00;
+    color: #333e48;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .table-historial {
+        font-size: 0.9rem;
+    }
+    
+    .table-historial th,
+    .table-historial td {
+        padding: 10px 8px;
+    }
+    
+    .btn-group-historial {
+        flex-direction: column;
+        gap: 3px;
+    }
+}
