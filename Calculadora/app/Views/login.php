@@ -8,6 +8,16 @@
 </head>
 <body class="bg-light">
 
+<body>
+  <div class="container-absolute">
+    <div class="row">
+      
+      <div class="col-12 col-md-2 d-flex align-items-center">
+        <img src="C:\xampp\htdocs\Calculadora\Calculadora-1\Calculadora\public\img\taximporterlogo.png" alt="Logo" style="max-width:120px;">
+      </div>
+    </div>
+  </div>
+
 <div class="container mt-5" style="max-width: 420px;">
     <div class="text-center mb-4">
         <h2>🔐 Iniciar Sesión - TaxImporter</h2>
@@ -89,5 +99,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
