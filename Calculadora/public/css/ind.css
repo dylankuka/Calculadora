@@ -1,0 +1,9 @@
+body {
+  --primary-color: #4a90e2;
+  --secondary-color: #f5f5f5;
+  --text-color: #ff0e00;
+  --background-color: #333e48;
+
+  background-color: var(--background-color);
+  color: var(--text-color); /* opcional, para que el texto también cambie */
+}

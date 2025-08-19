@@ -31,12 +31,12 @@ class Usuario extends BaseController
                     'is_unique' => 'Este email ya está registrado.'
                 ]
             ],
-            'password' => [
+                'password' => [
                 'rules' => 'required|min_length[6]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/]',
                 'errors' => [
-                    'required' => 'La contraseña es obligatoria.',
-                    'min_length' => 'La contraseña debe tener al menos 6 caracteres.',
-                    'regex_match' => 'La contraseña debe contener al menos: 1 minúscula, 1 mayúscula y 1 número.'
+                'required' => 'La contraseña es obligatoria.',
+                'min_length' => 'La contraseña debe tener al menos 6 caracteres.',
+                'regex_match' => 'La contraseña debe contener al menos: 1 minúscula, 1 mayúscula y 1 número.'
                 ]
             ],
             'pass_confirm' => [

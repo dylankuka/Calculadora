@@ -28,7 +28,7 @@ class Database extends Config
         'DSN'          => '',
         'hostname'     => '127.0.0.1',     // Cambiado de localhost
         'username'     => 'root',           // Tu usuario de MariaDB
-        'password'     => '',               // Tu contraseña (si tienes)
+        'password'     => null,               // Tu contraseña (si tienes)
         'database'     => 'calculadora',
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
