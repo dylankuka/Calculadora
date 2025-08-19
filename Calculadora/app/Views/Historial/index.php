@@ -18,8 +18,11 @@
         <a class="navbar-brand textcolor" href="<?= base_url('/historial') ?>">
             <i class="bi bi-calculator"></i> TaxImporter
         </a>
-        
-        <div class="navbar-nav ms-auto">
+    <div class="position-absolute" style="top: 0px; left: 0px; z-index: 1000;">
+   <img src="<?= base_url('img/taximporterlogo.png') ?>" 
+        alt="Logo TaxImporter" 
+        style="max-width: 240px; height: auto; 
+               filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));">
             <span class="navbar-text me-3 textcolor">
                 👤 Hola, <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
             </span>
