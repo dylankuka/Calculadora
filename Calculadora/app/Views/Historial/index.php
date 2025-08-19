@@ -7,22 +7,24 @@
 <link rel="stylesheet" href="<?= base_url('css/ind.css') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="<?= base_url('css/ind.css') ?>">
+<link rel="stylesheet" href="/Calculadora/Calculadora-1/Calculadora/public/css/ind.css">
+
+
 </head>
 
 <!-- ✅ NAVBAR CON USUARIO LOGUEADO -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-success">
+<nav class="card-custom navbar navbar-expand-lg navbar-dark">
     <div class="container">
-        <a class="navbar-brand" href="<?= base_url('/historial') ?>">
+        <a class="navbar-brand textcolor" href="<?= base_url('/historial') ?>">
             <i class="bi bi-calculator"></i> TaxImporter
         </a>
         
         <div class="navbar-nav ms-auto">
-            <span class="navbar-text me-3">
+            <span class="navbar-text me-3 textcolor">
                 👤 Hola, <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
             </span>
-            <a class="btn btn-outline-light btn-sm" href="<?= base_url('usuario/logout') ?>">
-                <i class="bi bi-box-arrow-right"></i> Salir
+            <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
+                <i class="bi bi-box-arrow-right textcolor"></i> Salir
             </a>
         </div>
     </div>
@@ -61,7 +63,7 @@
     <?php if ($resumen): ?>
     <div class="row mb-4">
         <div class="col-md-6">
-            <div class="card bg-info text-white">
+            <div class="card card-custom bg-info text-white">
                 <div class="card-body">
                     <h5><i class="bi bi-graph-up"></i> Total Consultas</h5>
                     <h3><?= number_format($resumen['total_consultas'] ?? 0) ?></h3>
@@ -70,7 +72,7 @@
         </div>
         <div class="col-md-6">
             <div class="card bg-success text-white">
-                <div class="card-body">
+                <div class="card-body card-custom">
                     <h5><i class="bi bi-currency-dollar"></i> Total Calculado</h5>
                     <h3>$<?= number_format($resumen['total_calculado'] ?? 0, 2) ?> ARS</h3>
                 </div>
