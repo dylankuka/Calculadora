@@ -9,10 +9,10 @@
 <body class="bg-light">
 
   <!-- ✅ Logo arriba izquierda -->
-  <div class="position-absolute" style="top: 0px; left: 0px; z-index: 1000;">
+  <div class="position-absolute" style="top: 5px; left: 3px; z-index: 1000;">
    <img src="<?= base_url('img/taximporterlogo.png') ?>" 
         alt="Logo TaxImporter" 
-        style="max-width: 240px; height: auto; 
+        style="max-width: 95px; height: auto; 
                filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));">
 </div>
 

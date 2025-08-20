@@ -13,11 +13,18 @@
 </head>
 
 <!-- ✅ NAVBAR CON USUARIO LOGUEADO -->
+  <div class="position-absolute" style="top: 5px; left: 22px; z-index: 1000;">
+   <img src="<?= base_url('img/taximporterlogo.png') ?>" 
+        alt="Logo TaxImporter" 
+        style="max-width: 70px; height: auto; 
+               filter: drop-shadow(2px 2px 6px rgba(0,0,0,1.9));">
+</div>
 <nav class="card-custom navbar navbar-expand-lg navbar-dark">
     <div class="container">
         <a class="navbar-brand textcolor" href="<?= base_url('/historial') ?>">
             <i class="bi bi-calculator"></i> TaxImporter
         </a>
+         
             <span class="navbar-text me-3 textcolor">
                 👤 Hola, <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
             </span>
@@ -199,7 +206,7 @@
     <div class="texto-transparente p-4 text-center mt-5"> <!-- mt-5 = margin-top -->
         <h2>¡Bienvenido a TaxImporter!</h2>
         <p>
-            Esta pagina fue creada como proyecto escolar por Dylan Kiyama y Juan Cruz Gayzio en 2025<br>
+            Esta pagina fue creada como proyecto escolar por Kenji Kiyama y Juan Cruz Menzio en 2025<br>
             Con esta pagina podras calcular el precio de un producto de Amazon en Argentina,
             teniendo en cuenta el precio en dolares, el IVA y los impuestos de importación.
         </p>
