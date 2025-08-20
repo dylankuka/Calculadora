@@ -12,7 +12,7 @@ class Historial extends BaseController
         $this->historialModel = new HistorialModel();
     }
 
-    // ✅ VALIDACIÓN DE SESIÓN CORREGIDA
+    // ✅ VALIDACIÓN DE SESIÓN MEJORADA
     private function validarSesion()
     {
         if (!session()->get('logueado')) {
@@ -22,12 +22,16 @@ class Historial extends BaseController
         return null;
     }
 
-    // ✅ READ - LISTAR HISTORIAL
+    // ✅ INDEX PRINCIPAL - REDIRIGE SI NO ESTÁ AUTENTICADO
     public function index()
     {
-        $redirect = $this->validarSesion();
-        if ($redirect) return $redirect;
+        // Si el usuario no está logueado, redirigir al login
+        if (!session()->get('logueado')) {
+            return redirect()->to('/usuario/login')
+                ->with('info', '👋 Bienvenido a TaxImporter. Inicia sesión para acceder a tu historial.');
+        }
 
+        // Si está logueado, mostrar el historial normal
         $usuarioId = session()->get('usuario_id');
         $busqueda = $this->request->getGet('buscar');
 
