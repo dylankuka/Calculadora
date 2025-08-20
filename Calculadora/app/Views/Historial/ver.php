@@ -4,11 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Ver Cálculo - TaxImporter</title>
+    <link rel="stylesheet" href="<?= base_url('css/ind.css') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="/Calculadora/Calculadora-1/Calculadora/public/css/ind.css">
 </head>
 <body class="bg-light">
+     <div class="position-absolute" style="top: 5px; left: 22px; z-index: 1000;">
+   <img src="<?= base_url('img/taximporterlogo.png') ?>" 
+        alt="Logo TaxImporter" 
+        style="max-width: 70px; height: auto; 
+               filter: drop-shadow(2px 2px 6px rgba(0,0,0,1.9));">
+</div>
 
 <!-- ✅ NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-success">
