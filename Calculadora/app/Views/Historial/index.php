@@ -21,16 +21,28 @@
 </div>
 <nav class="card-custom navbar navbar-expand-lg navbar-dark">
     <div class="container">
-        <a class="navbar-brand textcolor" href="<?= base_url('/historial') ?>">
+        <a class="navbar-brand textcolor" href="<?= base_url('/') ?>">
             <i class="bi bi-calculator"></i> TaxImporter
         </a>
-         
-            <span class="navbar-text me-3 textcolor">
-                👤 Hola, <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
-            </span>
-            <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
-                <i class="bi bi-box-arrow-right textcolor"></i> Salir
-            </a>
+        
+        <div class="navbar-nav ms-auto">
+            <?php if (isset($usuario_logueado) && $usuario_logueado): ?>
+                <!-- Usuario logueado -->
+                <span class="navbar-text me-3 textcolor">
+                    👤 Hola, <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
+                </span>
+                <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
+                    <i class="bi bi-box-arrow-right textcolor"></i> Salir
+                </a>
+            <?php else: ?>
+                <!-- Usuario no logueado -->
+                <a class="btn card-custom2 btn-sm me-2" href="<?= base_url('usuario/login') ?>">
+                    <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                </a>
+                <a class="btn card-custom2 btn-sm" href="<?= base_url('usuario/registro') ?>">
+                    <i class="bi bi-person-plus"></i> Registrarse
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 </nav>
@@ -58,8 +70,16 @@
             <h2><i class="bi bi-clock-history"></i> Mi Historial de Cálculos</h2>
         </div>
         <div class="col-md-4 text-end">
-            <a href="<?= base_url('historial/crear') ?>" class="btn textcolor card-custom">
-                <i class="bi bi-plus-circle card-custom textcolor"></i> Nuevo Cálculo
+<?php if (isset($usuario_logueado) && $usuario_logueado): ?>
+    <a href="<?= base_url('historial/crear') ?>" class="btn textcolor card-custom">
+        <i class="bi bi-plus-circle card-custom textcolor"></i> Nuevo Cálculo
+    </a>
+<?php else: ?>
+    <a href="<?= base_url('usuario/login') ?>" class="btn textcolor card-custom">
+        <i class="bi bi-lock"></i> Inicia Sesión para Calcular
+    </a>
+<?php endif; ?>
+
             </a>
         </div>
     </div>
@@ -69,15 +89,15 @@
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="card card-custom bg-info textcolor">
-                <div class="card-body">
+                <div class="card card-custom card-body textcolor">
                     <h5><i class="bi bi-graph-up"></i> Total Consultas</h5>
                     <h3><?= number_format($resumen['total_consultas'] ?? 0) ?></h3>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card bg-success textcolor">
-                <div class="card-body card-custom bg-info textcolor">
+            <div class="card card-custom textcolor">
+                <div class="card card-body card-custom bg-info textcolor">
                     <h5><i class="bi bi-currency-dollar"></i> Total Calculado</h5>
                     <h3>$<?= number_format($resumen['total_calculado'] ?? 0, 2) ?> ARS</h3>
                 </div>
@@ -109,7 +129,7 @@
             
             <?php if ($mensaje): ?>
                 <div class="mt-2">
-                    <small class="text-muted"><i class="bi bi-info-circle"></i> <?= esc($mensaje) ?></small>
+                    <small class="text-light"><i class="bi bi-info-circle"></i> <?= esc($mensaje) ?></small>
                 </div>
             <?php endif; ?>
         </div>

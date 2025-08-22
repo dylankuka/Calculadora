@@ -3,19 +3,36 @@ namespace App\Controllers;
 
 class Calculadora extends BaseController
 {
-private function validarSesion()
-{
-    if (!session()->get('logueado')) {
-        return false;
+    private function validarSesion()
+    {
+        if (!session()->get('logueado')) {
+            return false;
+        }
+        return true;
     }
-    return true;
-}
+
+    // ✅ MÉTODO INDEX AGREGADO
+    public function index()
+    {
+        // Si el usuario está logueado, redirigir al historial
+        if (session()->get('logueado')) {
+            return redirect()->to('/historial');
+        }
+        
+        // Si no está logueado, mostrar el login
+        return redirect()->to('/usuario/login');
+    }
+
 public function formulario()
 {
-    $this->validarSesion();
-    return view('Historial/index');
+    // Si no está logueado, redirigir al login
+    if (!session()->get('logueado')) {
+        return redirect()->to('/usuario/login');
+    }
+    
+    // Redirigir al historial en lugar de cargar la vista directamente
+    return redirect()->to('/historial');
 }
-
 
     public function calcular()
     {

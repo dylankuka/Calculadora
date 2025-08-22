@@ -10,11 +10,15 @@
 <body class="bg-dark">
 
   <!-- ✅ Logo arriba izquierda -->
-  <div class="position-absolute" style="top: 5px; left: 3px; z-index: 1000;">
-   <img src="<?= base_url('img/taximporterlogo.png') ?>" 
-        alt="Logo TaxImporter" 
-        style="max-width: 95px; height: auto; 
-               filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));">
+<div class="position-absolute" style="top: 5px; left: 3px; z-index: 1000;">
+   <a href="<?= base_url('/') ?>">
+       <img src="<?= base_url('img/taximporterlogo.png') ?>" 
+            alt="Logo TaxImporter" 
+            style="max-width: 95px; height: auto; 
+                   filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2)); 
+                   cursor: pointer;">
+   </a>
+</div>
 </div>
 
   <div class="container mt-5" style="max-width: 420px;">
@@ -22,7 +26,7 @@
     <!-- Encabezado -->
     <div class="text-center mb-4">
       <h2>Iniciar Sesión</h2>
-      <p class="tarjeta">Accede a tu historial de cálculos</p>
+      <p class="bg-dark">Accede a tu historial de cálculos</p>
     </div>
 
     <!-- ✅ Mensajes de Éxito o Error -->
@@ -95,7 +99,7 @@
           </div>
 
           <!-- Botón -->
-          <button type="submit" class="btn card-custom w-100">Entrar</button>
+          <button type="submit" class="btn card-custom textcolor w-100">Entrar</button>
         </form>
       </div>
     </div>

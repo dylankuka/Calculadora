@@ -23,35 +23,43 @@ class Historial extends BaseController
     }
 
     // ✅ INDEX PRINCIPAL - REDIRIGE SI NO ESTÁ AUTENTICADO
-    public function index()
-    {
-        // Si el usuario no está logueado, redirigir al login
-        if (!session()->get('logueado')) {
-            return redirect()->to('/usuario/login')
-                ->with('info', '👋 Bienvenido a TaxImporter. Inicia sesión para acceder a tu historial.');
-        }
 
-        // Si está logueado, mostrar el historial normal
-        $usuarioId = session()->get('usuario_id');
-        $busqueda = $this->request->getGet('buscar');
-
-        if ($busqueda) {
-            $historial = $this->historialModel->buscarPorProducto($usuarioId, $busqueda);
-            $mensaje = "Resultados para: " . esc($busqueda);
-        } else {
-            $historial = $this->historialModel->obtenerPorUsuario($usuarioId);
-            $mensaje = null;
-        }
-
-        $resumen = $this->historialModel->obtenerResumenUsuario($usuarioId);
-
+public function index()
+{
+    // ✅ PERMITIR ACCESO SIN SESIÓN
+    if (!session()->get('logueado')) {
+        // Usuario no logueado - mostrar página sin datos
         return view('historial/index', [
-            'historial' => $historial,
-            'resumen' => $resumen,
-            'busqueda' => $busqueda,
-            'mensaje' => $mensaje
+            'historial' => [],
+            'resumen' => ['total_calculado' => 0, 'total_consultas' => 0],
+            'busqueda' => null,
+            'mensaje' => null,
+            'usuario_logueado' => false
         ]);
     }
+
+    // Usuario logueado - mostrar historial normal
+    $usuarioId = session()->get('usuario_id');
+    $busqueda = $this->request->getGet('buscar');
+
+    if ($busqueda) {
+        $historial = $this->historialModel->buscarPorProducto($usuarioId, $busqueda);
+        $mensaje = "Resultados para: " . esc($busqueda);
+    } else {
+        $historial = $this->historialModel->obtenerPorUsuario($usuarioId);
+        $mensaje = null;
+    }
+
+    $resumen = $this->historialModel->obtenerResumenUsuario($usuarioId);
+
+    return view('historial/index', [
+        'historial' => $historial,
+        'resumen' => $resumen,
+        'busqueda' => $busqueda,
+        'mensaje' => $mensaje,
+        'usuario_logueado' => true
+    ]);
+}
 
     // ✅ CREATE - MOSTRAR FORMULARIO
     public function crear()

@@ -14,13 +14,17 @@ body { background: #333e48 !important; color: #ffffff; }
     background-color: #000000 !important;
 }
 .tarjeta {
-  background-color: #1f262c !important; /* color de fondo */
+  background-color: #42494e !important;
   color: white !important;
-width: 250px;            /* ancho */
-  height: 250px;           /* alto */
-  border-radius: 20px;     /* redondeo de bordes */
+  width: 400px;            /* ancho cuadrado */
+  height: 400px;           /* alto cuadrado */
+  border-radius: 20px;     /* bordes redondeados */
   padding: 20px;           /* espacio interno */
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important; /* sombra opcional */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .card-custom {

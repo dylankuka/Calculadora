@@ -7,7 +7,7 @@ use CodeIgniter\Router\RouteCollection;
  */
 
 // ✅ RUTA PRINCIPAL - REDIRIGE AL HISTORIAL
-$routes->get('/', 'Calculadora::index');
+$routes->get('/', 'Historial::index');
 
 // ✅ RUTAS DE USUARIO
 $routes->get('usuario/registro', 'Usuario::registro');

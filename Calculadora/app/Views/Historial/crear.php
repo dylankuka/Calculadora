@@ -9,7 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 <link rel="stylesheet" href="/Calculadora/Calculadora-1/Calculadora/public/css/ind.css">
 </head>
-<body class="bg-light ">
+<body class="bg-dark">
      <div class="position-absolute" style="top: 5px; left: 22px; z-index: 1000;">
    <img src="<?= base_url('img/taximporterlogo.png') ?>" 
         alt="Logo TaxImporter" 
@@ -18,18 +18,18 @@
 </div>
 
 <!-- ✅ NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-success">
+<nav class="navbar navbar-expand-lg navbar-dark card-custom">
     <div class="container">
-        <a class="navbar-brand" href="<?= base_url('/historial') ?>">
+        <a class="navbar-brand textcolor" href="<?= base_url('/historial') ?>">
             <i class="bi bi-calculator"></i> TaxImporter
         </a>
         
         <div class="navbar-nav ms-auto">
-            <span class="navbar-text me-3">
+            <span class="navbar-text me-3 textcolor">
                 👤 <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
             </span>
-            <a class="btn btn-outline-light btn-sm" href="<?= base_url('usuario/logout') ?>">
-                <i class="bi bi-box-arrow-right"></i> Salir
+            <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
+                <i class="bi bi-box-arrow-right textcolor"></i> Salir
             </a>
         </div>
     </div>
@@ -70,8 +70,8 @@
             <?php endif; ?>
 
             <!-- ✅ FORMULARIO -->
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
+            <div class="card shadow card-custom2">
+                <div class="card-header card-custom textcolor">
                     <h4><i class="bi bi-plus-circle"></i> Agregar Nuevo Cálculo</h4>
                 </div>
                 <div class="card-body">
@@ -89,7 +89,7 @@
                                    placeholder="https://www.amazon.com/dp/XXXXXXXXXX"
                                    value="<?= set_value('amazon_url', $old_input['amazon_url'] ?? '') ?>" 
                                    required>
-                            <div class="form-text">
+                            <div class="form-text text-light">
                                 <i class="bi bi-info-circle"></i> 
                                 Pega aquí la URL completa del producto de Amazon
                             </div>
@@ -159,7 +159,7 @@
                                            value="<?= set_value('total_ars', $old_input['total_ars'] ?? '') ?>" 
                                            required>
                                 </div>
-                                <div class="form-text">
+                                <div class="form-text text-light">
                                     <i class="bi bi-lightbulb"></i> 
                                     Incluye impuestos + envío + recargos
                                 </div>
