@@ -7,9 +7,22 @@ body {
   background-color: var(--background-color);
   color: var(--text-color); /* opcional, para que el texto también cambie */
 }
+html, body { height: 100%; }
+body { background: #333e48 !important; color: #ffffff; }
+
 .bckcolor{
     background-color: #000000 !important;
 }
+.tarjetaa {
+  width: 250px;            /* ancho */
+  height: 250px;           /* alto */
+  background-color: #1f262c;
+  color: white;
+  border-radius: 20px;     /* redondeo de bordes */
+  padding: 20px;           /* espacio interno */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* sombra opcional */
+}
+
 .card-custom {
   background-color: var(--primary-color) !important;
   color: white; /* para que contraste */

@@ -7,7 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/Calculadora/Calculadora-1/Calculadora/public/css/ind.css">
 </head>
-<body class="bg-light bckcolor">
+<body class="bg-dark">
 
   <!-- ✅ Logo arriba izquierda -->
   <div class="position-absolute" style="top: 5px; left: 3px; z-index: 1000;">
@@ -17,7 +17,7 @@
                filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));">
 </div>
 
-  <div class="container mt-5 card-custom" style="max-width: 420px;">
+  <div class="container mt-5 tarjetaa" style="max-width: 420px;">
     <!-- Encabezado -->
     <div class="text-center mb-4">
       <h2>🔐 Iniciar Sesión</h2>
