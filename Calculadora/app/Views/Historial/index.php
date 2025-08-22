@@ -206,7 +206,7 @@
     <div class="texto-transparente p-4 text-center mt-5"> <!-- mt-5 = margin-top -->
         <h2>¡Bienvenido a TaxImporter!</h2>
         <p>
-            Esta pagina fue creada como proyecto escolar por Kenji Kiyama y Juan Cruz Menzio en 2025<br>
+            Esta pagina fue creada como proyecto escolar por Dylan Kiyama y Juan Cruz Menzio en 2025<br>
             Con esta pagina podras calcular el precio de un producto de Amazon en Argentina,
             teniendo en cuenta el precio en dolares, el IVA y los impuestos de importación.
         </p>

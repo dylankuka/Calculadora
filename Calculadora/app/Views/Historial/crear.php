@@ -9,7 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 <link rel="stylesheet" href="/Calculadora/Calculadora-1/Calculadora/public/css/ind.css">
 </head>
-<body class="bg-light">
+<body class="bg-light ">
      <div class="position-absolute" style="top: 5px; left: 22px; z-index: 1000;">
    <img src="<?= base_url('img/taximporterlogo.png') ?>" 
         alt="Logo TaxImporter" 
