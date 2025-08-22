@@ -13,14 +13,14 @@ body { background: #333e48 !important; color: #ffffff; }
 .bckcolor{
     background-color: #000000 !important;
 }
-.tarjetaa {
-  width: 250px;            /* ancho */
+.tarjeta {
+  background-color: #1f262c !important; /* color de fondo */
+  color: white !important;
+width: 250px;            /* ancho */
   height: 250px;           /* alto */
-  background-color: #1f262c;
-  color: white;
   border-radius: 20px;     /* redondeo de bordes */
   padding: 20px;           /* espacio interno */
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* sombra opcional */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important; /* sombra opcional */
 }
 
 .card-custom {

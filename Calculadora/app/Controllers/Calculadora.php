@@ -10,11 +10,12 @@ private function validarSesion()
     }
     return true;
 }
-    public function formulario()
-    {
-        $this->validarSesion();
-        return view('url');
-    }
+public function formulario()
+{
+    $this->validarSesion();
+    return view('Historial/index');
+}
+
 
     public function calcular()
     {

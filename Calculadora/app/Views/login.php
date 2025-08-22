@@ -17,11 +17,12 @@
                filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));">
 </div>
 
-  <div class="container mt-5 tarjetaa" style="max-width: 420px;">
+  <div class="container mt-5" style="max-width: 420px;">
+    
     <!-- Encabezado -->
     <div class="text-center mb-4">
-      <h2>🔐 Iniciar Sesión</h2>
-      <p class="text-muted">Accede a tu historial de cálculos</p>
+      <h2>Iniciar Sesión</h2>
+      <p class="tarjeta">Accede a tu historial de cálculos</p>
     </div>
 
     <!-- ✅ Mensajes de Éxito o Error -->
@@ -61,10 +62,10 @@
           <?= csrf_field() ?>
 
           <!-- Email -->
-          <div class="mb-3 card-custom2">
-            <label for="email" class="form-label">📧 Correo Electrónico</label>
+          <div class="mb-3">
+            <label for="email" class="form-label">Correo Electrónico</label>
             <input type="email" 
-                   class="card-custom form-control <?= isset($validation) && $validation->hasError('email') ? 'is-invalid' : '' ?>" 
+                   class="form-control <?= isset($validation) && $validation->hasError('email') ? 'is-invalid' : '' ?>" 
                    id="email" 
                    name="email" 
                    placeholder="ejemplo@correo.com"
@@ -79,7 +80,7 @@
 
           <!-- Password -->
           <div class="mb-3">
-            <label for="password" class="form-label">🔒 Contraseña</label>
+            <label for="password" class="form-label">Contraseña</label>
             <input type="password" 
                    class="form-control <?= isset($validation) && $validation->hasError('password') ? 'is-invalid' : '' ?>" 
                    id="password" 
@@ -94,7 +95,7 @@
           </div>
 
           <!-- Botón -->
-          <button type="submit" class="btn btn-success w-100">🚀 Entrar</button>
+          <button type="submit" class="btn card-custom w-100">Entrar</button>
         </form>
       </div>
     </div>

@@ -7,7 +7,7 @@ use CodeIgniter\Router\RouteCollection;
  */
 
 // ✅ RUTA PRINCIPAL - REDIRIGE AL HISTORIAL
-$routes->get('/', 'Historial::index');
+$routes->get('/', 'Calculadora::index');
 
 // ✅ RUTAS DE USUARIO
 $routes->get('usuario/registro', 'Usuario::registro');
@@ -28,3 +28,4 @@ $routes->get('historial/eliminar/(:num)', 'Historial::eliminar/$1');
 // ✅ RUTAS DE CALCULADORA (OPCIONAL)
 $routes->get('calculadora', 'Calculadora::formulario');
 $routes->post('calcular', 'Calculadora::calcular');
+$routes->get('formulario', 'Calculadora::formulario');
