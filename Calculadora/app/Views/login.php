@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login - TaxImporter</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/Calculadora/Calculadora-1/Calculadora/public/css/ind.css">
 </head>
-<body class="bg-light">
+<body class="bg-light bckcolor">
 
   <!-- ✅ Logo arriba izquierda -->
   <div class="position-absolute" style="top: 5px; left: 3px; z-index: 1000;">
@@ -16,7 +17,7 @@
                filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));">
 </div>
 
-  <div class="container mt-5" style="max-width: 420px;">
+  <div class="container mt-5 card-custom" style="max-width: 420px;">
     <!-- Encabezado -->
     <div class="text-center mb-4">
       <h2>🔐 Iniciar Sesión</h2>
@@ -54,16 +55,16 @@
     <?php endif; ?>
 
     <!-- ✅ Formulario de Login -->
-    <div class="card shadow">
+    <div class="card shadow card-custom2">
       <div class="card-body">
         <form action="<?= base_url('usuario/iniciarSesion') ?>" method="post" novalidate>
           <?= csrf_field() ?>
 
           <!-- Email -->
-          <div class="mb-3">
+          <div class="mb-3 card-custom2">
             <label for="email" class="form-label">📧 Correo Electrónico</label>
             <input type="email" 
-                   class="form-control <?= isset($validation) && $validation->hasError('email') ? 'is-invalid' : '' ?>" 
+                   class="card-custom form-control <?= isset($validation) && $validation->hasError('email') ? 'is-invalid' : '' ?>" 
                    id="email" 
                    name="email" 
                    placeholder="ejemplo@correo.com"

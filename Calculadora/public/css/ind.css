@@ -7,6 +7,9 @@ body {
   background-color: var(--background-color);
   color: var(--text-color); /* opcional, para que el texto también cambie */
 }
+.bckcolor{
+    background-color: #000000 !important;
+}
 .card-custom {
   background-color: var(--primary-color) !important;
   color: white; /* para que contraste */
