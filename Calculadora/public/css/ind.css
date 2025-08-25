@@ -1,3 +1,14 @@
+@font-face {
+    font-family: 'AmazonEmber';
+    src: url('AmazonEmberCdRC_Bd.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 2. Aplicamos la fuente a todo el sitio */
+body, * {
+    font-family: 'AmazonEmber', Arial, sans-serif !important;
+}
 body {
   --primary-color: #ff9900;
   --secondary-color: #f5f5f5;
