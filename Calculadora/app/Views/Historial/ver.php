@@ -9,7 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="/Calculadora/Calculadora-1/Calculadora/public/css/ind.css">
 </head>
-<body class="bg-light">
+<body class="bg-dark">
      <div class="position-absolute" style="top: 5px; left: 22px; z-index: 1000;">
    <img src="<?= base_url('img/taximporterlogo.png') ?>" 
         alt="Logo TaxImporter" 
@@ -18,7 +18,7 @@
 </div>
 
 <!-- ✅ NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-success">
+<nav class="navbar navbar-expand-lg navbar-dark card-custom">
     <div class="container">
         <a class="navbar-brand" href="<?= base_url('/historial') ?>">
             <i class="bi bi-calculator"></i> TaxImporter
@@ -40,20 +40,19 @@
         <div class="col-lg-10">
             
             <!-- ✅ BREADCRUMB -->
-            <nav aria-label="breadcrumb">
+            <nav class="navbar-text me-3 textcolor3">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="<?= base_url('/historial') ?>">
                             <i class="bi bi-house"></i> Historial
                         </a>
                     </li>
-                    <li class="breadcrumb-item active">Ver Cálculo</li>
                 </ol>
             </nav>
 
             <!-- ✅ INFORMACIÓN PRINCIPAL -->
-            <div class="card shadow-lg mb-4">
-                <div class="card-header bg-info text-white">
+            <div class="card card-custom2 shadow-lg mb-4">
+                <div class="card-header card-custom bg-info">
                     <div class="d-flex justify-content-between align-items-center">
                         <h4><i class="bi bi-eye"></i> Detalles del Cálculo</h4>
                         <small>
@@ -62,10 +61,10 @@
                         </small>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body card-custom2">
                     <div class="row">
                         <div class="col-lg-8">
-                            <h3 class="text-primary">
+                            <h3 class="textprimary textcolor2">
                                 <i class="bi bi-box"></i> <?= esc($calculo['nombre_producto']) ?>
                             </h3>
                             
@@ -84,7 +83,7 @@
                             ?>
                             
                             <?php if ($desglose): ?>
-                            <div class="card bg-light">
+                             <div class="card bg-dark text-white mb-3">
                                 <div class="card-header">
                                     <h6><i class="bi bi-graph-up"></i> Desglose de Cálculo</h6>
                                 </div>
@@ -116,14 +115,14 @@
                         </div>
                         <div class="col-lg-4">
                             <!-- ✅ RESUMEN FINANCIERO -->
-                            <div class="card bg-success text-white">
+                            <div class="card card-custom3 text-white">
                                 <div class="card-body text-center">
                                     <h5><i class="bi bi-currency-dollar"></i> Precio Original</h5>
                                     <h2>$<?= number_format($calculo['precio_usd'], 2) ?> USD</h2>
                                 </div>
                             </div>
                             
-                            <div class="card bg-danger text-white mt-3">
+                            <div class="card card-custom4 text-white mt-3">
                                 <div class="card-body text-center">
                                     <h5><i class="bi bi-calculator"></i> Total Final</h5>
                                     <h2>$<?= number_format($calculo['total_ars'], 2) ?> ARS</h2>
@@ -131,7 +130,7 @@
                             </div>
                             
                             <!-- ✅ COMPARACIÓN -->
-                            <div class="card bg-warning text-dark mt-3">
+                            <div class="card card-custom text-dark mt-3">
                                 <div class="card-body text-center">
                                     <h6><i class="bi bi-graph-up-arrow"></i> Incremento Total</h6>
                                     <?php 
@@ -154,7 +153,7 @@
                 
                 <div>
                     <a href="<?= base_url('historial/editar/' . $calculo['id']) ?>" 
-                       class="btn btn-warning">
+                       class="btn card-custom">
                         <i class="bi bi-pencil"></i> Editar
                     </a>
                     <a href="<?= base_url('historial/eliminar/' . $calculo['id']) ?>" 
