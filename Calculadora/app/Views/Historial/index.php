@@ -137,65 +137,66 @@
 
    <!-- ✅ TABLA DE HISTORIAL -->
 <?php if (!empty($historial)): ?>
-    <div class="card card-historial">
-        <div class="card-header card-header-historial">
-            <h5><i class="bi bi-table"></i> Tus Cálculos Guardados</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-historial mb-0">
+    <div class="container-fluid d-flex justify-content-center mb-4">
+        <div class="card-custom2 shadow" style="width: 100%; max-width: 1200px; border-radius: 15px;">
+            <div class="text-center mb-3 p-3">
+                <h5 class="text-white"><i class="bi bi-table"></i> Tus Cálculos Guardados</h5>
+            </div>
+            
+            <div class="table-responsive p-3">
+                <table class="table table-dark table-hover mb-0">
                     <thead>
-                        <tr>
-                            <th><i class="bi bi-calendar me-1"></i> Fecha</th>
-                            <th><i class="bi bi-cart me-1"></i> Producto</th>
-                            <th><i class="bi bi-currency-dollar me-1"></i> USD</th>
-                            <th><i class="bi bi-currency-exchange me-1"></i> Total ARS</th>
-                            <th><i class="bi bi-link me-1"></i> Amazon</th>
-                            <th><i class="bi bi-gear me-1"></i> Acciones</th>
+                        <tr style="background-color: var(--primary-color);">
+                            <th class="textcolor"><i class="bi bi-calendar me-1"></i> Fecha</th>
+                            <th class="textcolor"><i class="bi bi-cart me-1"></i> Producto</th>
+                            <th class="textcolor"><i class="bi bi-currency-dollar me-1"></i> USD</th>
+                            <th class="textcolor"><i class="bi bi-currency-exchange me-1"></i> Total ARS</th>
+                            <th class="textcolor"><i class="bi bi-link me-1"></i> Amazon</th>
+                            <th class="textcolor"><i class="bi bi-gear me-1"></i> Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody style="background-color: #37475a;">
                         <?php foreach ($historial as $item): ?>
                             <tr>
-                                <td>
+                                <td class="text-white">
                                     <small class="text-muted">
                                         <?= date('d/m/Y H:i', strtotime($item['fecha_calculo'])) ?>
                                     </small>
                                 </td>
-                                <td>
+                                <td class="text-white">
                                     <strong><?= esc($item['nombre_producto']) ?></strong>
                                 </td>
                                 <td>
-                                    <span class="badge badge-historial-usd">
+                                    <span class="badge card-custom">
                                         $<?= number_format($item['precio_usd'], 2) ?>
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="badge badge-historial-ars">
+                                    <span class="badge bg-success text-white">
                                         $<?= number_format($item['total_ars'], 2) ?>
                                     </span>
                                 </td>
                                 <td>
                                     <a href="<?= esc($item['amazon_url']) ?>" 
                                        target="_blank" 
-                                       class="btn btn-sm btn-amazon-link">
+                                       class="btn btn-sm card-custom">
                                         <i class="bi bi-box-arrow-up-right"></i>
                                     </a>
                                 </td>
                                 <td>
-                                    <div class="btn-group btn-group-sm btn-group-historial">
+                                    <div class="btn-group btn-group-sm">
                                         <a href="<?= base_url('historial/ver/' . $item['id']) ?>" 
-                                           class="btn btn-action-view" 
+                                           class="btn btn-sm btn-outline-info" 
                                            title="Ver detalles">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <a href="<?= base_url('historial/editar/' . $item['id']) ?>" 
-                                           class="btn btn-action-edit" 
+                                           class="btn btn-sm btn-outline-warning" 
                                            title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <a href="<?= base_url('historial/eliminar/' . $item['id']) ?>" 
-                                           class="btn btn-action-delete" 
+                                           class="btn btn-sm btn-outline-danger" 
                                            title="Eliminar"
                                            onclick="return confirm('¿Estás seguro de eliminar este cálculo?')">
                                             <i class="bi bi-trash"></i>
