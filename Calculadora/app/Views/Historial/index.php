@@ -159,7 +159,7 @@
                         <?php foreach ($historial as $item): ?>
                             <tr>
                                 <td class="text-white">
-                                    <small class="text-muted">
+                                    <small class="text-light">
                                         <?= date('d/m/Y H:i', strtotime($item['fecha_calculo'])) ?>
                                     </small>
                                 </td>
