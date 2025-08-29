@@ -50,6 +50,9 @@ body { background: #333e48 !important; color: #ffffff; }
 .textcolor1{
   color: rgb(146, 146, 146);
 }
+.textcolor3{
+  color: #ff9900;
+}
 .texto-transparente {
   background-color: rgba(0, 0, 0, 0.4); /* negro con 40% opacidad */
   color: white; /* texto en blanco para contraste */

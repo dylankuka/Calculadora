@@ -9,7 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 <link rel="stylesheet" href="/Calculadora/Calculadora-1/Calculadora/public/css/ind.css">
 </head>
-<body class="bg-light">
+<body class="bg-dark">
  <div class="position-absolute" style="top: 5px; left: 22px; z-index: 1000;">
    <img src="<?= base_url('img/taximporterlogo.png') ?>" 
         alt="Logo TaxImporter" 
@@ -17,9 +17,9 @@
                filter: drop-shadow(2px 2px 6px rgba(0,0,0,1.9));">
 </div>
 <!-- ✅ NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-success">
+<nav class="card-custom navbar navbar-expand-lg navbar-dark">
     <div class="container">
-        <a class="navbar-brand" href="<?= base_url('/historial') ?>">
+        <a class="navbar-brand textcolor" href="<?= base_url('/') ?>">
             <i class="bi bi-calculator"></i> TaxImporter
         </a>
         
@@ -27,7 +27,7 @@
             <span class="navbar-text me-3">
                 👤 <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
             </span>
-            <a class="btn btn-outline-light btn-sm" href="<?= base_url('usuario/logout') ?>">
+            <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
                 <i class="bi bi-box-arrow-right"></i> Salir
             </a>
         </div>
@@ -39,7 +39,7 @@
         <div class="col-lg-8">
             
             <!-- ✅ BREADCRUMB -->
-            <nav aria-label="breadcrumb">
+            <nav class="navbar-text me-3 textcolor3">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="<?= base_url('/historial') ?>">
@@ -68,15 +68,15 @@
             <?php endif; ?>
 
             <!-- ✅ FORMULARIO DE EDICIÓN -->
-            <div class="card shadow">
-                <div class="card-header bg-warning text-dark">
+            <div class="card card-custom2">
+                <div class="card-header card-custom bg-warning text-dark">
                     <h4><i class="bi bi-pencil"></i> Editar Cálculo</h4>
                     <small class="d-block">
                         <i class="bi bi-info-circle"></i> 
                         Solo puedes editar el nombre y precio. La URL original se mantiene.
                     </small>
                 </div>
-                <div class="card-body">
+                <div class="card-body card-custom2">
                     <form action="<?= base_url('historial/actualizar/' . $calculo['id']) ?>" method="post" novalidate>
                         <?= csrf_field() ?>
 
@@ -197,7 +197,7 @@
                                         onclick="recalcular()">
                                     <i class="bi bi-arrow-clockwise"></i> Recalcular
                                 </button>
-                                <button type="submit" class="btn btn-success">
+                                <button type="submit" class="btn btn-success card-custom">
                                     <i class="bi bi-check-circle"></i> Actualizar Cálculo
                                 </button>
                             </div>
