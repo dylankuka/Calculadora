@@ -58,11 +58,19 @@ body { background: #333e48 !important; color: #ffffff; }
   color: white; /* texto en blanco para contraste */
   border-radius: 10px; /* esquinas redondeadas opcionales */
   max-width: 600px; /* limitar ancho */
+  align-items: center !important;
 }
 
 .card-custom2{
   background-color: #37475a;
   color: white;
+}
+.card-custom3{
+    background-color: rgb(146, 146, 146) ;
+}
+
+.card-custom4{
+    background-color: #146eb4 ;
 }
 
 /* Estilos para el formulario de búsqueda */
