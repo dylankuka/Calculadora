@@ -28,7 +28,7 @@
                 👤 <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
             </span>
             <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
-                <i class="bi bi-box-arrow-right"></i> Salir
+                <i class="bi bi-box-arrow-right textcolor2"></i> Salir
             </a>
         </div>
     </div>
