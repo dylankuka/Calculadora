@@ -18,9 +18,9 @@
 </div>
 
 <!-- ✅ NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark card-custom">
+<nav class="card-custom navbar navbar-expand-lg navbar-dark">
     <div class="container">
-        <a class="navbar-brand" href="<?= base_url('/historial') ?>">
+        <a class="navbar-brand textcolor" href="<?= base_url('/') ?>">
             <i class="bi bi-calculator"></i> TaxImporter
         </a>
         
@@ -28,8 +28,8 @@
             <span class="navbar-text me-3">
                 👤 <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
             </span>
-            <a class="btn btn-outline-light btn-sm" href="<?= base_url('usuario/logout') ?>">
-                <i class="bi bi-box-arrow-right"></i> Salir
+                <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
+                    <i class="bi bi-box-arrow-right textcolor2"></i> Salir
             </a>
         </div>
     </div>
@@ -64,7 +64,7 @@
                 <div class="card-body card-custom2">
                     <div class="row">
                         <div class="col-lg-8">
-                            <h3 class="textprimary textcolor2">
+                            <h3 class="textprimary textcolor3">
                                 <i class="bi bi-box"></i> <?= esc($calculo['nombre_producto']) ?>
                             </h3>
                             
