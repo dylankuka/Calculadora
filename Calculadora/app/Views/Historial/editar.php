@@ -10,17 +10,18 @@
 <link rel="stylesheet" href="/Calculadora/Calculadora-1/Calculadora/public/css/ind.css">
 </head>
 <body class="bg-dark">
- <div class="position-absolute" style="top: 5px; left: 22px; z-index: 1000;">
-   <img src="<?= base_url('img/taximporterlogo.png') ?>" 
-        alt="Logo TaxImporter" 
-        style="max-width: 70px; height: auto; 
-               filter: drop-shadow(2px 2px 6px rgba(0,0,0,1.9));">
+<div class="position-absolute" style="top: 5px; left: 22px; z-index: 1000;">
+    <a href="<?= base_url() ?>">
+        <img src="<?= base_url('img/taximporterlogo.png') ?>" 
+             alt="Logo TaxImporter" 
+             style="max-width: 70px; height: auto; 
+                    filter: drop-shadow(2px 2px 6px rgba(0,0,0,1.9));">
+    </a>
 </div>
 <!-- ✅ NAVBAR -->
 <nav class="card-custom navbar navbar-expand-lg navbar-dark">
     <div class="container">
         <a class="navbar-brand textcolor" href="<?= base_url('/') ?>">
-            <i class="bi bi-calculator"></i> TaxImporter
         </a>
         
         <div class="navbar-nav ms-auto">
