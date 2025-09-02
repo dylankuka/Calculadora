@@ -16,111 +16,83 @@ class DolarService
     /**
      * Obtiene las cotizaciones del dólar desde DólarHoy
      */
-    public function obtenerCotizaciones()
-    {
-        try {
-            $url = 'https://dolarhoy.com/';
-            
-            // Configurar contexto para evitar bloqueos
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'GET',
-                    'header' => [
-                        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                        'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                        'Accept-Language: es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3',
-                        'Connection: keep-alive',
-                        'Upgrade-Insecure-Requests: 1'
-                    ],
-                    'timeout' => 10
-                ]
-            ]);
-            
-            $html = file_get_contents($url, false, $context);
-            
-            if ($html === false) {
-                throw new \Exception('No se pudo obtener el contenido de la página');
-            }
-            
-            $cotizaciones = $this->parsearHTML($html);
-            
-            // Guardar en base de datos
-            foreach ($cotizaciones as $tipo => $valor) {
-                if ($valor > 0) {
-                    $this->cotizacionModel->insert([
-                        'tipo' => $tipo,
-                        'valor_ars' => $valor,
-                        'fecha' => date('Y-m-d H:i:s')
-                    ]);
-                }
-            }
-            
-            return $cotizaciones;
-            
-        } catch (\Exception $e) {
-            log_message('error', 'Error obteniendo cotizaciones: ' . $e->getMessage());
-            return $this->obtenerCotizacionesRespaldo();
-        }
+private function httpGet($url)
+{
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_TIMEOUT => 12,
+        CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116 Safari/537.36',
+        CURLOPT_HTTPHEADER => ['Accept-Language: es-AR,es;q=0.9,en;q=0.8'],
+    ]);
+    $html = curl_exec($ch);
+    curl_close($ch);
+    return $html ?: '';
+}
+
+private function toFloatAr($s)
+{
+    // limpia todo salvo dígitos, coma y punto
+    $s = preg_replace('/[^0-9\.,]/', '', $s);
+    // caso AR: "1.787,50" -> quitar miles (.) y cambiar coma por punto
+    if (strpos($s, ',') !== false && strpos($s, '.') !== false) {
+        $s = str_replace('.', '', $s);
+        $s = str_replace(',', '.', $s);
+    } else {
+        // si viene "1787,50"
+        $s = str_replace(',', '.', $s);
     }
-    
-    /**
-     * Parsea el HTML de DólarHoy para extraer los valores
-     */
-    private function parsearHTML($html)
-    {
-        $cotizaciones = [];
-        
-        // Usar DOMDocument para parsear HTML
-        $dom = new \DOMDocument();
-        libxml_use_internal_errors(true);
-        $dom->loadHTML($html);
-        libxml_clear_errors();
-        
-        $xpath = new \DOMXPath($dom);
-        
-        try {
-            // Buscar dólar tarjeta/turista
-            $tarjetaNodes = $xpath->query("//div[contains(@class, 'tile') or contains(@class, 'cotizacion')]//span[contains(text(), 'Tarjeta') or contains(text(), 'Turista')]");
-            if ($tarjetaNodes->length > 0) {
-                $cotizaciones['tarjeta'] = $this->extraerValor($tarjetaNodes->item(0)->parentNode);
-            }
-            
-            // Buscar dólar MEP
-            $mepNodes = $xpath->query("//div[contains(@class, 'tile') or contains(@class, 'cotizacion')]//span[contains(text(), 'MEP')]");
-            if ($mepNodes->length > 0) {
-                $cotizaciones['MEP'] = $this->extraerValor($mepNodes->item(0)->parentNode);
-            }
-            
-            // Si no encuentra por clase, buscar por patrones de texto
-            if (empty($cotizaciones)) {
-                $cotizaciones = $this->parsearPorRegex($html);
-            }
-            
-        } catch (\Exception $e) {
-            log_message('error', 'Error parseando HTML: ' . $e->getMessage());
-            $cotizaciones = $this->parsearPorRegex($html);
-        }
-        
-        return $cotizaciones;
+    return (float)$s;
+}
+
+private function fetchVenta($url, $pattern)
+{
+    $html = $this->httpGet($url);
+    if (!$html) {
+        throw new \Exception('sin HTML');
     }
-    
-    /**
-     * Extrae el valor numérico de un nodo DOM
-     */
-    private function extraerValor($node)
-    {
-        $texto = $node->textContent;
-        
-        // Buscar patrón de precio: $1,234.56 o $1234.56
-        preg_match('/\$?\s*([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{2})?)/i', $texto, $matches);
-        
-        if (!empty($matches[1])) {
-            $valor = str_replace([',', '.'], ['', '.'], $matches[1]);
-            return (float) $valor;
-        }
-        
-        return 0;
+    // busca el primer "Venta $xxxx"
+    if (preg_match($pattern, $html, $m)) {
+        return $this->toFloatAr($m[1]);
     }
+    throw new \Exception('sin match');
+}
+
+public function obtenerCotizaciones()
+{
+    try {
+        // Páginas dedicadas (más estables que el home)
+        $tarjeta = $this->fetchVenta(
+            'https://dolarhoy.com/cotizacion-dolar-tarjeta',
+            '/Venta\\s*\\$\\s*([0-9\\.,]+)/su'
+        );
+
+        $mep = $this->fetchVenta(
+            'https://dolarhoy.com/cotizacion-dolar-mep',
+            '/D[óo]lar\\s*MEP.*?Venta\\s*\\$\\s*([0-9\\.,]+)/su'
+        );
+
+        $out = ['tarjeta' => $tarjeta, 'MEP' => $mep];
+
+        // guardá en DB
+        foreach ($out as $tipo => $valor) {
+            if ($valor > 0) {
+                $this->cotizacionModel->insert([
+                    'tipo' => $tipo,
+                    'valor_ars' => $valor,
+                    'fecha' => date('Y-m-d H:i:s'),
+                ]);
+            }
+        }
+        return $out;
+
+    } catch (\Throwable $e) {
+        log_message('error', 'Cotizaciones fallback: '.$e->getMessage());
+        return $this->obtenerCotizacionesRespaldo();
+    }
+}
+
     
     /**
      * Parsea usando expresiones regulares como respaldo
