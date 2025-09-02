@@ -63,12 +63,27 @@ public function index()
 
     // ✅ CREATE - MOSTRAR FORMULARIO
     public function crear()
-    {
-        $redirect = $this->validarSesion();
-        if ($redirect) return $redirect;
+{
+    $redirect = $this->validarSesion();
+    if ($redirect) return $redirect;
 
-        return view('historial/crear');
+    // ✅ OBTENER COTIZACIONES ACTUALES
+    $dolarService = new \App\Services\DolarService();
+    
+    // Actualizar si es necesario
+    if ($dolarService->necesitaActualizacion('tarjeta')) {
+        $dolarService->obtenerCotizaciones();
     }
+    
+    $cotizaciones = [
+        'tarjeta' => $dolarService->obtenerCotizacion('tarjeta'),
+        'MEP' => $dolarService->obtenerCotizacion('MEP')
+    ];
+
+    return view('historial/crear', [
+        'cotizaciones' => $cotizaciones
+    ]);
+}
 
     // ✅ CREATE - GUARDAR NUEVO REGISTRO
 // ✅ CREATE - GUARDAR NUEVO REGISTRO CON COTIZACIONES DINÁMICAS

@@ -173,19 +173,32 @@
 
                         <!-- ✅ CALCULADORA RÁPIDA -->
                         <div class="card bg-light mb-3">
-                            <div class="card-body">
-                                <h6><i class="bi bi-calculator"></i> Calculadora Rápida</h6>
-                                <p class="small text-muted">
-                                    💡 <strong>Fórmula aproximada:</strong> 
-                                    Precio USD × 1.683,5 (dólar tarjeta) × 1.71 (impuestos) + $25 USD envío
-                                </p>
-                                <button type="button" 
-                                        class="btn btn-sm btn-outline-info" 
-                                        onclick="calcularRapido()">
-                                    🧮 Calcular Automáticamente
-                                </button>
-                            </div>
-                        </div>
+<!-- ✅ CALCULADORA CON COTIZACIONES REALES -->
+<div class="card bg-light mb-3">
+    <div class="card-body">
+        <h6><i class="bi bi-calculator"></i> Cotizaciones Actuales</h6>
+        <div class="row">
+            <div class="col-md-6">
+                <small><strong>💳 Dólar Tarjeta:</strong> $<?= number_format($cotizaciones['tarjeta'], 2) ?> ARS</small>
+            </div>
+            <div class="col-md-6">
+                <small><strong>📈 Dólar MEP:</strong> $<?= number_format($cotizaciones['MEP'], 2) ?> ARS</small>
+            </div>
+        </div>
+        <hr>
+        <p class="small text-muted mb-2">
+            💡 <strong>Fórmula:</strong> 
+            Precio USD × <?= number_format($cotizaciones['tarjeta'], 2) ?> (tarjeta) × 1.71 (impuestos) + $25 USD envío
+        </p>
+        
+        <div class="input-group input-group-sm">
+            <input type="number" class="form-control" id="calc_precio" placeholder="Precio USD" step="0.01">
+            <button class="btn btn-outline-info" type="button" onclick="calcularConCotizaciones()">
+                🧮 Calcular
+            </button>
+        </div>
+    </div>
+</div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a href="<?= base_url('/historial') ?>" class="btn btn-secondary">
@@ -204,29 +217,24 @@
 
 <!-- ✅ JAVASCRIPT PARA CALCULADORA RÁPIDA -->
 <script>
-function calcularRapido() {
-    const precioUSD = parseFloat(document.getElementById('precio_usd').value) || 0;
+function calcularConCotizaciones() {
+    const precio = parseFloat(document.getElementById('calc_precio').value) || 0;
     
-    if (precioUSD <= 0) {
-        alert('⚠️ Por favor ingresa un precio en USD válido');
+    if (precio <= 0) {
+        alert('⚠️ Ingresa un precio válido');
         return;
     }
     
-    // Fórmula básica
-    const dolarTarjeta = 1683.5;
-    const factorImpuestos = 1.71; // IVA + Derechos + otros
+    const dolarTarjeta = <?= $cotizaciones['tarjeta'] ?>;
     const envioUSD = 25;
+    const factorImpuestos = 1.71;
     
-    const total = (precioUSD * dolarTarjeta * factorImpuestos) + (envioUSD * dolarTarjeta);
+    const total = (precio * dolarTarjeta * factorImpuestos) + (envioUSD * dolarTarjeta);
     
+    document.getElementById('precio_usd').value = precio.toFixed(2);
     document.getElementById('total_ars').value = total.toFixed(2);
     
-    // Mostrar breakdown
-    alert(`💰 Cálculo aproximado:
-📦 Producto: $${precioUSD} USD = $${(precioUSD * dolarTarjeta).toLocaleString()} ARS
-🏛️ Impuestos: $${((precioUSD * dolarTarjeta * factorImpuestos) - (precioUSD * dolarTarjeta)).toLocaleString()} ARS
-✈️ Envío: $${envioUSD} USD = $${(envioUSD * dolarTarjeta).toLocaleString()} ARS
-💳 TOTAL: $${total.toLocaleString()} ARS`);
+    alert(`💰 Total: $${total.toLocaleString()} ARS\n(Dólar: $${dolarTarjeta})`);
 }
 </script>
 
