@@ -71,88 +71,114 @@ public function index()
     }
 
     // ✅ CREATE - GUARDAR NUEVO REGISTRO
-    public function guardar()
-    {
-        $redirect = $this->validarSesion();
-        if ($redirect) return $redirect;
+// ✅ CREATE - GUARDAR NUEVO REGISTRO CON COTIZACIONES DINÁMICAS
+public function guardar()
+{
+    $redirect = $this->validarSesion();
+    if ($redirect) return $redirect;
 
-        // ✅ VALIDACIONES BACKEND ESTRICTAS
-        $rules = [
-            'amazon_url' => [
-                'rules' => 'required|valid_url|max_length[500]',
-                'errors' => [
-                    'required' => 'La URL de Amazon es obligatoria.',
-                    'valid_url' => 'Debe ser una URL válida.',
-                    'max_length' => 'La URL no puede exceder 500 caracteres.'
-                ]
-            ],
-            'nombre_producto' => [
-                'rules' => 'required|min_length[3]|max_length[200]',
-                'errors' => [
-                    'required' => 'El nombre del producto es obligatorio.',
-                    'min_length' => 'El nombre debe tener al menos 3 caracteres.',
-                    'max_length' => 'El nombre no puede exceder 200 caracteres.'
-                ]
-            ],
-            'precio_usd' => [
-                'rules' => 'required|decimal|greater_than[0]|less_than[99999]',
-                'errors' => [
-                    'required' => 'El precio en USD es obligatorio.',
-                    'decimal' => 'El precio debe ser un número válido.',
-                    'greater_than' => 'El precio debe ser mayor a $0.',
-                    'less_than' => 'El precio no puede exceder $99,999.'
-                ]
-            ],
-            'total_ars' => [
-                'rules' => 'required|decimal|greater_than[0]',
-                'errors' => [
-                    'required' => 'El total en ARS es obligatorio.',
-                    'decimal' => 'El total debe ser un número válido.',
-                    'greater_than' => 'El total debe ser mayor a $0.'
-                ]
+    // ✅ VALIDACIONES BACKEND ESTRICTAS (sin cambios)
+    $rules = [
+        'amazon_url' => [
+            'rules' => 'required|valid_url|max_length[500]',
+            'errors' => [
+                'required' => 'La URL de Amazon es obligatoria.',
+                'valid_url' => 'Debe ser una URL válida.',
+                'max_length' => 'La URL no puede exceder 500 caracteres.'
             ]
-        ];
+        ],
+        'nombre_producto' => [
+            'rules' => 'required|min_length[3]|max_length[200]',
+            'errors' => [
+                'required' => 'El nombre del producto es obligatorio.',
+                'min_length' => 'El nombre debe tener al menos 3 caracteres.',
+                'max_length' => 'El nombre no puede exceder 200 caracteres.'
+            ]
+        ],
+        'precio_usd' => [
+            'rules' => 'required|decimal|greater_than[0]|less_than[99999]',
+            'errors' => [
+                'required' => 'El precio en USD es obligatorio.',
+                'decimal' => 'El precio debe ser un número válido.',
+                'greater_than' => 'El precio debe ser mayor a $0.',
+                'less_than' => 'El precio no puede exceder $99,999.'
+            ]
+        ]
+    ];
 
-        if (!$this->validate($rules)) {
-            return view('historial/crear', [
-                'validation' => $this->validator,
-                'old_input' => $this->request->getPost()
-            ]);
-        }
-
-        // ✅ VALIDACIÓN ADICIONAL: URL DE AMAZON
-        $amazonUrl = $this->request->getPost('amazon_url');
-        if (!$this->esUrlAmazon($amazonUrl)) {
-            return view('historial/crear', [
-                'error' => '❌ La URL debe ser de Amazon (amazon.com, amazon.es, etc.)',
-                'old_input' => $this->request->getPost()
-            ]);
-        }
-
-        $datos = [
-            'usuario_id' => session()->get('usuario_id'),
-            'amazon_url' => trim($amazonUrl),
-            'nombre_producto' => trim($this->request->getPost('nombre_producto')),
-            'precio_usd' => (float)$this->request->getPost('precio_usd'),
-            'total_ars' => (float)$this->request->getPost('total_ars'),
-            'desglose_json' => json_encode([
-                'iva' => $this->request->getPost('precio_usd') * 0.21,
-                'derechos' => max(0, ($this->request->getPost('precio_usd') - 50) * 0.5),
-                'envio' => 25
-            ]),
-            'fecha_calculo' => date('Y-m-d H:i:s')
-        ];
-
-        try {
-            $this->historialModel->insert($datos);
-            return redirect()->to('/historial')
-                ->with('success', '✅ Cálculo guardado exitosamente.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', '❌ Error al guardar. Intenta nuevamente.');
-        }
+    if (!$this->validate($rules)) {
+        return view('historial/crear', [
+            'validation' => $this->validator,
+            'old_input' => $this->request->getPost()
+        ]);
     }
+
+    // ✅ VALIDACIÓN ADICIONAL: URL DE AMAZON
+    $amazonUrl = $this->request->getPost('amazon_url');
+    if (!$this->esUrlAmazon($amazonUrl)) {
+        return view('historial/crear', [
+            'error' => '❌ La URL debe ser de Amazon (amazon.com, amazon.es, etc.)',
+            'old_input' => $this->request->getPost()
+        ]);
+    }
+
+    // ✅ OBTENER COTIZACIONES DINÁMICAS
+    $dolarService = new \App\Services\DolarService();
+    
+    // Verificar si necesita actualización
+    if ($dolarService->necesitaActualizacion('tarjeta')) {
+        $dolarService->obtenerCotizaciones();
+    }
+    
+    $dolarTarjeta = $dolarService->obtenerCotizacion('tarjeta');
+    $dolarMEP = $dolarService->obtenerCotizacion('MEP');
+    
+    // ✅ CÁLCULOS CON VALORES DINÁMICOS
+    $precioUSD = (float)$this->request->getPost('precio_usd');
+    $envioUSD = 25; // Costo fijo de envío
+    
+    // Cálculo de impuestos
+    $iva = $precioUSD * 0.21;
+    $derechosImportacion = max(0, ($precioUSD - 50) * 0.5);
+    
+    // Total en ARS usando dólar tarjeta
+    $totalProductoARS = $precioUSD * $dolarTarjeta;
+    $totalImpuestosARS = ($iva + $derechosImportacion) * $dolarTarjeta;
+    $totalEnvioARS = $envioUSD * $dolarTarjeta;
+    $totalFinalARS = $totalProductoARS + $totalImpuestosARS + $totalEnvioARS;
+
+    $datos = [
+        'usuario_id' => session()->get('usuario_id'),
+        'amazon_url' => trim($amazonUrl),
+        'nombre_producto' => trim($this->request->getPost('nombre_producto')),
+        'precio_usd' => $precioUSD,
+        'total_ars' => round($totalFinalARS, 2),
+        'desglose_json' => json_encode([
+            'precio_usd' => $precioUSD,
+            'envio_usd' => $envioUSD,
+            'iva_usd' => $iva,
+            'derechos_usd' => $derechosImportacion,
+            'dolar_tarjeta' => $dolarTarjeta,
+            'dolar_mep' => $dolarMEP,
+            'total_producto_ars' => round($totalProductoARS, 2),
+            'total_impuestos_ars' => round($totalImpuestosARS, 2),
+            'total_envio_ars' => round($totalEnvioARS, 2),
+            'fecha_cotizacion' => date('Y-m-d H:i:s')
+        ]),
+        'fecha_calculo' => date('Y-m-d H:i:s')
+    ];
+
+    try {
+        $this->historialModel->insert($datos);
+        return redirect()->to('/historial')
+            ->with('success', "✅ Cálculo guardado exitosamente. Dólar tarjeta: $$dolarTarjeta ARS");
+    } catch (\Exception $e) {
+        log_message('error', 'Error guardando cálculo: ' . $e->getMessage());
+        return redirect()->back()
+            ->withInput()
+            ->with('error', '❌ Error al guardar. Intenta nuevamente.');
+    }
+}
 
     // ✅ READ - MOSTRAR UN REGISTRO
     public function ver($id)
