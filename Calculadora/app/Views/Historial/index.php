@@ -32,9 +32,13 @@
                 <span class="navbar-text me-3 textcolor">
                     👤 Hola, <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
                 </span>
+                 <a class="btn btn-outline-dark btn-sm" href="<?= base_url('Historial/donar') ?>">
+                    <i class="textcolor2"></i> 🧡donar
+                </a>
                 <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
                     <i class="bi bi-box-arrow-right textcolor2"></i> Salir
                 </a>
+            
             <?php else: ?>
                 <!-- Usuario no logueado -->
                 <a class="btn card-custom2 btn-sm me-2" href="<?= base_url('usuario/login') ?>">
@@ -224,6 +228,9 @@
         </div>
     </div>
 <?php endif; ?>
+
+
+
 <div class="container d-flex justify-content-center">
     <div class="texto-transparente p-4 text-center mt-5"> <!-- mt-5 = margin-top -->
         <h2>¡Bienvenido a TaxImporter!</h2>
