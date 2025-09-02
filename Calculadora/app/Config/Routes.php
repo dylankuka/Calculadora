@@ -29,3 +29,8 @@ $routes->get('historial/eliminar/(:num)', 'Historial::eliminar/$1');
 $routes->get('calculadora', 'Calculadora::formulario');
 $routes->post('calcular', 'Calculadora::calcular');
 $routes->get('formulario', 'Calculadora::formulario');
+
+
+// ✅ RUTAS PARA COTIZACIONES
+$routes->get('dolar/actualizar', 'Dolar::actualizar');
+$routes->get('dolar/obtener', 'Dolar::obtener');
