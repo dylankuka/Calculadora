@@ -30,7 +30,6 @@ $routes->get('calculadora', 'Calculadora::formulario');
 $routes->post('calcular', 'Calculadora::calcular');
 $routes->get('formulario', 'Calculadora::formulario');
 
-
 // ✅ RUTAS PARA COTIZACIONES
 $routes->get('dolar/actualizar', 'Dolar::actualizar');
 $routes->get('dolar/obtener', 'Dolar::obtener');
@@ -41,3 +40,31 @@ $routes->post('amazon/validar', 'Amazon::validar');
 
 // ✅ NUEVA RUTA PARA CÁLCULO AVANZADO  
 $routes->post('historial/calcular', 'Historial::calcular');
+
+// 🧡 RUTAS PARA DONACIONES CON MERCADOPAGO
+$routes->group('donacion', function($routes) {
+    // Página principal de donaciones
+    $routes->get('', 'Donacion::index');
+    
+    // Crear nueva donación y redirigir a MercadoPago
+    $routes->post('crear', 'Donacion::crear');
+    
+    // Webhook para notificaciones de MercadoPago (sin autenticación)
+    $routes->post('webhook', 'Donacion::webhook');
+    
+    // Páginas de retorno desde MercadoPago
+    $routes->get('exito', 'Donacion::exito');
+    $routes->get('fallo', 'Donacion::fallo');
+    $routes->get('pendiente', 'Donacion::exito'); // Redirige al mismo lugar
+    
+    // Ver detalles de una donación específica
+    $routes->get('ver/(:num)', 'Donacion::ver/$1');
+    
+    // Rutas adicionales para administración (futuro)
+    $routes->get('estadisticas', 'Donacion::estadisticas');
+});
+
+// 🧡 RUTAS ALTERNATIVAS PARA DONACIONES (compatibilidad)
+$routes->get('donar', 'Donacion::index');
+$routes->get('apoyo', 'Donacion::index');
+$routes->get('contribuir', 'Donacion::index');

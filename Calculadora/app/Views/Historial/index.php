@@ -32,7 +32,7 @@
                 <span class="navbar-text me-3 textcolor">
                     👤 Hola, <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
                 </span>
-                 <a class="btn btn-outline-dark btn-sm" href="<?= base_url('Historial/donar') ?>">
+                 <a class="btn btn-outline-dark btn-sm" href="<?= base_url('donacion/index') ?>">
                     <i class="textcolor2"></i> 🧡donar
                 </a>
                 <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
