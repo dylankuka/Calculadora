@@ -36,6 +36,7 @@ class ComposerStaticIniteceec0d3acdf2310743b34aa79746d5f
         ),
         'M' => 
         array (
+            'MercadoPago\\' => 12,
             'Masterminds\\' => 12,
         ),
         'G' => 
@@ -96,6 +97,10 @@ class ComposerStaticIniteceec0d3acdf2310743b34aa79746d5f
         'Psr\\Container\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
+        ),
+        'MercadoPago\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/mercadopago/dx-php/src/MercadoPago',
         ),
         'Masterminds\\' => 
         array (

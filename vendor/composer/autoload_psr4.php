@@ -19,6 +19,7 @@ return array(
     'Symfony\\Component\\BrowserKit\\' => array($vendorDir . '/symfony/browser-kit'),
     'Psr\\Log\\' => array($vendorDir . '/psr/log/src'),
     'Psr\\Container\\' => array($vendorDir . '/psr/container/src'),
+    'MercadoPago\\' => array($vendorDir . '/mercadopago/dx-php/src/MercadoPago'),
     'Masterminds\\' => array($vendorDir . '/masterminds/html5/src'),
     'Goutte\\' => array($vendorDir . '/fabpot/goutte/Goutte'),
 );

@@ -1,5 +1,6 @@
 {
     "require": {
-        "fabpot/goutte": "^4.0"
+        "fabpot/goutte": "^4.0",
+        "mercadopago/dx-php": "^3.7"
     }
 }
