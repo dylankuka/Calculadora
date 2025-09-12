@@ -124,6 +124,7 @@
                                 <button type="button" class="btn btn-outline-success flex-fill" onclick="setMonto(10000)">$10.000</button>
                             </div>
                         </div>
+<<<<<<< HEAD
 
                         <!-- ✅ MONTO PERSONALIZADO -->
                         <div class="row mb-3">
@@ -179,6 +180,8 @@
                             </div>
                         </div>
 
+=======
+>>>>>>> 50fd9707a52edbf8c23b8fb56d8bc9ebff2db1f4
                         <!-- ✅ INFORMACIÓN SOBRE EL USO DE FONDOS -->
                         <div class="card bg-info text-dark mb-4">
                             <div class="card-body">
@@ -268,6 +271,7 @@
     </div>
 
     <!-- ✅ MENSAJE DE AGRADECIMIENTO -->
+<<<<<<< HEAD
     <div class="d-flex justify-content-center align-items-center mt-1" style="min-height: 300px;">
             <div class="texto-transparente p-4 text-center">
                 <h3 class="text-light">🙏 ¡Gracias por tu apoyo!</h3>
@@ -275,6 +279,15 @@
                     TaxImporter es un proyecto independiente creado por estudiantes.<br>
                     Cada donación nos ayuda a mantener el servicio gratuito y mejorarlo continuamente.
                 </p>
+=======
+<div class="d-flex justify-content-center align-items-center mt-1" style="min-height: 300px;">
+    <div class="texto-transparente p-4 text-center">
+        <h3 class="textcolor">🙏 ¡Gracias por tu apoyo!</h3>
+        <p class="textcolor">
+            TaxImporter es un proyecto independiente creado por estudiantes.<br>
+            Cada donación nos ayuda a mantener el servicio gratuito y mejorarlo continuamente.
+        </p>
+>>>>>>> 50fd9707a52edbf8c23b8fb56d8bc9ebff2db1f4
             </div>
         </div>
     </div>
