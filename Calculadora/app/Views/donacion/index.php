@@ -58,8 +58,8 @@
     <!-- ✅ HEADER PRINCIPAL -->
     <div class="row mb-4">
         <div class="col-12 text-center">
-            <h1 class="textcolor mb-3">🧡 Apoyar a TaxImporter</h1>
-            <p class="textcolor lead">
+            <h1 class="text-light mb-3">🧡 Apoyar a TaxImporter</h1>
+            <p class="text-light lead">
                 Ayúdanos a mantener y mejorar esta herramienta gratuita para toda la comunidad
             </p>
         </div>
@@ -113,7 +113,7 @@
 
                         <!-- ✅ BOTONES DE MONTO RÁPIDO -->
                         <div class="mb-4">
-                            <label class="form-label textcolor">
+                            <label class="form-label text-light">
                                 <i class="bi bi-currency-dollar"></i> Selecciona un monto o ingresa uno personalizado
                             </label>
                             <div class="d-grid gap-2 d-md-flex justify-content-md-center mb-3">
@@ -128,7 +128,7 @@
                         <!-- ✅ MONTO PERSONALIZADO -->
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="monto" class="form-label textcolor">
+                                <label for="monto" class="form-label text-light">
                                     <i class="bi bi-cash-coin"></i> Monto Personalizado (ARS) *
                                 </label>
                                 <div class="input-group">
@@ -145,12 +145,12 @@
                                            required>
                                     <span class="input-group-text">ARS</span>
                                 </div>
-                                <div class="form-text text-muted">
+                                <div class="form-text text-light">
                                     Monto mínimo: $100 - Máximo: $100.000
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label textcolor">
+                                <label class="form-label text-light">
                                     <i class="bi bi-credit-card"></i> Métodos de Pago Disponibles
                                 </label>
                                 <div class="d-flex flex-wrap gap-2">
@@ -165,7 +165,7 @@
 
                         <!-- ✅ MENSAJE OPCIONAL -->
                         <div class="mb-4">
-                            <label for="mensaje" class="form-label textcolor">
+                            <label for="mensaje" class="form-label text-light">
                                 <i class="bi bi-chat-left-text"></i> Mensaje Opcional
                             </label>
                             <textarea class="form-control" 
@@ -174,7 +174,7 @@
                                       rows="3" 
                                       maxlength="500"
                                       placeholder="Deja un mensaje de apoyo (opcional)..."><?= set_value('mensaje') ?></textarea>
-                            <div class="form-text text-muted">
+                            <div class="form-text text-light">
                                 Máximo 500 caracteres
                             </div>
                         </div>
@@ -268,11 +268,10 @@
     </div>
 
     <!-- ✅ MENSAJE DE AGRADECIMIENTO -->
-    <div class="row mt-5">
-        <div class="col-12 text-center">
-            <div class="texto-transparente p-4">
-                <h3 class="textcolor">🙏 ¡Gracias por tu apoyo!</h3>
-                <p class="textcolor">
+    <div class="d-flex justify-content-center align-items-center mt-1" style="min-height: 300px;">
+            <div class="texto-transparente p-4 text-center">
+                <h3 class="text-light">🙏 ¡Gracias por tu apoyo!</h3>
+                <p class="textcolor1">
                     TaxImporter es un proyecto independiente creado por estudiantes.<br>
                     Cada donación nos ayuda a mantener el servicio gratuito y mejorarlo continuamente.
                 </p>
