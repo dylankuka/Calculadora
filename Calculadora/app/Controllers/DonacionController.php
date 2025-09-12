@@ -4,7 +4,7 @@ namespace App\Controllers;
 use App\Models\DonacionModel;
 use App\Services\MercadoPagoService;
 
-class Donacion extends BaseController
+class DonacionController extends BaseController
 {
     private $donacionModel;
     private $mercadoPagoService;

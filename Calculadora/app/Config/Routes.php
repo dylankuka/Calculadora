@@ -41,30 +41,35 @@ $routes->post('amazon/validar', 'Amazon::validar');
 // ✅ NUEVA RUTA PARA CÁLCULO AVANZADO  
 $routes->post('historial/calcular', 'Historial::calcular');
 
-// 🧡 RUTAS PARA DONACIONES CON MERCADOPAGO
+// 🧡 RUTAS PARA DONACIONES CON MERCADOPAGO - CORREGIDO
 $routes->group('donacion', function($routes) {
-    // Página principal de donaciones
-    $routes->get('', 'Donacion::index');
+    // Página principal de donaciones - CORREGIDO: usar DonacionController en lugar de Donacion
+    $routes->get('', 'DonacionController::index');
     
     // Crear nueva donación y redirigir a MercadoPago
-    $routes->post('crear', 'Donacion::crear');
+    $routes->post('crear', 'DonacionController::crear');
     
     // Webhook para notificaciones de MercadoPago (sin autenticación)
-    $routes->post('webhook', 'Donacion::webhook');
+    $routes->post('webhook', 'DonacionController::webhook');
     
     // Páginas de retorno desde MercadoPago
-    $routes->get('exito', 'Donacion::exito');
-    $routes->get('fallo', 'Donacion::fallo');
-    $routes->get('pendiente', 'Donacion::exito'); // Redirige al mismo lugar
+    $routes->get('exito', 'DonacionController::exito');
+    $routes->get('fallo', 'DonacionController::fallo');
+    $routes->get('pendiente', 'DonacionController::exito'); // Redirige al mismo lugar
     
     // Ver detalles de una donación específica
-    $routes->get('ver/(:num)', 'Donacion::ver/$1');
+    $routes->get('ver/(:num)', 'DonacionController::ver/$1');
     
     // Rutas adicionales para administración (futuro)
-    $routes->get('estadisticas', 'Donacion::estadisticas');
+    $routes->get('estadisticas', 'DonacionController::estadisticas');
 });
 
-// 🧡 RUTAS ALTERNATIVAS PARA DONACIONES (compatibilidad)
-$routes->get('donar', 'Donacion::index');
-$routes->get('apoyo', 'Donacion::index');
-$routes->get('contribuir', 'Donacion::index');
+// 🧡 RUTAS ALTERNATIVAS PARA DONACIONES (compatibilidad) - CORREGIDO
+$routes->get('donar', 'DonacionController::index');
+$routes->get('apoyo', 'DonacionController::index');
+$routes->get('contribuir', 'DonacionController::index');
+
+// DEBUG: Ruta simple de prueba
+$routes->get('test-donacion', function() {
+    return 'La ruta funciona';
+});
