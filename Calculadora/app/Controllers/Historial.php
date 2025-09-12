@@ -62,15 +62,15 @@ public function index()
 }
 
     // ✅ CREATE - MOSTRAR FORMULARIO
-    public function crear()
+    // ✅ CAMBIAR ESTE MÉTODO EXISTENTE:
+public function crear()
 {
     $redirect = $this->validarSesion();
     if ($redirect) return $redirect;
 
-    // ✅ OBTENER COTIZACIONES ACTUALES
+    // ✅ AGREGAR ESTAS LÍNEAS:
     $dolarService = new \App\Services\DolarService();
     
-    // Actualizar si es necesario
     if ($dolarService->necesitaActualizacion('tarjeta')) {
         $dolarService->obtenerCotizaciones();
     }
@@ -81,7 +81,7 @@ public function index()
     ];
 
     return view('historial/crear', [
-        'cotizaciones' => $cotizaciones
+        'cotizaciones' => $cotizaciones  // ← AGREGAR ESTA LÍNEA
     ]);
 }
 
@@ -347,4 +347,117 @@ public function guardar()
         }
         return false;
     }
+    // ✅ NUEVO MÉTODO CALCULAR CON LOCALIDADES E IMPUESTOS
+public function calcular()
+{
+    $redirect = $this->validarSesion();
+    if ($redirect) return $redirect;
+
+    // ✅ VALIDACIONES
+    $rules = [
+        'amazon_url' => 'required|valid_url',
+        'nombre_producto' => 'required|min_length[3]|max_length[200]',
+        'precio_usd' => 'required|decimal|greater_than[0]',
+        'provincia' => 'required|max_length[10]',
+        'ciudad' => 'required|max_length[100]',
+        'tipo_cambio' => 'required|in_list[tarjeta,MEP,blue,oficial]',
+        'total_ars' => 'required|decimal|greater_than[0]'
+    ];
+
+    if (!$this->validate($rules)) {
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Por favor completa todos los campos correctamente.');
+    }
+
+    // ✅ OBTENER DATOS
+    $amazonUrl = $this->request->getPost('amazon_url');
+    $nombreProducto = $this->request->getPost('nombre_producto');
+    $precioUSD = (float)$this->request->getPost('precio_usd');
+    $provincia = $this->request->getPost('provincia');
+    $ciudad = $this->request->getPost('ciudad');
+    $tipoCambio = $this->request->getPost('tipo_cambio');
+    $totalARS = (float)$this->request->getPost('total_ars');
+
+    // ✅ OBTENER COTIZACIONES ACTUALES
+    $dolarService = new \App\Services\DolarService();
+    
+    if ($dolarService->necesitaActualizacion($tipoCambio)) {
+        $dolarService->obtenerCotizaciones();
+    }
+    
+    $cotizacion = $dolarService->obtenerCotizacion($tipoCambio);
+
+    // ✅ CALCULAR IMPUESTOS POR LOCALIDAD
+    $impuestos = $this->obtenerImpuestosPorLocalidad($provincia);
+    
+    // ✅ DESGLOSE DETALLADO
+    $envioUSD = 25;
+    $baseARS = $precioUSD * $cotizacion;
+    $ivaARS = $baseARS * ($impuestos['iva'] / 100);
+    $derechosARS = $baseARS * ($impuestos['derechos'] / 100);
+    $adicionalesARS = $baseARS * ($impuestos['adicionales'] / 100);
+    $envioARS = $envioUSD * $cotizacion;
+    
+    $totalCalculadoARS = $baseARS + $ivaARS + $derechosARS + $adicionalesARS + $envioARS;
+
+    // ✅ GUARDAR EN BASE DE DATOS
+    $datos = [
+        'usuario_id' => session()->get('usuario_id'),
+        'amazon_url' => trim($amazonUrl),
+        'nombre_producto' => trim($nombreProducto),
+        'precio_usd' => $precioUSD,
+        'total_ars' => round($totalCalculadoARS, 2),
+        'desglose_json' => json_encode([
+            'precio_usd' => $precioUSD,
+            'envio_usd' => $envioUSD,
+            'cotizacion' => $cotizacion,
+            'tipo_cambio' => $tipoCambio,
+            'provincia' => $provincia,
+            'ciudad' => $ciudad,
+            'impuestos' => $impuestos,
+            'desglose_ars' => [
+                'base' => round($baseARS, 2),
+                'iva' => round($ivaARS, 2),
+                'derechos' => round($derechosARS, 2),
+                'adicionales' => round($adicionalesARS, 2),
+                'envio' => round($envioARS, 2),
+                'total' => round($totalCalculadoARS, 2)
+            ],
+            'fecha_cotizacion' => date('Y-m-d H:i:s')
+        ]),
+        'fecha_calculo' => date('Y-m-d H:i:s')
+    ];
+
+    try {
+        $this->historialModel->insert($datos);
+        
+        return redirect()->to('/historial')
+            ->with('success', "✅ Cálculo guardado. Total: $" . number_format($totalCalculadoARS, 2) . " ARS ($provincia - $tipoCambio: $$cotizacion)");
+            
+    } catch (\Exception $e) {
+        log_message('error', 'Error guardando cálculo: ' . $e->getMessage());
+        return redirect()->back()
+            ->withInput()
+            ->with('error', '❌ Error al guardar el cálculo.');
+    }
+}
+
+// ✅ MÉTODO AUXILIAR PARA IMPUESTOS POR LOCALIDAD
+private function obtenerImpuestosPorLocalidad($provincia)
+{
+    $impuestosPorProvincia = [
+        'CABA' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 0],
+        'BA' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 2.5], // ARBA
+        'CB' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 1.5], // Rentas Córdoba
+        'SF' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 2.0], // ATER
+        'MZ' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 1.8],
+        'TU' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 1.0],
+        'ER' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 1.5],
+        'SA' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 1.2],
+        // Más provincias...
+    ];
+
+    return $impuestosPorProvincia[$provincia] ?? ['iva' => 21, 'derechos' => 50, 'adicionales' => 0];
+}
 }

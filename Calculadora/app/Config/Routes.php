@@ -34,3 +34,10 @@ $routes->get('formulario', 'Calculadora::formulario');
 // ✅ RUTAS PARA COTIZACIONES
 $routes->get('dolar/actualizar', 'Dolar::actualizar');
 $routes->get('dolar/obtener', 'Dolar::obtener');
+
+// ✅ RUTAS PARA AMAZON API
+$routes->post('amazon/obtener', 'Amazon::obtener');
+$routes->post('amazon/validar', 'Amazon::validar');
+
+// ✅ NUEVA RUTA PARA CÁLCULO AVANZADO  
+$routes->post('historial/calcular', 'Historial::calcular');
