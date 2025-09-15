@@ -359,8 +359,7 @@ public function calcular()
         'nombre_producto' => 'required|min_length[3]|max_length[200]',
         'precio_usd' => 'required|decimal|greater_than[0]',
         'provincia' => 'required|max_length[10]',
-        'ciudad' => 'required|max_length[100]',
-        'tipo_cambio' => 'required|in_list[tarjeta,MEP,blue,oficial]',
+'tipo_cambio' => 'required|in_list[tarjeta,MEP]',
         'total_ars' => 'required|decimal|greater_than[0]'
     ];
 
@@ -375,7 +374,6 @@ public function calcular()
     $nombreProducto = $this->request->getPost('nombre_producto');
     $precioUSD = (float)$this->request->getPost('precio_usd');
     $provincia = $this->request->getPost('provincia');
-    $ciudad = $this->request->getPost('ciudad');
     $tipoCambio = $this->request->getPost('tipo_cambio');
     $totalARS = (float)$this->request->getPost('total_ars');
 
@@ -414,7 +412,6 @@ public function calcular()
             'cotizacion' => $cotizacion,
             'tipo_cambio' => $tipoCambio,
             'provincia' => $provincia,
-            'ciudad' => $ciudad,
             'impuestos' => $impuestos,
             'desglose_ars' => [
                 'base' => round($baseARS, 2),

@@ -129,7 +129,7 @@
                                         <label for="provincia" class="form-label">
                                             <i class="bi bi-geo-alt"></i> Provincia *
                                         </label>
-                                        <select class="form-select" id="provincia" name="provincia" required onchange="actualizarCiudades()">
+                                        <select class="form-select" id="provincia" name="provincia">
                                             <option value="">Selecciona tu provincia</option>
                                             <option value="CABA">Ciudad de Buenos Aires</option>
                                             <option value="BA">Buenos Aires</option>
@@ -156,16 +156,6 @@
                                             <option value="TF">Tierra del Fuego</option>
                                             <option value="SC">Santa Cruz</option>
                                         </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="ciudad" class="form-label">
-                                            <i class="bi bi-building"></i> Ciudad *
-                                        </label>
-                                        <select class="form-select" id="ciudad" name="ciudad" required>
-                                            <option value="">Primero selecciona provincia</option>
-                                        </select>
-                                    </div>
-                                </div>
                                 
                                 <!-- ✅ INFO IMPUESTOS POR LOCALIDAD -->
                                 <div id="impuestos-info" class="mt-3 card bg-warning text-dark" style="display: none;">
@@ -200,8 +190,6 @@
                                             <option value="">Selecciona tipo de cambio</option>
                                             <option value="tarjeta">💳 Dólar Tarjeta/Turista</option>
                                             <option value="MEP">📈 Dólar MEP/Bolsa</option>
-                                            <option value="blue">🔵 Dólar Blue</option>
-                                            <option value="oficial">🏛️ Dólar Oficial + Impuestos</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
@@ -294,27 +282,6 @@ const impuestosPorProvincia = {
     // ... más configuraciones
 };
 
-function actualizarCiudades() {
-    const provincia = document.getElementById('provincia').value;
-    const ciudadSelect = document.getElementById('ciudad');
-    
-    ciudadSelect.innerHTML = '<option value="">Selecciona ciudad</option>';
-    
-    if (ciudadesPorProvincia[provincia]) {
-        ciudadesPorProvincia[provincia].forEach(ciudad => {
-            ciudadSelect.innerHTML += `<option value="${ciudad}">${ciudad}</option>`;
-        });
-    }
-    
-    // Mostrar info de impuestos
-    if (impuestosPorProvincia[provincia]) {
-        const info = impuestosPorProvincia[provincia];
-        document.getElementById('iva-porcentaje').textContent = info.iva + '%';
-        document.getElementById('derechos-porcentaje').textContent = info.derechos + '%';
-        document.getElementById('adicionales-porcentaje').textContent = info.adicionales + '%';
-        document.getElementById('impuestos-info').style.display = 'block';
-    }
-}
 
 function actualizarCotizacion() {
     const tipo = document.getElementById('tipo_cambio').value;
