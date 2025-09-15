@@ -58,8 +58,8 @@
     <!-- ✅ HEADER PRINCIPAL -->
     <div class="row mb-4">
         <div class="col-12 text-center">
-            <h1 class="textcolor mb-3">🧡 Apoyar a TaxImporter</h1>
-            <p class="textcolor lead">
+            <h1 class="text-light mb-3">🧡 Apoyar a TaxImporter</h1>
+            <p class="text-light lead">
                 Ayúdanos a mantener y mejorar esta herramienta gratuita para toda la comunidad
             </p>
         </div>
@@ -113,7 +113,7 @@
 
                         <!-- ✅ BOTONES DE MONTO RÁPIDO -->
                         <div class="mb-4">
-                            <label class="form-label textcolor">
+                            <label class="form-label text-light">
                                 <i class="bi bi-currency-dollar"></i> Selecciona un monto o ingresa uno personalizado
                             </label>
                             <div class="d-grid gap-2 d-md-flex justify-content-md-center mb-3">
@@ -124,6 +124,61 @@
                                 <button type="button" class="btn btn-outline-success flex-fill" onclick="setMonto(10000)">$10.000</button>
                             </div>
                         </div>
+
+                        <!-- ✅ MONTO PERSONALIZADO -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="monto" class="form-label text-light">
+                                    <i class="bi bi-cash-coin"></i> Monto Personalizado (ARS) *
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="monto" 
+                                           name="monto" 
+                                           min="100" 
+                                           max="100000" 
+                                           step="0.01"
+                                           placeholder="Ingresa el monto"
+                                           value="<?= set_value('monto') ?>" 
+                                           required>
+                                    <span class="input-group-text">ARS</span>
+                                </div>
+                                <div class="form-text text-light">
+                                    Monto mínimo: $100 - Máximo: $100.000
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-light">
+                                    <i class="bi bi-credit-card"></i> Métodos de Pago Disponibles
+                                </label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge bg-primary">Tarjeta de Crédito</span>
+                                    <span class="badge bg-primary">Tarjeta de Débito</span>
+                                    <span class="badge bg-success">MercadoPago</span>
+                                    <span class="badge bg-info">Rapipago</span>
+                                    <span class="badge bg-warning text-dark">Pago Fácil</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ✅ MENSAJE OPCIONAL -->
+                        <div class="mb-4">
+                            <label for="mensaje" class="form-label text-light">
+                                <i class="bi bi-chat-left-text"></i> Mensaje Opcional
+                            </label>
+                            <textarea class="form-control" 
+                                      id="mensaje" 
+                                      name="mensaje" 
+                                      rows="3" 
+                                      maxlength="500"
+                                      placeholder="Deja un mensaje de apoyo (opcional)..."><?= set_value('mensaje') ?></textarea>
+                            <div class="form-text text-light">
+                                Máximo 500 caracteres
+                            </div>
+                        </div>
+
                         <!-- ✅ INFORMACIÓN SOBRE EL USO DE FONDOS -->
                         <div class="card bg-info text-dark mb-4">
                             <div class="card-body">
@@ -213,13 +268,15 @@
     </div>
 
     <!-- ✅ MENSAJE DE AGRADECIMIENTO -->
-<div class="d-flex justify-content-center align-items-center mt-1" style="min-height: 300px;">
-    <div class="texto-transparente p-4 text-center">
-        <h3 class="textcolor">🙏 ¡Gracias por tu apoyo!</h3>
-        <p class="textcolor">
-            TaxImporter es un proyecto independiente creado por estudiantes.<br>
-            Cada donación nos ayuda a mantener el servicio gratuito y mejorarlo continuamente.
-        </p>
+
+    <div class="d-flex justify-content-center align-items-center mt-1" style="min-height: 300px;">
+            <div class="texto-transparente p-4 text-center">
+                <h3 class="text-light">🙏 ¡Gracias por tu apoyo!</h3>
+                <p class="textcolor1">
+                    TaxImporter es un proyecto independiente creado por estudiantes.<br>
+                    Cada donación nos ayuda a mantener el servicio gratuito y mejorarlo continuamente.
+                </p>
+
             </div>
         </div>
     </div>
