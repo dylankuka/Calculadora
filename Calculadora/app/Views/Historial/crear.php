@@ -120,16 +120,16 @@
                             </div>
                         </div>
 
-                        <!-- ✅ PASO 2: LOCALIDAD ARGENTINA -->
+                        <!-- ✅ PASO 2: PROVINCIA ARGENTINA -->
                         <div class="row mb-4">
                             <div class="col-12">
                                 <h5 class="text-warning">🇦🇷 Paso 2: Localidad de Entrega</h5>
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-8">
                                         <label for="provincia" class="form-label">
                                             <i class="bi bi-geo-alt"></i> Provincia *
                                         </label>
-                                        <select class="form-select" id="provincia" name="provincia">
+                                        <select class="form-select" id="provincia" name="provincia" required onchange="mostrarImpuestos()">
                                             <option value="">Selecciona tu provincia</option>
                                             <option value="CABA">Ciudad de Buenos Aires</option>
                                             <option value="BA">Buenos Aires</option>
@@ -156,20 +156,17 @@
                                             <option value="TF">Tierra del Fuego</option>
                                             <option value="SC">Santa Cruz</option>
                                         </select>
-                                
-                                <!-- ✅ INFO IMPUESTOS POR LOCALIDAD -->
-                                <div id="impuestos-info" class="mt-3 card bg-warning text-dark" style="display: none;">
-                                    <div class="card-body">
-                                        <h6><i class="bi bi-info-circle"></i> Impuestos Aplicables</h6>
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <strong>IVA:</strong> <span id="iva-porcentaje">21%</span>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <strong>Derechos:</strong> <span id="derechos-porcentaje">50%</span>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <strong>Adicionales:</strong> <span id="adicionales-porcentaje">0%</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <!-- ✅ INFO IMPUESTOS POR LOCALIDAD -->
+                                        <div id="impuestos-info" class="card bg-warning text-dark" style="display: none;">
+                                            <div class="card-body p-2">
+                                                <h6><i class="bi bi-info-circle"></i> Impuestos</h6>
+                                                <small>
+                                                    <strong>IVA:</strong> <span id="iva-porcentaje">21%</span><br>
+                                                    <strong>Derechos:</strong> <span id="derechos-porcentaje">50%</span><br>
+                                                    <strong>Adicionales:</strong> <span id="adicionales-porcentaje">0%</span>
+                                                </small>
                                             </div>
                                         </div>
                                     </div>
@@ -265,30 +262,53 @@
 // Datos de cotizaciones actuales (desde PHP)
 const cotizacionesActuales = <?= json_encode($cotizaciones ?? ['tarjeta' => 1683.5, 'MEP' => 1650.0]) ?>;
 
-// Datos de ciudades por provincia
-const ciudadesPorProvincia = {
-    'CABA': ['Ciudad de Buenos Aires'],
-    'BA': ['La Plata', 'Mar del Plata', 'Bahía Blanca', 'Tandil', 'Olavarría'],
-    'CB': ['Córdoba', 'Río Cuarto', 'Villa María', 'San Francisco'],
-    'SF': ['Santa Fe', 'Rosario', 'Rafaela', 'Venado Tuerto'],
-    // ... más ciudades
-};
-
-// Impuestos por provincia (ejemplo)
+// Impuestos por provincia
 const impuestosPorProvincia = {
     'CABA': { iva: 21, derechos: 50, adicionales: 0 },
     'BA': { iva: 21, derechos: 50, adicionales: 2.5 },
     'CB': { iva: 21, derechos: 50, adicionales: 1.5 },
-    // ... más configuraciones
+    'SF': { iva: 21, derechos: 50, adicionales: 2.0 },
+    'MZ': { iva: 21, derechos: 50, adicionales: 1.8 },
+    'TU': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'ER': { iva: 21, derechos: 50, adicionales: 1.5 },
+    'SA': { iva: 21, derechos: 50, adicionales: 1.2 },
+    'CC': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'CR': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'MI': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'SJ': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'SL': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'JY': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'RN': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'NQ': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'CH': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'LP': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'FO': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'CT': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'LR': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'SC': { iva: 21, derechos: 50, adicionales: 1.0 },
+    'TF': { iva: 21, derechos: 50, adicionales: 1.0 }
 };
 
+function mostrarImpuestos() {
+    const provincia = document.getElementById('provincia').value;
+    if (provincia && impuestosPorProvincia[provincia]) {
+        const impuestos = impuestosPorProvincia[provincia];
+        document.getElementById('iva-porcentaje').textContent = impuestos.iva + '%';
+        document.getElementById('derechos-porcentaje').textContent = impuestos.derechos + '%';
+        document.getElementById('adicionales-porcentaje').textContent = impuestos.adicionales + '%';
+        document.getElementById('impuestos-info').style.display = 'block';
+    } else {
+        document.getElementById('impuestos-info').style.display = 'none';
+    }
+}
 
 function actualizarCotizacion() {
     const tipo = document.getElementById('tipo_cambio').value;
-    const cotizacion = cotizacionesActuales[tipo] || 0;
-    
-    document.getElementById('cotizacion_actual').value = cotizacion.toLocaleString();
-    document.getElementById('fecha_cotizacion').textContent = new Date().toLocaleString();
+    if (tipo && cotizacionesActuales[tipo]) {
+        const cotizacion = cotizacionesActuales[tipo];
+        document.getElementById('cotizacion_actual').value = cotizacion.toLocaleString();
+        document.getElementById('fecha_cotizacion').textContent = new Date().toLocaleString();
+    }
 }
 
 async function obtenerProducto() {
@@ -304,40 +324,42 @@ async function obtenerProducto() {
     btn.disabled = true;
     
     try {
-        // Aquí llamarías a tu API de Amazon
-        const response = await fetch('<?= base_url("amazon/obtener") ?>', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({url: url})
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Mostrar datos del producto
-            document.getElementById('producto-nombre').textContent = data.nombre;
-            document.getElementById('producto-precio').textContent = data.precio;
-            document.getElementById('producto-imagen').src = data.imagen;
-            document.getElementById('producto-disponibilidad').textContent = data.disponibilidad;
-            document.getElementById('producto-info').style.display = 'block';
+        // Simulación de datos (reemplaza con tu API real)
+        setTimeout(() => {
+            // Simulación de datos del producto
+            const simulatedData = {
+                success: true,
+                nombre: "Producto de Amazon",
+                precio: "29.99",
+                imagen: "https://via.placeholder.com/150",
+                disponibilidad: "En stock"
+            };
             
-            // Llenar campos ocultos
-            document.getElementById('nombre_producto').value = data.nombre;
-            document.getElementById('precio_usd').value = data.precio;
+            if (simulatedData.success) {
+                // Mostrar datos del producto
+                document.getElementById('producto-nombre').textContent = simulatedData.nombre;
+                document.getElementById('producto-precio').textContent = simulatedData.precio;
+                document.getElementById('producto-imagen').src = simulatedData.imagen;
+                document.getElementById('producto-disponibilidad').textContent = simulatedData.disponibilidad;
+                document.getElementById('producto-info').style.display = 'block';
+                
+                // Llenar campos ocultos
+                document.getElementById('nombre_producto').value = simulatedData.nombre;
+                document.getElementById('precio_usd').value = simulatedData.precio;
+                
+                // Actualizar resumen
+                document.getElementById('resumen-precio').textContent = simulatedData.precio;
+            }
             
-            // Actualizar resumen
-            document.getElementById('resumen-precio').textContent = data.precio;
-            actualizarResumen();
-        } else {
-            alert('Error obteniendo datos: ' + data.message);
-        }
+            btn.innerHTML = '<i class="bi bi-search"></i> Obtener Datos';
+            btn.disabled = false;
+        }, 1000);
         
     } catch (error) {
         alert('Error de conexión');
+        btn.innerHTML = '<i class="bi bi-search"></i> Obtener Datos';
+        btn.disabled = false;
     }
-    
-    btn.innerHTML = '<i class="bi bi-search"></i> Obtener Datos';
-    btn.disabled = false;
 }
 
 function calcularTotal() {
@@ -345,8 +367,16 @@ function calcularTotal() {
     const tipo = document.getElementById('tipo_cambio').value;
     const provincia = document.getElementById('provincia').value;
     
-    if (!precio || !tipo || !provincia) {
-        alert('Complete todos los campos primero');
+    if (!precio) {
+        alert('Primero obten los datos del producto');
+        return;
+    }
+    if (!tipo) {
+        alert('Selecciona un tipo de cambio');
+        return;
+    }
+    if (!provincia) {
+        alert('Selecciona una provincia');
         return;
     }
     
