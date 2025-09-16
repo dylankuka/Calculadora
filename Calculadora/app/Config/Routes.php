@@ -73,3 +73,24 @@ $routes->get('contribuir', 'DonacionController::index');
 $routes->get('test-donacion', function() {
     return 'La ruta funciona';
 });
+
+// ✅ NUEVA RUTA PARA CÁLCULO AVANZADO  
+$routes->post('historial/calcular', 'Historial::calcular');
+
+// ✅ NUEVAS RUTAS PARA CATEGORÍAS Y SIMULACIONES
+$routes->get('historial/categoria/(:num)', 'Historial::obtenerCategoria/$1');
+$routes->post('historial/simular', 'Historial::simularCalculo');
+
+// ✅ NUEVA RUTA PARA CÁLCULO AVANZADO  
+$routes->post('historial/calcular', 'Historial::calcular');
+
+// ✅ NUEVAS RUTAS PARA CATEGORÍAS Y SIMULACIONES
+$routes->get('historial/categoria/(:num)', 'Historial::obtenerCategoria/$1');
+$routes->post('historial/simular', 'Historial::simularCalculo');
+
+// ✅ RUTAS PARA GESTIÓN DE CATEGORÍAS (ADMIN FUTURO)
+$routes->group('admin', ['filter' => 'auth'], function($routes) {
+    $routes->get('categorias', 'Admin::categorias');
+    $routes->post('categorias/actualizar/(:num)', 'Admin::actualizarCategoria/$1');
+    $routes->get('estadisticas', 'Admin::estadisticas');
+});

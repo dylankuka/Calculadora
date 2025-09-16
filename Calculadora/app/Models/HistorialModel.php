@@ -7,14 +7,18 @@ class HistorialModel extends Model
 {
     protected $table = 'historial_calculos';
     protected $primaryKey = 'id';
-    protected $allowedFields = [
+protected $allowedFields = [
         'usuario_id',
         'amazon_url', 
         'nombre_producto',
         'precio_usd', 
         'total_ars',
         'desglose_json',
-        'fecha_calculo'
+        'fecha_calculo',
+        'categoria_id',
+        'metodo_pago',
+        'valor_cif_usd',
+        'excedente_400_usd'
     ];
     protected $returnType = 'array';
     protected $useTimestamps = false;

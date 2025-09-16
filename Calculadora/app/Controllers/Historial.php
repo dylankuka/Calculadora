@@ -347,114 +347,144 @@ public function guardar()
         }
         return false;
     }
-    // ✅ NUEVO MÉTODO CALCULAR CON LOCALIDADES E IMPUESTOS
+// ✅ MÉTODO CALCULAR COMPLETAMENTE REESCRITO CON NUEVAS FUNCIONALIDADES
 public function calcular()
 {
     $redirect = $this->validarSesion();
     if ($redirect) return $redirect;
 
-    // ✅ VALIDACIONES
+    // ✅ VALIDACIONES BACKEND ESTRICTAS
     $rules = [
-        'amazon_url' => 'required|valid_url',
-        'nombre_producto' => 'required|min_length[3]|max_length[200]',
-        'precio_usd' => 'required|decimal|greater_than[0]',
-        'provincia' => 'required|max_length[10]',
-'tipo_cambio' => 'required|in_list[tarjeta,MEP]',
-        'total_ars' => 'required|decimal|greater_than[0]'
+        'amazon_url' => [
+            'rules' => 'required|valid_url|max_length[500]',
+            'errors' => [
+                'required' => 'La URL de Amazon es obligatoria.',
+                'valid_url' => 'Debe ser una URL válida.',
+                'max_length' => 'La URL no puede exceder 500 caracteres.'
+            ]
+        ],
+        'nombre_producto' => [
+            'rules' => 'required|min_length[3]|max_length[200]',
+            'errors' => [
+                'required' => 'El nombre del producto es obligatorio.',
+                'min_length' => 'El nombre debe tener al menos 3 caracteres.',
+                'max_length' => 'El nombre no puede exceder 200 caracteres.'
+            ]
+        ],
+        'precio_usd' => [
+            'rules' => 'required|decimal|greater_than[0]|less_than[50000]',
+            'errors' => [
+                'required' => 'El precio en USD es obligatorio.',
+                'decimal' => 'El precio debe ser un número válido.',
+                'greater_than' => 'El precio debe ser mayor a $0.',
+                'less_than' => 'El precio no puede exceder $50,000.'
+            ]
+        ],
+        'envio_usd' => [
+            'rules' => 'required|decimal|greater_than_equal_to[0]|less_than[1000]',
+            'errors' => [
+                'required' => 'El costo de envío es obligatorio.',
+                'decimal' => 'El envío debe ser un número válido.',
+                'greater_than_equal_to' => 'El envío no puede ser negativo.',
+                'less_than' => 'El envío no puede exceder $1,000.'
+            ]
+        ],
+        'categoria_id' => [
+            'rules' => 'required|integer|greater_than[0]',
+            'errors' => [
+                'required' => 'Debes seleccionar una categoría.',
+                'integer' => 'Categoría inválida.',
+                'greater_than' => 'Categoría inválida.'
+            ]
+        ],
+        'metodo_pago' => [
+            'rules' => 'required|in_list[tarjeta,MEP]',
+            'errors' => [
+                'required' => 'Debes seleccionar un método de pago.',
+                'in_list' => 'Método de pago inválido.'
+            ]
+        ]
+    ];
+
+    // Obtener categorías para recargar el formulario si hay errores
+    $categoriaModel = new \App\Models\CategoriaProductoModel();
+    $categorias = $categoriaModel->obtenerTodasOrdenadas();
+    
+    $dolarService = new \App\Services\DolarService();
+    $cotizaciones = [
+        'tarjeta' => $dolarService->obtenerCotizacion('tarjeta'),
+        'MEP' => $dolarService->obtenerCotizacion('MEP')
     ];
 
     if (!$this->validate($rules)) {
-        return redirect()->back()
-            ->withInput()
-            ->with('error', 'Por favor completa todos los campos correctamente.');
+        return view('historial/crear', [
+            'validation' => $this->validator,
+            'old_input' => $this->request->getPost(),
+            'categorias' => $categorias,
+            'cotizaciones' => $cotizaciones
+        ]);
     }
 
-    // ✅ OBTENER DATOS
+    // ✅ VALIDACIÓN ADICIONAL: URL DE AMAZON
     $amazonUrl = $this->request->getPost('amazon_url');
-    $nombreProducto = $this->request->getPost('nombre_producto');
-    $precioUSD = (float)$this->request->getPost('precio_usd');
-    $provincia = $this->request->getPost('provincia');
-    $tipoCambio = $this->request->getPost('tipo_cambio');
-    $totalARS = (float)$this->request->getPost('total_ars');
-
-    // ✅ OBTENER COTIZACIONES ACTUALES
-    $dolarService = new \App\Services\DolarService();
-    
-    if ($dolarService->necesitaActualizacion($tipoCambio)) {
-        $dolarService->obtenerCotizaciones();
+    if (!$this->esUrlAmazon($amazonUrl)) {
+        return view('historial/crear', [
+            'error' => '❌ La URL debe ser de Amazon (amazon.com, amazon.es, etc.)',
+            'old_input' => $this->request->getPost(),
+            'categorias' => $categorias,
+            'cotizaciones' => $cotizaciones
+        ]);
     }
-    
-    $cotizacion = $dolarService->obtenerCotizacion($tipoCambio);
 
-    // ✅ CALCULAR IMPUESTOS POR LOCALIDAD
-    $impuestos = $this->obtenerImpuestosPorLocalidad($provincia);
-    
-    // ✅ DESGLOSE DETALLADO
-    $envioUSD = 25;
-    $baseARS = $precioUSD * $cotizacion;
-    $ivaARS = $baseARS * ($impuestos['iva'] / 100);
-    $derechosARS = $baseARS * ($impuestos['derechos'] / 100);
-    $adicionalesARS = $baseARS * ($impuestos['adicionales'] / 100);
-    $envioARS = $envioUSD * $cotizacion;
-    
-    $totalCalculadoARS = $baseARS + $ivaARS + $derechosARS + $adicionalesARS + $envioARS;
-
-    // ✅ GUARDAR EN BASE DE DATOS
-    $datos = [
-        'usuario_id' => session()->get('usuario_id'),
-        'amazon_url' => trim($amazonUrl),
-        'nombre_producto' => trim($nombreProducto),
-        'precio_usd' => $precioUSD,
-        'total_ars' => round($totalCalculadoARS, 2),
-        'desglose_json' => json_encode([
-            'precio_usd' => $precioUSD,
-            'envio_usd' => $envioUSD,
-            'cotizacion' => $cotizacion,
-            'tipo_cambio' => $tipoCambio,
-            'provincia' => $provincia,
-            'impuestos' => $impuestos,
-            'desglose_ars' => [
-                'base' => round($baseARS, 2),
-                'iva' => round($ivaARS, 2),
-                'derechos' => round($derechosARS, 2),
-                'adicionales' => round($adicionalesARS, 2),
-                'envio' => round($envioARS, 2),
-                'total' => round($totalCalculadoARS, 2)
-            ],
-            'fecha_cotizacion' => date('Y-m-d H:i:s')
-        ]),
-        'fecha_calculo' => date('Y-m-d H:i:s')
-    ];
+    // ✅ OBTENER DATOS DEL FORMULARIO
+    $nombreProducto = trim($this->request->getPost('nombre_producto'));
+    $precioUSD = (float)$this->request->getPost('precio_usd');
+    $envioUSD = (float)$this->request->getPost('envio_usd');
+    $categoriaId = (int)$this->request->getPost('categoria_id');
+    $metodoPago = $this->request->getPost('metodo_pago');
 
     try {
+        // ✅ CALCULAR IMPUESTOS USANDO EL NUEVO SERVICIO
+        $calculoService = new \App\Services\CalculoImpuestosService();
+        $resultadoCalculo = $calculoService->calcularImpuestos($precioUSD, $envioUSD, $categoriaId, $metodoPago);
+        
+        // ✅ PREPARAR DATOS PARA GUARDAR EN BD
+        $datos = [
+            'usuario_id' => session()->get('usuario_id'),
+            'amazon_url' => trim($amazonUrl),
+            'nombre_producto' => $nombreProducto,
+            'precio_usd' => $precioUSD,
+            'total_ars' => $resultadoCalculo['totales']['total_ars'],
+            'categoria_id' => $categoriaId,
+            'metodo_pago' => $metodoPago,
+            'valor_cif_usd' => $resultadoCalculo['datos_base']['valor_cif_usd'],
+            'excedente_400_usd' => $resultadoCalculo['datos_base']['excedente_400_usd'],
+            'desglose_json' => json_encode($resultadoCalculo, JSON_UNESCAPED_UNICODE),
+            'fecha_calculo' => date('Y-m-d H:i:s')
+        ];
+
+        // ✅ GUARDAR EN BASE DE DATOS
         $this->historialModel->insert($datos);
         
+        // ✅ PREPARAR MENSAJE DE ÉXITO CON RESUMEN
+        $resumen = $calculoService->obtenerResumenCalculo($resultadoCalculo);
+        $bajoFranquicia = $resumen['bajo_franquicia'] ? 'Bajo franquicia (≤$400)' : 'Sobre franquicia (>$400)';
+        
+        $mensaje = "✅ Cálculo guardado exitosamente<br>";
+        $mensaje .= "💰 Total: $" . number_format($resumen['total_final_ars'], 2) . " ARS<br>";
+        $mensaje .= "📦 Categoría: {$resumen['categoria']}<br>";
+        $mensaje .= "💳 {$resumen['metodo_pago']}: $" . number_format($resumen['cotizacion'], 2) . " ARS<br>";
+        $mensaje .= "📋 Estado: {$bajoFranquicia}";
+        
         return redirect()->to('/historial')
-            ->with('success', "✅ Cálculo guardado. Total: $" . number_format($totalCalculadoARS, 2) . " ARS ($provincia - $tipoCambio: $$cotizacion)");
+            ->with('success', $mensaje);
             
     } catch (\Exception $e) {
-        log_message('error', 'Error guardando cálculo: ' . $e->getMessage());
+        log_message('error', 'Error en calcular(): ' . $e->getMessage());
         return redirect()->back()
             ->withInput()
-            ->with('error', '❌ Error al guardar el cálculo.');
+            ->with('error', '❌ Error al calcular. Intenta nuevamente.');
     }
 }
 
-// ✅ MÉTODO AUXILIAR PARA IMPUESTOS POR LOCALIDAD
-private function obtenerImpuestosPorLocalidad($provincia)
-{
-    $impuestosPorProvincia = [
-        'CABA' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 0],
-        'BA' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 2.5], // ARBA
-        'CB' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 1.5], // Rentas Córdoba
-        'SF' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 2.0], // ATER
-        'MZ' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 1.8],
-        'TU' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 1.0],
-        'ER' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 1.5],
-        'SA' => ['iva' => 21, 'derechos' => 50, 'adicionales' => 1.2],
-        // Más provincias...
-    ];
-
-    return $impuestosPorProvincia[$provincia] ?? ['iva' => 21, 'derechos' => 50, 'adicionales' => 0];
-}
 }

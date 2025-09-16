@@ -3,13 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ver Cálculo - TaxImporter</title>
+    <title>Detalles del Cálculo - TaxImporter</title>
     <link rel="stylesheet" href="<?= base_url('css/ind.css') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Calculadora/Calculadora-1/Calculadora/public/css/ind.css">
+    <style>
+        .detalle-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+        }
+        .impuesto-row {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .impuesto-row:last-child {
+            border-bottom: none;
+        }
+        .total-final {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .franquicia-info {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+        }
+    </style>
 </head>
 <body class="bg-dark">
+
+<!-- Logo -->
 <div class="position-absolute" style="top: 5px; left: 22px; z-index: 1000;">
     <a href="<?= base_url() ?>">
         <img src="<?= base_url('img/taximporterlogo.png') ?>" 
@@ -19,155 +46,140 @@
     </a>
 </div>
 
-<!-- ✅ NAVBAR -->
-<nav class="card-custom navbar navbar-expand-lg navbar-dark">
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark card-custom">
     <div class="container">
-        <a class="navbar-brand textcolor" href="<?= base_url('/') ?>">
+        <a class="navbar-brand textcolor" href="<?= base_url('/historial') ?>">
+            <i class="bi bi-calculator"></i> TaxImporter
         </a>
         
         <div class="navbar-nav ms-auto">
-            <span class="navbar-text me-3">
+            <span class="navbar-text me-3 textcolor">
                 👤 <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
             </span>
-                <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
-                    <i class="bi bi-box-arrow-right textcolor2"></i> Salir
+            <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
+                <i class="bi bi-box-arrow-right textcolor"></i> Salir
             </a>
         </div>
     </div>
 </nav>
 
 <div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            
-            <!-- ✅ BREADCRUMB -->
-            <nav class="navbar-text me-3 textcolor3">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                        <a href="<?= base_url('/historial') ?>">
-                            <i class="bi bi-house"></i> Historial
-                        </a>
-                    </li>
-                </ol>
-            </nav>
-
-            <!-- ✅ INFORMACIÓN PRINCIPAL -->
-            <div class="card card-custom2 shadow-lg mb-4">
-                <div class="card-header textcolor card-custom bg-info">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4><i class="bi bi-eye"></i> Detalles del Cálculo</h4>
-                        <small>
-                            <i class="bi bi-calendar"></i> 
-                            <?= date('d/m/Y H:i', strtotime($calculo['fecha_calculo'])) ?>
-                        </small>
-                    </div>
-                </div>
-                <div class="card-body card-custom2">
-                    <div class="row">
-                        <div class="col-lg-8">
-                            <h3 class="textprimary textcolor3">
-                                <i class="bi bi-box"></i> <?= esc($calculo['nombre_producto']) ?>
-                            </h3>
-                            
-                            <div class="mb-3">
-                                <h6><i class="bi bi-link-45deg"></i> URL Original:</h6>
-                                <a href="<?= esc($calculo['amazon_url']) ?>" 
-                                   target="_blank" 
-                                   class="btn btn-outline-warning btn-sm">
-                                    <i class="bi bi-box-arrow-up-right"></i> Ver en Amazon
-                                </a>
-                            </div>
-                            
-                            <!-- ✅ DESGLOSE DETALLADO -->
-                            <?php 
-                            $desglose = json_decode($calculo['desglose_json'], true);
-                            ?>
-                            
-                            <?php if ($desglose): ?>
-                             <div class="card bg-dark text-white mb-3">
-                                <div class="card-header">
-                                    <h6><i class="bi bi-graph-up"></i> Desglose de Cálculo</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row text-center">
-                                        <div class="col-md-4">
-                                            <div class="border rounded p-2">
-                                                <h6>🏛️ IVA (21%)</h6>
-                                                <strong>$<?= number_format($desglose['iva'] ?? 0, 2) ?></strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="border rounded p-2">
-                                                <h6>🚢 Derechos Import.</h6>
-                                                <strong>$<?= number_format($desglose['derechos'] ?? 0, 2) ?></strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="border rounded p-2">
-                                                <h6>✈️ Envío</h6>
-                                                <strong>$<?= number_format($desglose['envio'] ?? 0, 2) ?></strong>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-                            
-                        </div>
-                        <div class="col-lg-4">
-                            <!-- ✅ RESUMEN FINANCIERO -->
-                            <div class="card card-custom3 text-white">
-                                <div class="card-body text-center">
-                                    <h5><i class="bi bi-currency-dollar"></i> Precio Original</h5>
-                                    <h2>$<?= number_format($calculo['precio_usd'], 2) ?> USD</h2>
-                                </div>
-                            </div>
-                            
-                            <div class="card card-custom4 text-white mt-3">
-                                <div class="card-body text-center">
-                                    <h5><i class="bi bi-calculator"></i> Total Final</h5>
-                                    <h2>$<?= number_format($calculo['total_ars'], 2) ?> ARS</h2>
-                                </div>
-                            </div>
-                            
-                            <!-- ✅ COMPARACIÓN -->
-                            <div class="card card-custom text-dark mt-3">
-                                <div class="card-body text-center">
-                                    <h6><i class="bi bi-graph-up-arrow"></i> Incremento Total</h6>
-                                    <?php 
-                                    $incremento = (($calculo['total_ars'] / 1683.5) - $calculo['precio_usd']) / $calculo['precio_usd'] * 100;
-                                    ?>
-                                    <h4><?= number_format($incremento, 1) ?>%</h4>
-                                    <small>vs precio original</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ✅ ACCIONES -->
-            <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-                <a href="<?= base_url('/historial') ?>" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left"></i> Volver al Historial
+    
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="<?= base_url('/historial') ?>" class="text-light">
+                    <i class="bi bi-house"></i> Historial
                 </a>
-                
-                <div>
-                    <a href="<?= base_url('historial/editar/' . $calculo['id']) ?>" 
-                       class="btn card-custom">
-                        <i class="bi bi-pencil"></i> Editar
-                    </a>
-                    <a href="<?= base_url('historial/eliminar/' . $calculo['id']) ?>" 
-                       class="btn btn-danger"
-                       onclick="return confirm('¿Estás seguro de eliminar este cálculo?')">
-                        <i class="bi bi-trash"></i> Eliminar
-                    </a>
+            </li>
+            <li class="breadcrumb-item active text-light">
+                <i class="bi bi-eye"></i> Detalles del Cálculo
+            </li>
+        </ol>
+    </nav>
+
+    <?php 
+        $desglose = json_decode($calculo['desglose_json'], true);
+        $bajoFranquicia = ($calculo['valor_cif_usd'] ?? 0) <= 400;
+        
+        // Datos del cálculo
+        $datosBase = $desglose['datos_base'] ?? [];
+        $impuestosUSD = $desglose['impuestos_usd'] ?? [];
+        $impuestosARS = $desglose['impuestos_ars'] ?? [];
+        $totales = $desglose['totales'] ?? [];
+    ?>
+
+    <div class="row">
+        <!-- Columna principal: Detalles del cálculo -->
+        <div class="col-lg-8">
+            
+            <!-- Información del producto -->
+            <div class="card card-custom2 mb-4">
+                <div class="card-header card-custom textcolor">
+                    <h5><i class="bi bi-box-seam"></i> Información del Producto</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4 class="text-primary mb-3"><?= esc($calculo['nombre_producto']) ?></h4>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-6">
+                                    <p class="mb-2">
+                                        <i class="bi bi-link-45deg text-info"></i> 
+                                        <strong>URL de Amazon:</strong>
+                                    </p>
+                                    <a href="<?= esc($calculo['amazon_url']) ?>" target="_blank" class="btn btn-outline-info btn-sm">
+                                        <i class="bi bi-box-arrow-up-right"></i> Ver en Amazon
+                                    </a>
+                                </div>
+                                <div class="col-sm-6">
+                                    <p class="mb-2">
+                                        <i class="bi bi-calendar3 text-warning"></i> 
+                                        <strong>Fecha del cálculo:</strong>
+                                    </p>
+                                    <span class="badge bg-warning text-dark">
+                                        <?= date('d/m/Y H:i:s', strtotime($calculo['fecha_calculo'])) ?>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <!-- Estado de franquicia -->
+                            <div class="<?= $bajoFranquicia ? 'franquicia-info' : 'bg-warning text-dark rounded p-3' ?>">
+                                <h6>
+                                    <i class="bi bi-info-circle"></i> 
+                                    <?= $bajoFranquicia ? 'Bajo Franquicia' : 'Sobre Franquicia' ?>
+                                </h6>
+                                <p class="mb-0">
+                                    Valor CIF: <strong>$<?= number_format($calculo['valor_cif_usd'] ?? 0, 2) ?> USD</strong>
+                                </p>
+                                <?php if (!$bajoFranquicia): ?>
+                                    <small>
+                                        Excedente: $<?= number_format(($calculo['excedente_400_usd'] ?? 0), 2) ?> USD
+                                    </small>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+            <!-- Desglose detallado de impuestos -->
+            <div class="card detalle-card mb-4">
+                <div class="card-header">
+                    <h5><i class="bi bi-calculator"></i> Desglose Detallado de Impuestos</h5>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Valores base -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="border-bottom border-light pb-2">💵 Valores en USD</h6>
+                            <div class="impuesto-row d-flex justify-content-between">
+                                <span>Precio del producto:</span>
+                                <strong>$<?= number_format($calculo['precio_usd'], 2) ?></strong>
+                            </div>
+                            <div class="impuesto-row d-flex justify-content-between">
+                                <span>Costo de envío:</span>
+                                <strong>$<?= number_format($datosBase['envio_usd'] ?? 0, 2) ?></strong>
+                            </div>
+                            <div class="impuesto-row d-flex justify-content-between">
+                                <span><strong>Valor CIF total:</strong></span>
+                                <strong class="text-warning">$<?= number_format($datosBase['valor_cif_usd'] ?? 0, 2) ?></strong>
+                            </div>
+                            <?php if (!$bajoFranquicia): ?>
+                                <div class="impuesto-row d-flex justify-content-between">
+                                    <span>Excedente sobre $400:</span>
+                                    <strong>$<?= number_format($datosBase['excedente_400_usd'] ?? 0, 2) ?></strong>
+                                </div>
+                                <div class="impuesto-row d-flex justify-content-between">
+                                    <span>Aranceles (<?= $datosBase['arancel_categoria'] ?? 0 ?>%):</span>
+                                    <strong>$<?= number_format($impuestosUSD['aranceles_usd'] ?? 0, 2) ?></strong>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <div class="col-md-6">
