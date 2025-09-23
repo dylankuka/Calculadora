@@ -294,10 +294,10 @@
                                     ?>
                                     <div class="col-md-6 col-lg-4 mb-4">
                                         <div class="card calculo-card h-100">
-                                            <div class="card-body">
+                                            <div class="card-body card-custom6">
                                                 <!-- Header con fecha y estado -->
                                                 <div class="d-flex justify-content-between align-items-start mb-2">
-                                                    <small class="text-muted">
+                                                    <small class="text-light">
                                                         <i class="bi bi-calendar3"></i> 
                                                         <?= date('d/m/Y H:i', strtotime($calculo['fecha_calculo'])) ?>
                                                     </small>
@@ -307,7 +307,7 @@
                                                 </div>
                                                 
                                                 <!-- Nombre del producto -->
-                                                <h6 class="card-title" title="<?= esc($calculo['nombre_producto']) ?>">
+                                                <h6 class="card-title text-light" title="<?= esc($calculo['nombre_producto']) ?>">
                                                     <?= esc(substr($calculo['nombre_producto'], 0, 50)) ?><?= strlen($calculo['nombre_producto']) > 50 ? '...' : '' ?>
                                                 </h6>
                                                 
@@ -323,11 +323,11 @@
                                                 <div class="row text-center mb-3">
                                                     <div class="col-6">
                                                         <strong class="text-success">$<?= number_format($calculo['precio_usd'], 2) ?></strong>
-                                                        <br><small class="text-muted">USD</small>
+                                                        <br><small class="text-light">USD</small>
                                                     </div>
                                                     <div class="col-6">
                                                         <strong class="text-warning">$<?= number_format($calculo['total_ars'], 0) ?></strong>
-                                                        <br><small class="text-muted">ARS</small>
+                                                        <br><small class="text-light">ARS</small>
                                                     </div>
                                                 </div>
                                                 
@@ -351,7 +351,7 @@
                                                         <i class="bi bi-eye"></i> Ver
                                                     </a>
                                                     <a href="<?= base_url('historial/editar/' . $calculo['id']) ?>" 
-                                                       class="btn btn-outline-secondary btn-sm flex-fill">
+                                                       class="btn btn-outline-primary btn-sm flex-fill">
                                                         <i class="bi bi-pencil"></i> Editar
                                                     </a>
                                                     <button onclick="confirmarEliminar(<?= $calculo['id'] ?>, '<?= esc(addslashes($calculo['nombre_producto'])) ?>')" 

@@ -75,6 +75,9 @@ body { background: #333e48 !important; color: #ffffff; }
  .card-custom5 {
     background: linear-gradient(to left, #FFD700, #FF8C00); /* amarillo -> naranja */
 }
+.card-custom6{
+    background-color: #516680 ;
+}
 /* Estilos para el formulario de búsqueda */
 .form-custom {
     color: white !important;
@@ -216,22 +219,22 @@ body { background: #333e48 !important; color: #ffffff; }
 }
 
 .btn-action-view {
-    color: #17a2b8;
-    border-color: #17a2b8;
+    color: #ff9900;
+    border-color: #ff9900;
 }
 
 .btn-action-view:hover {
-    background-color: #17a2b8;
+    background-color: #ff9900;
     color: white;
 }
 
 .btn-action-edit {
-    color: #6c757d;
-    border-color: #6c757d;
+    color: #e119ec;
+    border-color: #e119ec;
 }
 
 .btn-action-edit:hover {
-    background-color: #6c757d;
+    background-color: #e119ec;
     color: white;
 }
 
