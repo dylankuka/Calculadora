@@ -61,6 +61,9 @@
                 <a class="btn btn-outline-dark btn-sm me-2" href="<?= base_url('historial/crear') ?>">
                     <i class="bi bi-plus-circle textcolor"></i> Nueva Calculadora
                 </a>
+ <a class="btn btn-outline-dark btn-sm" href="<?= base_url('donacion') ?>">
+                    <i class="textcolor2"></i> 🧡donar
+                </a>
                 <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
                     <i class="bi bi-box-arrow-right textcolor"></i> Salir
                 </a>
