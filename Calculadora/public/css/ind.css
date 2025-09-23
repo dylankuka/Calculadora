@@ -285,3 +285,333 @@ body { background: #333e48 !important; color: #ffffff; }
         gap: 3px;
     }
 }
+
+/* ========================================
+   ESTILOS AMAZON DARK PARA DONACIONES
+   ======================================== */
+
+/* Fondo principal */
+.donation-body {
+    background: #0f1419 !important;
+    color: #ffffff;
+}
+
+/* Cards estilo Amazon oscuro */
+.amazon-dark-card {
+    background: #1b2329 !important;
+    border: 1px solid #2d3a45;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.amazon-header {
+    background: linear-gradient(135deg, #ff9900, #ffb84d) !important;
+    color: #0f1419 !important;
+    border: none;
+    border-radius: 12px 12px 0 0;
+}
+
+/* Navbar estilo Amazon */
+.navbar-amazon {
+    background: #232f3e !important;
+    border-bottom: 1px solid #37475a;
+}
+
+/* Opciones de donación */
+.donation-option {
+    background: #232f3e;
+    border: 2px solid #37475a;
+    border-radius: 8px;
+    color: white;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.donation-option:hover {
+    border-color: #ff9900;
+    background: #2d3a45;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(255, 153, 0, 0.2);
+}
+
+.donation-option.selected {
+    border-color: #ff9900;
+    background: #2d3a45;
+    box-shadow: 0 0 20px rgba(255, 153, 0, 0.4);
+}
+
+.donation-option::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 153, 0, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.donation-option:hover::after {
+    left: 100%;
+}
+
+.donation-amount {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ff9900;
+    margin-bottom: 5px;
+}
+
+.donation-description {
+    color: #cccccc;
+    font-size: 0.9rem;
+}
+
+/* Botón principal de donación */
+.btn-donate {
+    background: linear-gradient(135deg, #ff9900, #ffb84d);
+    color: #0f1419;
+    border: none;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(255, 153, 0, 0.3);
+    padding: 15px 30px;
+    font-size: 1.1rem;
+}
+
+.btn-donate:hover {
+    background: linear-gradient(135deg, #e68a00, #ff9900);
+    color: #0f1419;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 153, 0, 0.4);
+}
+
+.btn-donate:disabled {
+    background: #37475a;
+    color: #6c757d;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Cards de estadísticas */
+.stats-card {
+    background: #232f3e;
+    border: 1px solid #37475a;
+    border-radius: 12px;
+    transition: transform 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-4px);
+}
+
+.stats-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.stats-number {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #ff9900;
+    margin-bottom: 5px;
+}
+
+.stats-label {
+    color: #cccccc;
+    font-size: 0.9rem;
+}
+
+/* Tabla de historial personalizada */
+.table-dark-custom {
+    background: #1b2329;
+    border: 1px solid #2d3a45;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table-dark-custom th {
+    background: #232f3e;
+    border-color: #37475a;
+    color: #ff9900;
+    font-weight: 600;
+}
+
+.table-dark-custom td {
+    border-color: #37475a;
+    background: #1b2329;
+}
+
+.table-dark-custom tbody tr:hover {
+    background: #232f3e;
+}
+
+/* Badges de estado */
+.badge-status {
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+}
+
+.badge-pendiente {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.badge-aprobado {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.badge-rechazado {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.badge-cancelado {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+/* Iconos de características */
+.feature-icon {
+    background: #232f3e;
+    border-radius: 50%;
+    padding: 15px;
+    margin-bottom: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+}
+
+/* Colores de Amazon */
+.text-amazon-orange {
+    color: #ff9900 !important;
+}
+
+.text-amazon-light {
+    color: #cccccc !important;
+}
+
+.text-amazon-dark {
+    color: #0f1419 !important;
+}
+
+/* Efectos de animación */
+.pulse-effect {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.slide-in {
+    animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Sección de agradecimiento */
+.gratitude-section {
+    background: linear-gradient(135deg, #232f3e, #1b2329);
+    border-radius: 12px;
+    border: 1px solid #37475a;
+    padding: 40px;
+}
+
+.gratitude-title {
+    color: #ff9900;
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.gratitude-text {
+    color: #cccccc;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* Sección de uso de fondos */
+.funds-usage {
+    background: #146eb4;
+    color: white;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.funds-usage ul {
+    margin-bottom: 0;
+}
+
+.funds-usage li {
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+/* Métodos de pago disponibles */
+.payment-methods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.payment-badge {
+    background: #232f3e;
+    color: #ff9900;
+    border: 1px solid #37475a;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .donation-option {
+        padding: 15px;
+    }
+    
+    .donation-amount {
+        font-size: 1.5rem;
+    }
+    
+    .stats-card {
+        margin-bottom: 20px;
+    }
+    
+    .gratitude-section {
+        padding: 20px;
+    }
+    
+    .gratitude-title {
+        font-size: 1.5rem;
+    }
+    
+    .btn-donate {
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
+}
