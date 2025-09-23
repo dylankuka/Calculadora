@@ -1,21 +1,34 @@
 <?php
 namespace App\Services;
 
+// Importar el SDK de MercadoPago
+use MercadoPago\MercadoPagoConfig;
+use MercadoPago\Client\Preference\PreferenceClient;
+use MercadoPago\Client\Payment\PaymentClient;
+use MercadoPago\Exceptions\MPApiException;
+
 class MercadoPagoService
 {
     private $accessToken;
-    private $baseUrl;
     private $publicKey;
+    private $isSandbox;
 
     public function __construct()
     {
         // Configuración desde variables de entorno
-        $this->accessToken = getenv('MERCADOPAGO_ACCESS_TOKEN') ?: 'TEST-ACCESS-TOKEN-AQUI';
-        $this->publicKey = getenv('MERCADOPAGO_PUBLIC_KEY') ?: 'TEST-PUBLIC-KEY-AQUI';
+        $this->accessToken = getenv('MERCADOPAGO_ACCESS_TOKEN') ?: env('MERCADOPAGO_ACCESS_TOKEN');
+        $this->publicKey = getenv('MERCADOPAGO_PUBLIC_KEY') ?: env('MERCADOPAGO_PUBLIC_KEY');
+        
+        if (!$this->accessToken || !$this->publicKey) {
+            throw new \Exception('Credenciales de MercadoPago no configuradas. Verifica tu archivo .env');
+        }
         
         // Determinar si estamos en sandbox o producción
-        $isSandbox = strpos($this->accessToken, 'TEST') === 0;
-        $this->baseUrl = $isSandbox ? 'https://api.mercadopago.com' : 'https://api.mercadopago.com';
+        $this->isSandbox = strpos($this->accessToken, 'TEST') === 0;
+        
+        // Configurar el SDK
+        MercadoPagoConfig::setAccessToken($this->accessToken);
+        MercadoPagoConfig::setRuntimeEnviroment($this->isSandbox ? 'test' : 'production');
     }
 
     /**
@@ -24,6 +37,8 @@ class MercadoPagoService
     public function crearPreferenciaDonacion($datos)
     {
         try {
+            $client = new PreferenceClient();
+            
             $preference = [
                 'items' => [
                     [
@@ -36,8 +51,8 @@ class MercadoPagoService
                     ]
                 ],
                 'payer' => [
-                    'name' => $datos['usuario_nombre'],
-                    'email' => $datos['usuario_email']
+                    'name' => $datos['usuario_nombre'] ?? 'Donante',
+                    'email' => $datos['usuario_email'] ?? 'donante@ejemplo.com'
                 ],
                 'external_reference' => $datos['external_reference'],
                 'back_urls' => [
@@ -50,25 +65,40 @@ class MercadoPagoService
                 'statement_descriptor' => 'TaxImporter',
                 'payment_methods' => [
                     'default_payment_method_id' => null,
-                    'excluded_payment_methods' => [],
-                    'excluded_payment_types' => [],
+                    'excluded_payment_methods' => [
+                        ['id' => 'amex'] // Excluir American Express si quieres
+                    ],
+                    'excluded_payment_types' => [
+                        // ['id' => 'atm'] // Excluir cajeros si quieres
+                    ],
                     'installments' => 12
                 ],
                 'metadata' => [
-                    'donacion_id' => $datos['donacion_id'],
+                    'donacion_id' => (int)$datos['donacion_id'],
                     'mensaje' => $datos['mensaje'] ?? '',
-                    'tipo' => 'donacion'
-                ]
+                    'tipo' => 'donacion',
+                    'plataforma' => 'TaxImporter'
+                ],
+                'expires' => true,
+                'expiration_date_from' => date('c'), // Fecha actual
+                'expiration_date_to' => date('c', strtotime('+1 day')) // Expira en 24 horas
             ];
 
-            $response = $this->makeRequest('POST', '/checkout/preferences', $preference);
+            $response = $client->create($preference);
             
-            if (!$response || !isset($response['id'])) {
-                throw new \Exception('Respuesta inválida de MercadoPago');
+            if (!$response || !$response->id) {
+                throw new \Exception('Respuesta inválida de MercadoPago al crear preferencia');
             }
 
-            return $response;
+            return [
+                'id' => $response->id,
+                'init_point' => $response->init_point,
+                'sandbox_init_point' => $response->sandbox_init_point ?? null
+            ];
 
+        } catch (MPApiException $e) {
+            log_message('error', 'Error API MercadoPago: ' . $e->getMessage() . ' - Code: ' . $e->getApiResponse()->getStatusCode());
+            throw new \Exception('Error de MercadoPago: ' . $e->getMessage());
         } catch (\Exception $e) {
             log_message('error', 'Error creando preferencia MP: ' . $e->getMessage());
             throw $e;
@@ -81,9 +111,40 @@ class MercadoPagoService
     public function obtenerPago($paymentId)
     {
         try {
-            return $this->makeRequest('GET', "/v1/payments/{$paymentId}");
-        } catch (\Exception $e) {
+            $client = new PaymentClient();
+            $payment = $client->get($paymentId);
+            
+            if (!$payment) {
+                throw new \Exception('Pago no encontrado');
+            }
+
+            // Convertir a array para facilitar el uso
+            return [
+                'id' => $payment->id,
+                'status' => $payment->status,
+                'status_detail' => $payment->status_detail ?? '',
+                'external_reference' => $payment->external_reference ?? '',
+                'transaction_amount' => $payment->transaction_amount ?? 0,
+                'net_received_amount' => $payment->net_received_amount ?? 0,
+                'payment_method_id' => $payment->payment_method_id ?? '',
+                'payment_type_id' => $payment->payment_type_id ?? '',
+                'date_created' => $payment->date_created ?? '',
+                'date_approved' => $payment->date_approved ?? '',
+                'payer' => [
+                    'email' => $payment->payer->email ?? '',
+                    'identification' => [
+                        'type' => $payment->payer->identification->type ?? '',
+                        'number' => $payment->payer->identification->number ?? ''
+                    ]
+                ],
+                'metadata' => $payment->metadata ?? new \stdClass()
+            ];
+
+        } catch (MPApiException $e) {
             log_message('error', 'Error obteniendo pago MP: ' . $e->getMessage());
+            throw new \Exception('Error obteniendo pago: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            log_message('error', 'Error general obteniendo pago: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -94,66 +155,23 @@ class MercadoPagoService
     public function obtenerPreferencia($preferenceId)
     {
         try {
-            return $this->makeRequest('GET', "/checkout/preferences/{$preferenceId}");
-        } catch (\Exception $e) {
-            log_message('error', 'Error obteniendo preferencia MP: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    /**
-     * Realizar petición HTTP a MercadoPago
-     */
-    private function makeRequest($method, $endpoint, $data = null)
-    {
-        $curl = curl_init();
-
-        $headers = [
-            'Authorization: Bearer ' . $this->accessToken,
-            'Content-Type: application/json',
-            'X-Idempotency-Key: ' . uniqid()
-        ];
-
-        $options = [
-            CURLOPT_URL => $this->baseUrl . $endpoint,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_CUSTOMREQUEST => $method
-        ];
-
-        if ($data && in_array($method, ['POST', 'PUT', 'PATCH'])) {
-            $options[CURLOPT_POSTFIELDS] = json_encode($data);
-        }
-
-        curl_setopt_array($curl, $options);
-
-        $response = curl_exec($curl);
-        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $error = curl_error($curl);
-        
-        curl_close($curl);
-
-        if ($error) {
-            throw new \Exception("Error de cURL: {$error}");
-        }
-
-        if (!$response) {
-            throw new \Exception("Respuesta vacía de MercadoPago");
-        }
-
-        $decodedResponse = json_decode($response, true);
-
-        if ($httpCode >= 400) {
-            $errorMsg = isset($decodedResponse['message']) 
-                ? $decodedResponse['message'] 
-                : "Error HTTP {$httpCode}";
+            $client = new PreferenceClient();
+            $preference = $client->get($preferenceId);
             
-            throw new \Exception("Error de MercadoPago: {$errorMsg}");
-        }
+            return [
+                'id' => $preference->id,
+                'external_reference' => $preference->external_reference,
+                'items' => $preference->items,
+                'payer' => $preference->payer,
+                'back_urls' => $preference->back_urls,
+                'auto_return' => $preference->auto_return,
+                'date_created' => $preference->date_created
+            ];
 
-        return $decodedResponse;
+        } catch (MPApiException $e) {
+            log_message('error', 'Error obteniendo preferencia MP: ' . $e->getMessage());
+            throw new \Exception('Error obteniendo preferencia: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -162,24 +180,44 @@ class MercadoPagoService
     public function verificarConfiguracion()
     {
         try {
-            // Hacer una petición simple para verificar credenciales
-            $response = $this->makeRequest('GET', '/v1/payment_methods');
-            return !empty($response);
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
+            // Crear una preferencia de prueba simple para verificar credenciales
+            $client = new PreferenceClient();
+            
+            $testPreference = [
+                'items' => [
+                    [
+                        'id' => 'test_item',
+                        'title' => 'Test',
+                        'quantity' => 1,
+                        'currency_id' => 'ARS',
+                        'unit_price' => 1.0
+                    ]
+                ]
+            ];
+            
+            // Solo crear para verificar, no usar
+            $response = $client->create($testPreference);
+            
+            return [
+                'success' => true,
+                'is_sandbox' => $this->isSandbox,
+                'message' => $this->isSandbox ? 
+                    'Configuración correcta - Modo SANDBOX (pruebas)' : 
+                    'Configuración correcta - Modo PRODUCCIÓN'
+            ];
 
-    /**
-     * Obtener métodos de pago disponibles
-     */
-    public function obtenerMetodosPago()
-    {
-        try {
-            return $this->makeRequest('GET', '/v1/payment_methods');
+        } catch (MPApiException $e) {
+            return [
+                'success' => false,
+                'message' => 'Error de credenciales: ' . $e->getMessage(),
+                'is_sandbox' => $this->isSandbox
+            ];
         } catch (\Exception $e) {
-            log_message('error', 'Error obteniendo métodos de pago: ' . $e->getMessage());
-            return [];
+            return [
+                'success' => false,
+                'message' => 'Error general: ' . $e->getMessage(),
+                'is_sandbox' => $this->isSandbox
+            ];
         }
     }
 
@@ -201,5 +239,37 @@ class MercadoPagoService
         ];
 
         return $estados[$estado] ?? ['texto' => 'Desconocido', 'clase' => 'secondary', 'icono' => 'question'];
+    }
+
+    /**
+     * Obtener URL de pago según el entorno
+     */
+    public function obtenerUrlPago($preferencia)
+    {
+        return $this->isSandbox ? 
+            ($preferencia['sandbox_init_point'] ?? $preferencia['init_point']) : 
+            $preferencia['init_point'];
+    }
+
+    /**
+     * Validar webhook de MercadoPago
+     */
+    public function validarWebhook($headers, $body)
+    {
+        // Implementar validación de webhook si MercadoPago lo requiere
+        // Por ahora, validación básica
+        return true;
+    }
+
+    /**
+     * Obtener información del entorno actual
+     */
+    public function getEntornoInfo()
+    {
+        return [
+            'is_sandbox' => $this->isSandbox,
+            'access_token_prefix' => substr($this->accessToken, 0, 10) . '...',
+            'public_key_prefix' => substr($this->publicKey, 0, 10) . '...'
+        ];
     }
 }

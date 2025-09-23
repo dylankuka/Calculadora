@@ -49,6 +49,7 @@ class DonacionController extends BaseController
         ]);
     }
 
+
     /**
      * Crear nueva donación y redirigir a MercadoPago
      */
@@ -60,11 +61,11 @@ class DonacionController extends BaseController
         // Validaciones
         $rules = [
             'monto' => [
-                'rules' => 'required|decimal|greater_than[0]|less_than[100000]',
+                'rules' => 'required|decimal|greater_than[99.99]|less_than[100000]',
                 'errors' => [
                     'required' => 'El monto es obligatorio.',
                     'decimal' => 'El monto debe ser un número válido.',
-                    'greater_than' => 'El monto debe ser mayor a $0.',
+                    'greater_than' => 'El monto mínimo es $100.',
                     'less_than' => 'El monto no puede exceder $100,000.'
                 ]
             ],
@@ -79,7 +80,7 @@ class DonacionController extends BaseController
         if (!$this->validate($rules)) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', '❌ Por favor corrige los errores del formulario.');
+                ->with('error', '❌ ' . implode(' ', $this->validator->getErrors()));
         }
 
         try {
@@ -87,8 +88,14 @@ class DonacionController extends BaseController
             $monto = (float)$this->request->getPost('monto');
             $mensaje = trim($this->request->getPost('mensaje') ?? '');
 
+            // Verificar configuración de MercadoPago
+            $verificacion = $this->mercadoPagoService->verificarConfiguracion();
+            if (!$verificacion['success']) {
+                throw new \Exception('Configuración de MercadoPago inválida: ' . $verificacion['message']);
+            }
+
             // Generar referencia única
-            $referencia = 'DON_' . $usuarioId . '_' . time();
+            $referencia = 'DON_' . $usuarioId . '_' . time() . '_' . rand(1000, 9999);
 
             // Crear registro en base de datos
             $datosBasicos = [
@@ -98,7 +105,11 @@ class DonacionController extends BaseController
                 'estado' => 'pendiente',
                 'external_reference' => $referencia,
                 'fecha_donacion' => date('Y-m-d H:i:s'),
-                'datos_mp_json' => json_encode(['mensaje' => $mensaje])
+                'datos_mp_json' => json_encode([
+                    'mensaje' => $mensaje,
+                    'ip' => $this->request->getIPAddress(),
+                    'user_agent' => $this->request->getUserAgent()
+                ])
             ];
 
             $donacionId = $this->donacionModel->insert($datosBasicos);
@@ -112,12 +123,12 @@ class DonacionController extends BaseController
                 'monto' => $monto,
                 'donacion_id' => $donacionId,
                 'external_reference' => $referencia,
-                'usuario_nombre' => session()->get('usuario_nombre'),
-                'usuario_email' => session()->get('usuario_email'),
+                'usuario_nombre' => session()->get('usuario_nombre') ?? 'Donante',
+                'usuario_email' => session()->get('usuario_email') ?? 'donante@ejemplo.com',
                 'mensaje' => $mensaje
             ]);
 
-            if (!$preferencia || !isset($preferencia['init_point'])) {
+            if (!$preferencia || !isset($preferencia['id'])) {
                 throw new \Exception('Error al crear preferencia de pago en MercadoPago');
             }
 
@@ -126,14 +137,28 @@ class DonacionController extends BaseController
                 'preference_id' => $preferencia['id']
             ]);
 
+            // Obtener URL de pago correcta
+            $urlPago = $this->mercadoPagoService->obtenerUrlPago($preferencia);
+
+            log_message('info', "Donación {$donacionId} creada. Redirigiendo a MP: {$urlPago}");
+
             // Redirigir a MercadoPago
-            return redirect()->to($preferencia['init_point']);
+            return redirect()->to($urlPago);
 
         } catch (\Exception $e) {
             log_message('error', 'Error creando donación: ' . $e->getMessage());
+            
+            // Si ya se creó la donación, marcarla como error
+            if (isset($donacionId)) {
+                $this->donacionModel->update($donacionId, [
+                    'estado' => 'cancelado',
+                    'datos_mp_json' => json_encode(['error' => $e->getMessage()])
+                ]);
+            }
+            
             return redirect()->back()
                 ->withInput()
-                ->with('error', '❌ Error al procesar donación. Intenta nuevamente.');
+                ->with('error', '❌ Error al procesar donación: ' . $e->getMessage());
         }
     }
 

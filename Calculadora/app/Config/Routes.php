@@ -94,3 +94,4 @@ $routes->group('admin', ['filter' => 'auth'], function($routes) {
     $routes->post('categorias/actualizar/(:num)', 'Admin::actualizarCategoria/$1');
     $routes->get('estadisticas', 'Admin::estadisticas');
 });
+

@@ -3,36 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Donaciones - TaxImporter</title>
+    <title>Apoyar TaxImporter - Donaciones</title>
     <link rel="stylesheet" href="<?= base_url('css/ind.css') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 </head>
-<body class="bg-dark">
+<body class="donation-body">
+
+<!-- Logo -->
 <div class="position-absolute" style="top: 5px; left: 22px; z-index: 1000;">
     <a href="<?= base_url() ?>">
         <img src="<?= base_url('img/taximporterlogo.png') ?>" 
              alt="Logo TaxImporter" 
              style="max-width: 70px; height: auto; 
-                    filter: drop-shadow(2px 2px 6px rgba(0,0,0,1.9));">
+                    filter: drop-shadow(2px 2px 6px rgba(0,0,0,0.8));">
     </a>
 </div>
 
-<!-- ✅ NAVBAR -->
-<nav class="card-custom navbar navbar-expand-lg navbar-dark">
+<!-- Navbar estilo Amazon -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-amazon">
     <div class="container">
-        <a class="navbar-brand textcolor" href="<?= base_url('/') ?>">
+        <a class="navbar-brand text-amazon-orange fw-bold" href="<?= base_url('/') ?>">
+            <i class="bi bi-calculator"></i> TaxImporter
         </a>
         
         <div class="navbar-nav ms-auto">
-            <span class="navbar-text me-3 textcolor">
-                👤 <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
+            <span class="navbar-text me-3 text-white">
+                <i class="bi bi-person-circle text-amazon-orange"></i> 
+                <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
             </span>
-            <a class="btn btn-outline-secondary btn-sm me-2" href="<?= base_url('/historial') ?>">
-                <i class="bi bi-arrow-left textcolor2"></i> Volver al Historial
+            <a class="btn btn-outline-light btn-sm me-2" href="<?= base_url('/historial') ?>">
+                <i class="bi bi-arrow-left"></i> Volver al Historial
             </a>
-            <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
-                <i class="bi bi-box-arrow-right textcolor2"></i> Salir
+            <a class="btn btn-outline-danger btn-sm" href="<?= base_url('usuario/logout') ?>">
+                <i class="bi bi-box-arrow-right"></i> Salir
             </a>
         </div>
     </div>
@@ -40,184 +44,209 @@
 
 <div class="container mt-4">
     
-    <!-- ✅ MENSAJES DE ÉXITO/ERROR -->
+    <!-- Mensajes de estado -->
     <?php if (session()->getFlashdata('success')): ?>
-        <div class="alert alert-success alert-dismissible fade show">
+        <div class="alert alert-success alert-dismissible fade show slide-in">
             <i class="bi bi-check-circle"></i> <?= session()->getFlashdata('success') ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('error')): ?>
-        <div class="alert alert-danger alert-dismissible fade show">
+        <div class="alert alert-danger alert-dismissible fade show slide-in">
             <i class="bi bi-exclamation-triangle"></i> <?= session()->getFlashdata('error') ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
 
-    <!-- ✅ HEADER PRINCIPAL -->
-    <div class="row mb-4">
-        <div class="col-12 text-center">
-            <h1 class="text-light mb-3">🧡 Apoyar a TaxImporter</h1>
-            <p class="text-light lead">
-                Ayúdanos a mantener y mejorar esta herramienta gratuita para toda la comunidad
+    <?php if (isset($error)): ?>
+        <div class="alert alert-warning alert-dismissible fade show slide-in">
+            <i class="bi bi-exclamation-triangle"></i> <?= $error ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
+    <!-- Header principal -->
+    <div class="row mb-5">
+        <div class="col-12 text-center slide-in">
+            <h1 class="text-amazon-orange mb-3 fw-bold">
+                <i class="bi bi-heart-fill pulse-effect"></i> Apoyar TaxImporter
+            </h1>
+            <p class="text-amazon-light lead mb-0">
+                Ayúdanos a mantener esta herramienta <strong>gratuita</strong> y en constante mejora
             </p>
         </div>
     </div>
 
-    <!-- ✅ ESTADÍSTICAS GENERALES -->
+    <!-- Estadísticas generales -->
     <?php if (isset($estadisticas) && $estadisticas): ?>
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card card-custom textcolor text-center">
-                <div class="card-body">
-                    <i class="bi bi-heart-fill text-danger h1"></i>
-                    <h4>$<?= number_format($estadisticas['total_recaudado'], 2) ?></h4>
-                    <small>Total Recaudado</small>
+    <div class="row mb-5 slide-in">
+        <div class="col-md-4 mb-3">
+            <div class="stats-card text-center p-4">
+                <div class="stats-icon">
+                    <i class="bi bi-heart-fill text-danger"></i>
                 </div>
+                <div class="stats-number">$<?= number_format($estadisticas['total_recaudado'], 0, ',', '.') ?></div>
+                <div class="stats-label">Total Recaudado</div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card card-custom textcolor text-center">
-                <div class="card-body">
-                    <i class="bi bi-people-fill text-primary h1"></i>
-                    <h4><?= $estadisticas['cantidad_donaciones'] ?></h4>
-                    <small>Donaciones Realizadas</small>
+        <div class="col-md-4 mb-3">
+            <div class="stats-card text-center p-4">
+                <div class="stats-icon">
+                    <i class="bi bi-people-fill text-primary"></i>
                 </div>
+                <div class="stats-number"><?= $estadisticas['cantidad_donaciones'] ?></div>
+                <div class="stats-label">Donaciones Realizadas</div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card card-custom textcolor text-center">
-                <div class="card-body">
-                    <i class="bi bi-graph-up text-success h1"></i>
-                    <h4>$<?= number_format($estadisticas['promedio_donacion'], 2) ?></h4>
-                    <small>Promedio por Donación</small>
+        <div class="col-md-4 mb-3">
+            <div class="stats-card text-center p-4">
+                <div class="stats-icon">
+                    <i class="bi bi-graph-up text-success"></i>
                 </div>
+                <div class="stats-number">$<?= number_format($estadisticas['promedio_donacion'], 0, ',', '.') ?></div>
+                <div class="stats-label">Promedio por Donación</div>
             </div>
         </div>
     </div>
     <?php endif; ?>
 
     <div class="row justify-content-center">
-        <div class="col-lg-8">
+        <div class="col-xl-8 col-lg-10">
             
-            <!-- ✅ FORMULARIO DE DONACIÓN -->
-            <div class="card card-custom2 shadow-lg mb-4">
-                <div class="card-header card-custom bg-warning text-dark text-center">
-                    <h3><i class="bi bi-gift"></i> Realizar Donación</h3>
-                    <p class="mb-0">Tu apoyo nos ayuda a seguir desarrollando nuevas funciones</p>
+            <!-- Formulario de donación principal -->
+            <div class="amazon-dark-card shadow-lg mb-5 slide-in">
+                <div class="amazon-header text-center py-4">
+                    <h3 class="mb-2 fw-bold">
+                        <i class="bi bi-gift"></i> Realizar Donación
+                    </h3>
+                    <p class="mb-0">Selecciona un monto y apóyanos con MercadoPago</p>
                 </div>
-                <div class="card-body card-custom2">
-                    <form action="<?= base_url('donacion/crear') ?>" method="post" novalidate>
+                
+                <div class="card-body p-4">
+                    <form action="<?= base_url('donacion/crear') ?>" method="post" id="donationForm">
                         <?= csrf_field() ?>
-
-                        <!-- ✅ BOTONES DE MONTO RÁPIDO -->
+                        
+                        <!-- Opciones de monto -->
                         <div class="mb-4">
-                            <label class="form-label text-light">
-                                <i class="bi bi-currency-dollar"></i> Selecciona un monto o ingresa uno personalizado
+                            <label class="form-label text-amazon-orange fs-5 fw-bold mb-3">
+                                <i class="bi bi-currency-dollar"></i> Elige tu monto de apoyo
                             </label>
-                            <div class="d-grid gap-2 d-md-flex justify-content-md-center mb-3">
-                                <button type="button" class="btn btn-outline-success flex-fill" onclick="setMonto(500)">$500</button>
-                                <button type="button" class="btn btn-outline-success flex-fill" onclick="setMonto(1000)">$1.000</button>
-                                <button type="button" class="btn btn-outline-success flex-fill" onclick="setMonto(2500)">$2.500</button>
-                                <button type="button" class="btn btn-outline-success flex-fill" onclick="setMonto(5000)">$5.000</button>
-                                <button type="button" class="btn btn-outline-success flex-fill" onclick="setMonto(10000)">$10.000</button>
-                            </div>
-                        </div>
-
-                        <!-- ✅ MONTO PERSONALIZADO -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="monto" class="form-label text-light">
-                                    <i class="bi bi-cash-coin"></i> Monto Personalizado (ARS) *
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" 
-                                           class="form-control" 
-                                           id="monto" 
-                                           name="monto" 
-                                           min="100" 
-                                           max="100000" 
-                                           step="0.01"
-                                           placeholder="Ingresa el monto"
-                                           value="<?= set_value('monto') ?>" 
-                                           required>
-                                    <span class="input-group-text">ARS</span>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="donation-option" data-amount="500">
+                                        <div class="donation-amount">$500</div>
+                                        <div class="donation-description">Un cafecito ☕</div>
+                                    </div>
                                 </div>
-                                <div class="form-text text-light">
-                                    Monto mínimo: $100 - Máximo: $100.000
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="donation-option" data-amount="1000">
+                                        <div class="donation-amount">$1.000</div>
+                                        <div class="donation-description">Apoyo básico 🤝</div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-light">
-                                    <i class="bi bi-credit-card"></i> Métodos de Pago Disponibles
-                                </label>
-                                <div class="d-flex flex-wrap gap-2">
-                                    <span class="badge bg-primary">Tarjeta de Crédito</span>
-                                    <span class="badge bg-primary">Tarjeta de Débito</span>
-                                    <span class="badge bg-success">MercadoPago</span>
-                                    <span class="badge bg-info">Rapipago</span>
-                                    <span class="badge bg-warning text-dark">Pago Fácil</span>
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="donation-option" data-amount="2500">
+                                        <div class="donation-amount">$2.500</div>
+                                        <div class="donation-description">Apoyo sólido 💪</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <div class="donation-option" data-amount="5000">
+                                        <div class="donation-amount">$5.000</div>
+                                        <div class="donation-description">Apoyo premium ⭐</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-4 mx-auto">
+                                    <div class="donation-option" data-amount="10000">
+                                        <div class="donation-amount">$10.000</div>
+                                        <div class="donation-description">Apoyo excepcional 🚀</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- ✅ MENSAJE OPCIONAL -->
+                        <!-- Input oculto para el monto -->
+                        <input type="hidden" id="selectedAmount" name="monto" value="" required>
+                        
+                        <!-- Información sobre métodos de pago -->
                         <div class="mb-4">
-                            <label for="mensaje" class="form-label text-light">
-                                <i class="bi bi-chat-left-text"></i> Mensaje Opcional
-                            </label>
-                            <textarea class="form-control" 
-                                      id="mensaje" 
-                                      name="mensaje" 
-                                      rows="3" 
-                                      maxlength="500"
-                                      placeholder="Deja un mensaje de apoyo (opcional)..."><?= set_value('mensaje') ?></textarea>
-                            <div class="form-text text-light">
-                                Máximo 500 caracteres
+                            <h6 class="text-amazon-orange mb-2">
+                                <i class="bi bi-credit-card"></i> Métodos de Pago Disponibles
+                            </h6>
+                            <div class="payment-methods">
+                                <span class="payment-badge">
+                                    <i class="bi bi-credit-card"></i> Tarjetas de Crédito
+                                </span>
+                                <span class="payment-badge">
+                                    <i class="bi bi-credit-card-2-front"></i> Tarjetas de Débito
+                                </span>
+                                <span class="payment-badge">
+                                    <i class="bi bi-wallet2"></i> MercadoPago
+                                </span>
+                                <span class="payment-badge">
+                                    <i class="bi bi-building"></i> Rapipago
+                                </span>
+                                <span class="payment-badge">
+                                    <i class="bi bi-shop"></i> Pago Fácil
+                                </span>
                             </div>
                         </div>
 
-                        <!-- ✅ INFORMACIÓN SOBRE EL USO DE FONDOS -->
-                        <div class="card bg-info text-dark mb-4">
-                            <div class="card-body">
-                                <h6><i class="bi bi-info-circle"></i> ¿Para qué usamos las donaciones?</h6>
-                                <ul class="mb-0">
-                                    <li>🖥️ Mantenimiento del servidor y hosting</li>
-                                    <li>🔄 Actualizaciones de cotizaciones en tiempo real</li>
-                                    <li>🆕 Desarrollo de nuevas funcionalidades</li>
-                                    <li>🛠️ Mejoras en el sistema y corrección de errores</li>
-                                    <li>📊 APIs premium para datos más precisos</li>
-                                </ul>
+                        <!-- Información sobre el uso de fondos -->
+                        <div class="funds-usage mb-4">
+                            <h6 class="mb-3">
+                                <i class="bi bi-info-circle"></i> ¿Para qué usamos las donaciones?
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="mb-0">
+                                        <li><i class="bi bi-server"></i> Hosting y mantenimiento del servidor</li>
+                                        <li><i class="bi bi-arrow-clockwise"></i> APIs de cotizaciones en tiempo real</li>
+                                        <li><i class="bi bi-plus-circle"></i> Desarrollo de nuevas funcionalidades</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="mb-0">
+                                        <li><i class="bi bi-tools"></i> Mejoras y corrección de errores</li>
+                                        <li><i class="bi bi-shield-check"></i> Seguridad y actualizaciones</li>
+                                        <li><i class="bi bi-graph-up"></i> APIs premium para mayor precisión</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- ✅ BOTÓN DE DONACIÓN -->
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="bi bi-heart-fill"></i> Donar con MercadoPago
+                        <!-- Botón de donación -->
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-donate btn-lg" id="donateButton" disabled>
+                                <i class="bi bi-heart-fill me-2"></i>
+                                <span id="buttonText">Selecciona un monto para continuar</span>
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- ✅ HISTORIAL DE MIS DONACIONES -->
+            <!-- Historial de donaciones del usuario -->
             <?php if (!empty($mis_donaciones)): ?>
-            <div class="card card-custom2 shadow">
-                <div class="card-header card-custom bg-secondary textcolor">
-                    <h5><i class="bi bi-clock-history"></i> Mis Donaciones</h5>
-                    <?php if (isset($resumen) && $resumen): ?>
-                        <small>
-                            Total donado: $<?= number_format($resumen['total_donado'] ?? 0, 2) ?> ARS 
-                            (<?= $resumen['total_donaciones'] ?? 0 ?> donaciones)
-                        </small>
-                    <?php endif; ?>
+            <div class="amazon-dark-card shadow mb-5 slide-in">
+                <div class="card-header bg-secondary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-clock-history"></i> Mis Donaciones
+                        </h5>
+                        <?php if (isset($resumen) && $resumen): ?>
+                            <small class="text-amazon-light">
+                                Total donado: <strong class="text-amazon-orange">$<?= number_format($resumen['total_donado'] ?? 0, 0, ',', '.') ?></strong> 
+                                (<?= $resumen['total_donaciones'] ?? 0 ?> donaciones)
+                            </small>
+                        <?php endif; ?>
+                    </div>
                 </div>
-                <div class="card-body card-custom2">
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-dark table-hover">
+                        <table class="table table-dark-custom mb-0">
                             <thead>
                                 <tr>
                                     <th><i class="bi bi-calendar"></i> Fecha</th>
@@ -229,30 +258,21 @@
                             <tbody>
                                 <?php foreach ($mis_donaciones as $donacion): ?>
                                 <tr>
-                                    <td>
+                                    <td class="text-amazon-light">
                                         <?= date('d/m/Y H:i', strtotime($donacion['fecha_donacion'])) ?>
                                     </td>
                                     <td>
-                                        <strong>$<?= number_format($donacion['monto_ars'], 2) ?></strong>
+                                        <strong class="text-amazon-orange">$<?= number_format($donacion['monto_ars'], 0, ',', '.') ?></strong>
                                     </td>
                                     <td>
-                                        <?php 
-                                        $badges = [
-                                            'pendiente' => 'warning',
-                                            'aprobado' => 'success', 
-                                            'rechazado' => 'danger',
-                                            'cancelado' => 'secondary'
-                                        ];
-                                        $badge = $badges[$donacion['estado']] ?? 'secondary';
-                                        ?>
-                                        <span class="badge bg-<?= $badge ?>">
+                                        <span class="badge badge-status badge-<?= $donacion['estado'] ?>">
                                             <?= ucfirst($donacion['estado']) ?>
                                         </span>
                                     </td>
                                     <td>
                                         <a href="<?= base_url('donacion/ver/' . $donacion['id']) ?>" 
                                            class="btn btn-sm btn-outline-info">
-                                            <i class="bi bi-eye"></i> Ver
+                                            <i class="bi bi-eye"></i> Ver Detalles
                                         </a>
                                     </td>
                                 </tr>
@@ -264,70 +284,107 @@
             </div>
             <?php endif; ?>
 
-        </div>
-    </div>
-
-    <!-- ✅ MENSAJE DE AGRADECIMIENTO -->
-
-    <div class="d-flex justify-content-center align-items-center mt-1" style="min-height: 300px;">
-            <div class="texto-transparente p-4 text-center">
-                <h3 class="text-light">🙏 ¡Gracias por tu apoyo!</h3>
-                <p class="textcolor1">
-                    TaxImporter es un proyecto independiente creado por estudiantes.<br>
-                    Cada donación nos ayuda a mantener el servicio gratuito y mejorarlo continuamente.
+            <!-- Mensaje de agradecimiento -->
+            <div class="gratitude-section text-center slide-in">
+                <h3 class="gratitude-title">
+                    <i class="bi bi-heart-fill"></i> ¡Gracias por tu apoyo!
+                </h3>
+                <p class="gratitude-text mb-4">
+                    <strong>TaxImporter</strong> es un proyecto independiente desarrollado con pasión para ayudar a la comunidad. 
+                    Cada donación, sin importar el monto, nos permite mantener el servicio <strong>completamente gratuito</strong> 
+                    y seguir agregando nuevas funcionalidades.
                 </p>
-
+                <div class="row text-center">
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="feature-icon text-amazon-orange">
+                            <i class="bi bi-code-slash h3 mb-0"></i>
+                        </div>
+                        <h6 class="text-white">Código Abierto</h6>
+                        <small class="text-amazon-light">Transparente y confiable</small>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="feature-icon text-amazon-orange">
+                            <i class="bi bi-shield-check h3 mb-0"></i>
+                        </div>
+                        <h6 class="text-white">Totalmente Seguro</h6>
+                        <small class="text-amazon-light">Tus datos protegidos</small>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="feature-icon text-amazon-orange">
+                            <i class="bi bi-lightning-charge h3 mb-0"></i>
+                        </div>
+                        <h6 class="text-white">Siempre Actualizado</h6>
+                        <small class="text-amazon-light">Con las últimas regulaciones</small>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="feature-icon text-amazon-orange">
+                            <i class="bi bi-people h3 mb-0"></i>
+                        </div>
+                        <h6 class="text-white">Para la Comunidad</h6>
+                        <small class="text-amazon-light">Hecho por y para usuarios</small>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ✅ JAVASCRIPT PARA FUNCIONALIDAD -->
+<!-- JavaScript para funcionalidad -->
 <script>
-function setMonto(monto) {
-    document.getElementById('monto').value = monto;
-    
-    // Efecto visual en el botón seleccionado
-    document.querySelectorAll('.btn-outline-success').forEach(btn => {
-        btn.classList.remove('active');
+document.addEventListener('DOMContentLoaded', function() {
+    const donationOptions = document.querySelectorAll('.donation-option');
+    const selectedAmountInput = document.getElementById('selectedAmount');
+    const donateButton = document.getElementById('donateButton');
+    const buttonText = document.getElementById('buttonText');
+
+    // Manejar selección de monto
+    donationOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remover selección anterior
+            donationOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Seleccionar actual
+            this.classList.add('selected');
+            
+            // Obtener monto
+            const amount = this.dataset.amount;
+            selectedAmountInput.value = amount;
+            
+            // Habilitar botón y actualizar texto
+            donateButton.disabled = false;
+            buttonText.textContent = `Donar $${parseInt(amount).toLocaleString()} ARS con MercadoPago`;
+            
+            // Efecto visual
+            donateButton.classList.add('pulse-effect');
+            setTimeout(() => {
+                donateButton.classList.remove('pulse-effect');
+            }, 1000);
+        });
     });
-    
-    event.target.classList.add('active');
-}
 
-// Validación en tiempo real del monto
-document.getElementById('monto').addEventListener('input', function() {
-    const monto = parseFloat(this.value) || 0;
-    const submitBtn = document.querySelector('button[type="submit"]');
-    
-    if (monto < 100) {
-        this.classList.add('is-invalid');
-        submitBtn.disabled = true;
-        this.setCustomValidity('El monto mínimo es $100');
-    } else if (monto > 100000) {
-        this.classList.add('is-invalid');
-        submitBtn.disabled = true;
-        this.setCustomValidity('El monto máximo es $100.000');
-    } else {
-        this.classList.remove('is-invalid');
-        this.classList.add('is-valid');
-        submitBtn.disabled = false;
-        this.setCustomValidity('');
-    }
-});
+    // Validación del formulario
+    document.getElementById('donationForm').addEventListener('submit', function(e) {
+        if (!selectedAmountInput.value) {
+            e.preventDefault();
+            alert('Por favor selecciona un monto antes de continuar.');
+            return false;
+        }
+        
+        // Cambiar texto del botón mientras procesa
+        donateButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Procesando...';
+        donateButton.disabled = true;
+    });
 
-// Contador de caracteres para el mensaje
-document.getElementById('mensaje').addEventListener('input', function() {
-    const restantes = 500 - this.value.length;
-    let texto = this.nextElementSibling;
-    
-    if (restantes < 0) {
-        texto.classList.add('text-danger');
-        texto.textContent = `Excede por ${Math.abs(restantes)} caracteres`;
-    } else {
-        texto.classList.remove('text-danger');
-        texto.textContent = `${restantes} caracteres restantes`;
-    }
+    // Auto-dismiss alerts después de 8 segundos
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            const bsAlert = new bootstrap.Alert(alert);
+            if (bsAlert) {
+                bsAlert.close();
+            }
+        });
+    }, 8000);
 });
 </script>
 
