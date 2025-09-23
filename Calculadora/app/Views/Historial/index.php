@@ -47,7 +47,7 @@
 </div>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark card-custom">
+<nav class="navbar navbar-expand-lg navbar-dark  card-custom5">
     <div class="container">
         <a class="navbar-brand textcolor" href="<?= base_url('/historial') ?>">
             <i class="bi bi-calculator"></i> TaxImporter
@@ -219,8 +219,8 @@
             
             <!-- Acciones rápidas -->
             <div class="col-md-8 mb-4">
-                <div class="card card-custom2">
-                    <div class="card-body">
+                <div class="card">
+                    <div class="card-body card-custom2">
                         <h5 class="card-title">
                             <i class="bi bi-lightning-charge text-warning"></i> Acciones Rápidas
                         </h5>
@@ -230,8 +230,8 @@
                                     <i class="bi bi-plus-circle"></i> Nueva Calculadora
                                 </a>
                             </div>
-                            <div class="col-md-6 mb-2">
-                                <button class="btn btn-info w-100" onclick="actualizarCotizaciones()">
+                            <div class="col-md-6 mb-2 " >
+                                <button class="btn btn-amazon-link w-100 card-custom5" onclick="actualizarCotizaciones()">
                                     <i class="bi bi-arrow-clockwise"></i> Actualizar Cotizaciones
                                 </button>
                             </div>
@@ -246,7 +246,7 @@
                                        placeholder="Buscar por producto o categoría..."
                                        value="<?= esc($busqueda ?? '') ?>">
                                 <button class="btn btn-outline-secondary" type="submit">
-                                    <i class="bi bi-search"></i>
+                                    <i class="bi bi-search text-light"></i>
                                 </button>
                                 <?php if ($busqueda): ?>
                                     <a href="<?= base_url('historial') ?>" class="btn btn-outline-danger">
@@ -263,7 +263,7 @@
         <!-- Lista de cálculos -->
         <div class="row">
             <div class="col-12">
-                <div class="card card-custom2">
+                <div class="card card-custom5">
                     <div class="card-header card-custom textcolor d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
                             <i class="bi bi-clock-history"></i> 
@@ -275,12 +275,12 @@
                         </h5>
                         <small>Total: <?= count($historial) ?> cálculos</small>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body card-custom2">
                         <?php if (empty($historial)): ?>
                             <div class="text-center py-5">
-                                <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
-                                <h4 class="text-muted mt-3">No hay cálculos aún</h4>
-                                <p class="text-muted">¡Crea tu primera calculadora de impuestos!</p>
+                                <i class="bi bi-inbox text-light" style="font-size: 4rem;"></i>
+                                <h4 class="text-light mt-3">No hay cálculos aún</h4>
+                                <p class="text-light">¡Crea tu primera calculadora de impuestos!</p>
                                 <a href="<?= base_url('historial/crear') ?>" class="btn btn-success btn-lg">
                                     <i class="bi bi-plus-circle"></i> Crear Primera Calculadora
                                 </a>

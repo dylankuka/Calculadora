@@ -72,7 +72,9 @@ body { background: #333e48 !important; color: #ffffff; }
 .card-custom4{
     background-color: #146eb4 ;
 }
-
+ .card-custom5 {
+    background: linear-gradient(to left, #FFD700, #FF8C00); /* amarillo -> naranja */
+}
 /* Estilos para el formulario de búsqueda */
 .form-custom {
     color: white !important;
