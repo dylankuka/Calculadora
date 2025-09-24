@@ -66,6 +66,7 @@ $routes->get('contribuir', 'DonacionController::index');
 $routes->get('test-donacion', function() {
     return 'La ruta funciona';
 });
+$routes->get('donacion/test', 'DonacionController::testCredenciales');
 
 // ✅ NUEVA RUTA PARA CÁLCULO AVANZADO  
 $routes->post('historial/calcular', 'Historial::calcular');

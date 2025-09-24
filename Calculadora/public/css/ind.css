@@ -53,12 +53,32 @@ body { background: #333e48 !important; color: #ffffff; }
 .textcolor3{
   color: #ff9900;
 }
+
+.textcolor4{
+  color: #0bb90b;
+}
 .texto-transparente {
   background-color: rgba(0, 0, 0, 0.4); /* negro con 40% opacidad */
   color: white; /* texto en blanco para contraste */
   border-radius: 10px; /* esquinas redondeadas opcionales */
   max-width: 600px; /* limitar ancho */
   align-items: center !important;
+}
+.carding-custom {
+    background-color: #37475a; /* Fondo personalizado */
+    color: #ffffff;           /* Texto en blanco */
+    border-radius: 12px;      /* Bordes redondeados */
+    padding: 20px;            /* Espaciado interno */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombra */
+}
+.input-group-sin-borde {
+    border: none;
+    box-shadow: none;
+}
+
+.input-group-sin-borde .form-control {
+    border: none;
+    box-shadow: none;
 }
 
 .card-custom2{

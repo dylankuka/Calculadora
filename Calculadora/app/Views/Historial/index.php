@@ -10,7 +10,7 @@
     <style>
         .calculo-card {
             transition: all 0.3s ease;
-            border-left: 4px solid #28a745;
+            border-left: 4px solid #37475a;
         }
         .calculo-card:hover {
             transform: translateY(-2px);
@@ -25,7 +25,7 @@
             color: white;
         }
         .resumen-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #003e79ff 0%, #146eb4 100%);
             color: white;
         }
         .stats-card {
@@ -47,7 +47,7 @@
 </div>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark  card-custom5">
+<nav class="navbar navbar-expand-lg navbar-dark  card-custom">
     <div class="container">
         <a class="navbar-brand textcolor" href="<?= base_url('/historial') ?>">
             <i class="bi bi-calculator"></i> TaxImporter
@@ -62,7 +62,7 @@
                     <i class="bi bi-plus-circle textcolor"></i> Nueva Calculadora
                 </a>
  <a class="btn btn-outline-dark btn-sm" href="<?= base_url('donacion') ?>">
-                    <i class="textcolor2"></i> 🧡donar
+                    <i class="textcolor2"></i> 🧡Donar
                 </a>
                 <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
                     <i class="bi bi-box-arrow-right textcolor"></i> Salir
@@ -197,7 +197,7 @@
         <!-- Dashboard para usuarios logueados -->
         <div class="row">
             <!-- Resumen de estadísticas -->
-            <div class="col-md-4 mb-4">
+            <div class="card-custom1 col-md-4 mb-4">
                 <div class="card stats-card resumen-card">
                     <div class="card-body text-center">
                         <h3 class="mb-0">$<?= number_format($resumen['total_calculado'] ?? 0, 2) ?></h3>
@@ -219,7 +219,7 @@
             
             <!-- Acciones rápidas -->
             <div class="col-md-8 mb-4">
-                <div class="card">
+                <div class="carding-custom">
                     <div class="card-body card-custom2">
                         <h5 class="card-title">
                             <i class="bi bi-lightning-charge text-warning"></i> Acciones Rápidas
@@ -231,7 +231,7 @@
                                 </a>
                             </div>
                             <div class="col-md-6 mb-2 " >
-                                <button class="btn btn-amazon-link w-100 card-custom5" onclick="actualizarCotizaciones()">
+                                <button class="btn btn-amazon-link w-100 card-custom" onclick="actualizarCotizaciones()">
                                     <i class="bi bi-arrow-clockwise"></i> Actualizar Cotizaciones
                                 </button>
                             </div>
@@ -239,7 +239,7 @@
                         
                         <!-- Búsqueda -->
                         <form method="GET" class="mt-3">
-                            <div class="input-group">
+                            <div class="input-group input-group-sin-borde">
                                 <input type="text" 
                                        class="form-control" 
                                        name="buscar" 
@@ -293,8 +293,8 @@
                                         $bajoFranquicia = ($calculo['valor_cif_usd'] ?? 0) <= 400;
                                     ?>
                                     <div class="col-md-6 col-lg-4 mb-4">
-                                        <div class="card calculo-card h-100">
-                                            <div class="card-body card-custom6">
+                                        <div class="card-custom2 h-100">
+                                            <div class="carding-custom card-custom6">
                                                 <!-- Header con fecha y estado -->
                                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                                     <small class="text-light">
@@ -322,7 +322,7 @@
                                                 <!-- Detalles del cálculo -->
                                                 <div class="row text-center mb-3">
                                                     <div class="col-6">
-                                                        <strong class="text-success">$<?= number_format($calculo['precio_usd'], 2) ?></strong>
+                                                        <strong class="textcolor4">$<?= number_format($calculo['precio_usd'], 2) ?></strong>
                                                         <br><small class="text-light">USD</small>
                                                     </div>
                                                     <div class="col-6">

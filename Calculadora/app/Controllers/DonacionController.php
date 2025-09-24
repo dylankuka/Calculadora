@@ -3,9 +3,35 @@ namespace App\Controllers;
 
 use App\Models\DonacionModel;
 use App\Services\MercadoPagoService;
+use MercadoPago\Client\Preference\PreferenceClient;
+use MercadoPago\MercadoPagoConfig;
+
+MercadoPagoConfig::setAccessToken(getenv('MERCADOPAGO_ACCESS_TOKEN'));
+
 
 class DonacionController extends BaseController
 {
+
+public function testCredenciales() {
+    try {
+        MercadoPagoConfig::setAccessToken(getenv('MERCADOPAGO_ACCESS_TOKEN'));
+
+        $client = new PreferenceClient();
+        $preference = $client->create([
+            "items" => [
+                [
+                    "title" => "Prueba",
+                    "quantity" => 1,
+                    "unit_price" => 100
+                ]
+            ]
+        ]);
+        return "✅ Credenciales correctas, init_point: " . $preference->init_point;
+    } catch (\Exception $e) {
+        return "❌ Error: " . $e->getMessage();
+    }
+}
+
     private $donacionModel;
     private $mercadoPagoService;
 
