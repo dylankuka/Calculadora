@@ -2,10 +2,7 @@
 namespace App\Services;
 
 // Importar el SDK de MercadoPago
-// Asegúrate de esta línea:
-use MercadoPago\MercadoPagoConfig; // Importa la clase principal
-use MercadoPago\Preference; // Ejemplo de otra clase que probablemente uses
-use MercadoPago\Payment;    // Otro ejemplo
+use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Exceptions\MPApiException;
@@ -16,7 +13,7 @@ class MercadoPagoService
     private $publicKey;
     private $isSandbox;
 
-   public function __construct()
+    public function __construct()
     {
         // Configuración desde variables de entorno
         $this->accessToken = getenv('MERCADOPAGO_ACCESS_TOKEN') ?: env('MERCADOPAGO_ACCESS_TOKEN');
@@ -29,13 +26,14 @@ class MercadoPagoService
         // Determinar si estamos en sandbox o producción
         $this->isSandbox = strpos($this->accessToken, 'TEST') === 0;
         
-        // Configurar el SDK (compatibilidad con distintas versiones)
-        if (class_exists('\MercadoPago\SDK')) {
-            \MercadoPago\SDK::setAccessToken($this->accessToken);
-        } elseif (class_exists('\MercadoPago\MercadoPagoConfig')) {
-            \MercadoPago\MercadoPagoConfig::setAccessToken($this->accessToken);
+        // Configurar el SDK
+        MercadoPagoConfig::setAccessToken($this->accessToken);
+        
+        // Configurar el entorno correctamente
+        if ($this->isSandbox) {
+            MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::LOCAL);
         } else {
-            throw new \Exception('SDK de MercadoPago no encontrado. Ejecuta: composer require mercadopago/dx-php y asegúrate de cargar vendor/autoload.php');
+            MercadoPagoConfig::setRuntimeEnviroment(MercadoPagoConfig::SERVER);
         }
     }
 
@@ -64,9 +62,9 @@ class MercadoPagoService
                 ],
                 'external_reference' => $datos['external_reference'],
                 'back_urls' => [
-                    'success' => base_url('donacion/exito'),
-                    'failure' => base_url('donacion/fallo'),
-                    'pending' => base_url('donacion/exito')
+                    'success' => base_url('donacion/success'),
+                    'failure' => base_url('donacion/failure'), 
+                    'pending' => base_url('donacion/pending')
                 ],
                 'auto_return' => 'approved',
                 'notification_url' => base_url('donacion/webhook'),

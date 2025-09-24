@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Apoyar TaxImporter - Donaciones</title>
     <link rel="stylesheet" href="<?= base_url('css/ind.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('css/donacion.css') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 </head>
@@ -114,117 +115,138 @@
     <div class="row justify-content-center">
         <div class="col-xl-8 col-lg-10">
             
-            <!-- Formulario de donación principal -->
+                <!-- Formulario de donación principal -->
             <div class="amazon-dark-card shadow-lg mb-5 slide-in">
                 <div class="amazon-header text-center py-4">
                     <h3 class="mb-2 fw-bold">
                         <i class="bi bi-gift"></i> Realizar Donación
                     </h3>
-                    <p class="mb-0">Selecciona un monto y apóyanos con MercadoPago</p>
+                    <p class="mb-0">Selecciona un monto y serás redirigido a MercadoPago automáticamente</p>
                 </div>
                 
                 <div class="card-body p-4">
-                    <form action="<?= base_url('donacion/crear') ?>" method="post" id="donationForm">
-                        <?= csrf_field() ?>
+                    <!-- Opciones de monto con enlaces directos -->
+                    <div class="mb-4">
+                        <label class="form-label text-amazon-orange fs-5 fw-bold mb-3">
+                            <i class="bi bi-currency-dollar"></i> Elige tu monto de apoyo
+                        </label>
                         
-                        <!-- Opciones de monto -->
-                        <div class="mb-4">
-                            <label class="form-label text-amazon-orange fs-5 fw-bold mb-3">
-                                <i class="bi bi-currency-dollar"></i> Elige tu monto de apoyo
-                            </label>
-                            
-                            <div class="row g-3">
-                                <div class="col-md-6 col-lg-3">
-                                    <div class="donation-option" data-amount="500">
+                        <div class="row g-3">
+                            <div class="col-md-6 col-lg-3">
+                                <a href="<?= base_url('donacion/checkout/500') ?>" class="text-decoration-none">
+                                    <div class="donation-option">
                                         <div class="donation-amount">$500</div>
                                         <div class="donation-description">Un cafecito ☕</div>
+                                        <small class="text-amazon-light mt-2 d-block">
+                                            <i class="bi bi-arrow-right-circle"></i> Clic para donar
+                                        </small>
                                     </div>
-                                </div>
-                                <div class="col-md-6 col-lg-3">
-                                    <div class="donation-option" data-amount="1000">
+                                </a>
+                            </div>
+                            <div class="col-md-6 col-lg-3">
+                                <a href="<?= base_url('donacion/checkout/1000') ?>" class="text-decoration-none">
+                                    <div class="donation-option">
                                         <div class="donation-amount">$1.000</div>
                                         <div class="donation-description">Apoyo básico 🤝</div>
+                                        <small class="text-amazon-light mt-2 d-block">
+                                            <i class="bi bi-arrow-right-circle"></i> Clic para donar
+                                        </small>
                                     </div>
-                                </div>
-                                <div class="col-md-6 col-lg-3">
-                                    <div class="donation-option" data-amount="2500">
+                                </a>
+                            </div>
+                            <div class="col-md-6 col-lg-3">
+                                <a href="<?= base_url('donacion/checkout/2500') ?>" class="text-decoration-none">
+                                    <div class="donation-option">
                                         <div class="donation-amount">$2.500</div>
                                         <div class="donation-description">Apoyo sólido 💪</div>
+                                        <small class="text-amazon-light mt-2 d-block">
+                                            <i class="bi bi-arrow-right-circle"></i> Clic para donar
+                                        </small>
                                     </div>
-                                </div>
-                                <div class="col-md-6 col-lg-3">
-                                    <div class="donation-option" data-amount="5000">
+                                </a>
+                            </div>
+                            <div class="col-md-6 col-lg-3">
+                                <a href="<?= base_url('donacion/checkout/5000') ?>" class="text-decoration-none">
+                                    <div class="donation-option">
                                         <div class="donation-amount">$5.000</div>
                                         <div class="donation-description">Apoyo premium ⭐</div>
+                                        <small class="text-amazon-light mt-2 d-block">
+                                            <i class="bi bi-arrow-right-circle"></i> Clic para donar
+                                        </small>
                                     </div>
-                                </div>
-                                <div class="col-md-6 col-lg-4 mx-auto">
-                                    <div class="donation-option" data-amount="10000">
+                                </a>
+                            </div>
+                            <div class="col-md-8 col-lg-6 mx-auto">
+                                <a href="<?= base_url('donacion/checkout/10000') ?>" class="text-decoration-none">
+                                    <div class="donation-option">
                                         <div class="donation-amount">$10.000</div>
                                         <div class="donation-description">Apoyo excepcional 🚀</div>
+                                        <small class="text-amazon-light mt-2 d-block">
+                                            <i class="bi bi-arrow-right-circle"></i> Clic para donar
+                                        </small>
                                     </div>
-                                </div>
+                                </a>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Input oculto para el monto -->
-                        <input type="hidden" id="selectedAmount" name="monto" value="" required>
-                        
-                        <!-- Información sobre métodos de pago -->
-                        <div class="mb-4">
-                            <h6 class="text-amazon-orange mb-2">
-                                <i class="bi bi-credit-card"></i> Métodos de Pago Disponibles
-                            </h6>
-                            <div class="payment-methods">
-                                <span class="payment-badge">
-                                    <i class="bi bi-credit-card"></i> Tarjetas de Crédito
-                                </span>
-                                <span class="payment-badge">
-                                    <i class="bi bi-credit-card-2-front"></i> Tarjetas de Débito
-                                </span>
-                                <span class="payment-badge">
-                                    <i class="bi bi-wallet2"></i> MercadoPago
-                                </span>
-                                <span class="payment-badge">
-                                    <i class="bi bi-building"></i> Rapipago
-                                </span>
-                                <span class="payment-badge">
-                                    <i class="bi bi-shop"></i> Pago Fácil
-                                </span>
+                    <!-- Información sobre métodos de pago -->
+                    <div class="mb-4">
+                        <h6 class="text-amazon-orange mb-2">
+                            <i class="bi bi-credit-card"></i> Métodos de Pago Disponibles en MercadoPago
+                        </h6>
+                        <div class="payment-methods">
+                            <span class="payment-badge">
+                                <i class="bi bi-credit-card"></i> Tarjetas de Crédito
+                            </span>
+                            <span class="payment-badge">
+                                <i class="bi bi-credit-card-2-front"></i> Tarjetas de Débito
+                            </span>
+                            <span class="payment-badge">
+                                <i class="bi bi-wallet2"></i> Dinero en Cuenta MP
+                            </span>
+                            <span class="payment-badge">
+                                <i class="bi bi-building"></i> Rapipago
+                            </span>
+                            <span class="payment-badge">
+                                <i class="bi bi-shop"></i> Pago Fácil
+                            </span>
+                            <span class="payment-badge">
+                                <i class="bi bi-bank"></i> Transferencia Bancaria
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Información sobre el uso de fondos -->
+                    <div class="funds-usage mb-4">
+                        <h6 class="mb-3">
+                            <i class="bi bi-info-circle"></i> ¿Para qué usamos las donaciones?
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="mb-0">
+                                    <li><i class="bi bi-server"></i> Hosting y mantenimiento del servidor</li>
+                                    <li><i class="bi bi-arrow-clockwise"></i> APIs de cotizaciones en tiempo real</li>
+                                    <li><i class="bi bi-plus-circle"></i> Desarrollo de nuevas funcionalidades</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="mb-0">
+                                    <li><i class="bi bi-tools"></i> Mejoras y corrección de errores</li>
+                                    <li><i class="bi bi-shield-check"></i> Seguridad y actualizaciones</li>
+                                    <li><i class="bi bi-graph-up"></i> APIs premium para mayor precisión</li>
+                                </ul>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Información sobre el uso de fondos -->
-                        <div class="funds-usage mb-4">
-                            <h6 class="mb-3">
-                                <i class="bi bi-info-circle"></i> ¿Para qué usamos las donaciones?
-                            </h6>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <ul class="mb-0">
-                                        <li><i class="bi bi-server"></i> Hosting y mantenimiento del servidor</li>
-                                        <li><i class="bi bi-arrow-clockwise"></i> APIs de cotizaciones en tiempo real</li>
-                                        <li><i class="bi bi-plus-circle"></i> Desarrollo de nuevas funcionalidades</li>
-                                    </ul>
-                                </div>
-                                <div class="col-md-6">
-                                    <ul class="mb-0">
-                                        <li><i class="bi bi-tools"></i> Mejoras y corrección de errores</li>
-                                        <li><i class="bi bi-shield-check"></i> Seguridad y actualizaciones</li>
-                                        <li><i class="bi bi-graph-up"></i> APIs premium para mayor precisión</li>
-                                    </ul>
-                                </div>
-                            </div>
+                    <!-- Nota informativa -->
+                    <div class="text-center">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            <strong>¡Es muy simple!</strong> Haz clic en cualquier monto y serás redirigido automáticamente al checkout seguro de MercadoPago.
                         </div>
-
-                        <!-- Botón de donación -->
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-donate btn-lg" id="donateButton" disabled>
-                                <i class="bi bi-heart-fill me-2"></i>
-                                <span id="buttonText">Selecciona un monto para continuar</span>
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
 
@@ -329,52 +351,9 @@
     </div>
 </div>
 
-<!-- JavaScript para funcionalidad -->
+<!-- JavaScript simplificado para checkout directo -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const donationOptions = document.querySelectorAll('.donation-option');
-    const selectedAmountInput = document.getElementById('selectedAmount');
-    const donateButton = document.getElementById('donateButton');
-    const buttonText = document.getElementById('buttonText');
-
-    // Manejar selección de monto
-    donationOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            // Remover selección anterior
-            donationOptions.forEach(opt => opt.classList.remove('selected'));
-            
-            // Seleccionar actual
-            this.classList.add('selected');
-            
-            // Obtener monto
-            const amount = this.dataset.amount;
-            selectedAmountInput.value = amount;
-            
-            // Habilitar botón y actualizar texto
-            donateButton.disabled = false;
-            buttonText.textContent = `Donar $${parseInt(amount).toLocaleString()} ARS con MercadoPago`;
-            
-            // Efecto visual
-            donateButton.classList.add('pulse-effect');
-            setTimeout(() => {
-                donateButton.classList.remove('pulse-effect');
-            }, 1000);
-        });
-    });
-
-    // Validación del formulario
-    document.getElementById('donationForm').addEventListener('submit', function(e) {
-        if (!selectedAmountInput.value) {
-            e.preventDefault();
-            alert('Por favor selecciona un monto antes de continuar.');
-            return false;
-        }
-        
-        // Cambiar texto del botón mientras procesa
-        donateButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Procesando...';
-        donateButton.disabled = true;
-    });
-
     // Auto-dismiss alerts después de 8 segundos
     setTimeout(() => {
         const alerts = document.querySelectorAll('.alert');
@@ -385,6 +364,56 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }, 8000);
+
+    // Efecto hover mejorado para las opciones de donación
+    const donationOptions = document.querySelectorAll('.donation-option');
+    donationOptions.forEach(option => {
+        option.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-3px) scale(1.02)';
+        });
+        
+        option.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+
+        // Efecto de clic
+        option.addEventListener('click', function() {
+            // Mostrar feedback visual
+            this.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1.02)';
+            }, 100);
+
+            // Cambiar cursor a loading
+            document.body.style.cursor = 'wait';
+            
+            // Mostrar mensaje de redirección
+            const amount = this.querySelector('.donation-amount').textContent;
+            
+            // Crear overlay de carga
+            const overlay = document.createElement('div');
+            overlay.innerHTML = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                           background: rgba(0,0,0,0.8); z-index: 9999; 
+                           display: flex; align-items: center; justify-content: center;">
+                    <div class="text-center text-white">
+                        <div class="spinner-border text-warning mb-3" role="status"></div>
+                        <h4>Preparando tu donación de ${amount}</h4>
+                        <p>Serás redirigido a MercadoPago en unos segundos...</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            // Remover overlay después de 10 segundos (por si falla la redirección)
+            setTimeout(() => {
+                if (document.body.contains(overlay)) {
+                    overlay.remove();
+                    document.body.style.cursor = 'default';
+                }
+            }, 10000);
+        });
+    });
 });
 </script>
 

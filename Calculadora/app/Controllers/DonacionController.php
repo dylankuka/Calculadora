@@ -53,45 +53,30 @@ class DonacionController extends BaseController
     /**
      * Crear nueva donación y redirigir a MercadoPago
      */
-    public function crear()
+   /**
+     * Checkout directo - Crear preferencia y redirigir inmediatamente
+     */
+    public function checkout($monto)
     {
         $redirect = $this->validarSesion();
         if ($redirect) return $redirect;
 
-        // Validaciones
-        $rules = [
-            'monto' => [
-                'rules' => 'required|decimal|greater_than[99.99]|less_than[100000]',
-                'errors' => [
-                    'required' => 'El monto es obligatorio.',
-                    'decimal' => 'El monto debe ser un número válido.',
-                    'greater_than' => 'El monto mínimo es $100.',
-                    'less_than' => 'El monto no puede exceder $100,000.'
-                ]
-            ],
-            'mensaje' => [
-                'rules' => 'permit_empty|max_length[500]',
-                'errors' => [
-                    'max_length' => 'El mensaje no puede exceder 500 caracteres.'
-                ]
-            ]
-        ];
-
-        if (!$this->validate($rules)) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', '❌ ' . implode(' ', $this->validator->getErrors()));
+        // Validar monto
+        $montosPermitidos = [500, 1000, 2500, 5000, 10000];
+        $monto = (int)$monto;
+        
+        if (!in_array($monto, $montosPermitidos)) {
+            return redirect()->to('/donacion')
+                ->with('error', '❌ Monto de donación no válido.');
         }
 
         try {
             $usuarioId = session()->get('usuario_id');
-            $monto = (float)$this->request->getPost('monto');
-            $mensaje = trim($this->request->getPost('mensaje') ?? '');
-
+            
             // Verificar configuración de MercadoPago
             $verificacion = $this->mercadoPagoService->verificarConfiguracion();
             if (!$verificacion['success']) {
-                throw new \Exception('Configuración de MercadoPago inválida: ' . $verificacion['message']);
+                throw new \Exception('Sistema de pagos temporalmente no disponible: ' . $verificacion['message']);
             }
 
             // Generar referencia única
@@ -106,9 +91,9 @@ class DonacionController extends BaseController
                 'external_reference' => $referencia,
                 'fecha_donacion' => date('Y-m-d H:i:s'),
                 'datos_mp_json' => json_encode([
-                    'mensaje' => $mensaje,
+                    'monto_seleccionado' => $monto,
                     'ip' => $this->request->getIPAddress(),
-                    'user_agent' => $this->request->getUserAgent()
+                    'user_agent' => substr($this->request->getUserAgent(), 0, 200)
                 ])
             ];
 
@@ -123,9 +108,9 @@ class DonacionController extends BaseController
                 'monto' => $monto,
                 'donacion_id' => $donacionId,
                 'external_reference' => $referencia,
-                'usuario_nombre' => session()->get('usuario_nombre') ?? 'Donante',
+                'usuario_nombre' => session()->get('usuario_nombre') ?? 'Donante Anónimo',
                 'usuario_email' => session()->get('usuario_email') ?? 'donante@ejemplo.com',
-                'mensaje' => $mensaje
+                'mensaje' => "Donación de $monto ARS para TaxImporter"
             ]);
 
             if (!$preferencia || !isset($preferencia['id'])) {
@@ -140,13 +125,13 @@ class DonacionController extends BaseController
             // Obtener URL de pago correcta
             $urlPago = $this->mercadoPagoService->obtenerUrlPago($preferencia);
 
-            log_message('info', "Donación {$donacionId} creada. Redirigiendo a MP: {$urlPago}");
+            log_message('info', "Checkout directo - Donación {$donacionId} creada. Monto: $monto. Redirigiendo a: {$urlPago}");
 
-            // Redirigir a MercadoPago
+            // Redirigir INMEDIATAMENTE a MercadoPago
             return redirect()->to($urlPago);
 
         } catch (\Exception $e) {
-            log_message('error', 'Error creando donación: ' . $e->getMessage());
+            log_message('error', 'Error en checkout directo: ' . $e->getMessage());
             
             // Si ya se creó la donación, marcarla como error
             if (isset($donacionId)) {
@@ -156,10 +141,103 @@ class DonacionController extends BaseController
                 ]);
             }
             
-            return redirect()->back()
-                ->withInput()
+            return redirect()->to('/donacion')
                 ->with('error', '❌ Error al procesar donación: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Página de éxito después del pago
+     */
+    public function success()
+    {
+        $paymentId = $this->request->getGet('payment_id');
+        $status = $this->request->getGet('status');
+        $externalReference = $this->request->getGet('external_reference');
+
+        // Inicializar variables
+        $donacion = null;
+        $payment = null;
+        $estadoLocal = 'pendiente';
+
+        if ($paymentId && $externalReference) {
+            // Obtener donación
+            $donacion = $this->donacionModel->obtenerPorReferencia($externalReference);
+            
+            if ($donacion && $donacion['id_usuario'] == session()->get('usuario_id')) {
+                try {
+                    // Verificar estado con MercadoPago
+                    $payment = $this->mercadoPagoService->obtenerPago($paymentId);
+                    
+                    if ($payment) {
+                        $estadoLocal = $this->mapearEstadoMP($payment['status']);
+                        
+                        $this->donacionModel->actualizarEstado(
+                            $donacion['id'], 
+                            $estadoLocal, 
+                            $paymentId, 
+                            $payment
+                        );
+                    }
+                } catch (\Exception $e) {
+                    log_message('warning', 'Error verificando pago en success: ' . $e->getMessage());
+                }
+            }
+        }
+
+        return view('donacion/success', [
+            'donacion' => $donacion,
+            'payment' => $payment,
+            'estado' => $estadoLocal,
+            'mensaje' => $this->obtenerMensajeEstado($estadoLocal)
+        ]);
+    }
+
+    /**
+     * Página de fallo/cancelación
+     */
+    public function failure()
+    {
+        $externalReference = $this->request->getGet('external_reference');
+        $donacion = null;
+
+        if ($externalReference) {
+            $donacion = $this->donacionModel->obtenerPorReferencia($externalReference);
+            
+            if ($donacion && $donacion['id_usuario'] == session()->get('usuario_id')) {
+                // Actualizar estado a cancelado
+                $this->donacionModel->actualizarEstado($donacion['id'], 'cancelado');
+            }
+        }
+
+        return view('donacion/failure', [
+            'donacion' => $donacion,
+            'mensaje' => 'El pago fue cancelado o rechazado. Puedes intentar nuevamente cuando gustes.'
+        ]);
+    }
+
+    /**
+     * Página de pendiente (redirige a success)
+     */
+    public function pending()
+    {
+        // Redirigir a success ya que manejaremos todos los estados ahí
+        return $this->success();
+    }
+
+    /**
+     * Obtener mensaje según estado del pago
+     */
+    private function obtenerMensajeEstado($estado)
+    {
+        $mensajes = [
+            'aprobado' => '✅ ¡Tu donación fue procesada exitosamente! Gracias por apoyar TaxImporter.',
+            'pendiente' => '⏳ Tu donación está siendo procesada. Te notificaremos cuando se complete.',
+            'rechazado' => '❌ Tu pago fue rechazado. Puedes intentar con otro método de pago.',
+            'cancelado' => '🚫 El pago fue cancelado. Puedes intentar nuevamente cuando gustes.'
+        ];
+
+        return $mensajes[$estado] ?? '❓ Estado de pago desconocido. Contacta soporte si persiste el problema.';
     }
 
     /**

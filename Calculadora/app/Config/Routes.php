@@ -43,24 +43,17 @@ $routes->post('historial/calcular', 'Historial::calcular');
 
 // 🧡 RUTAS PARA DONACIONES CON MERCADOPAGO - CORREGIDO
 $routes->group('donacion', function($routes) {
-    // Página principal de donaciones - CORREGIDO: usar DonacionController en lugar de Donacion
     $routes->get('', 'DonacionController::index');
-    
-    // Crear nueva donación y redirigir a MercadoPago
     $routes->post('crear', 'DonacionController::crear');
-    
-    // Webhook para notificaciones de MercadoPago (sin autenticación)
     $routes->post('webhook', 'DonacionController::webhook');
-    
-    // Páginas de retorno desde MercadoPago
+
+    // ✅ ESTA ES LA QUE NECESITÁS
+    $routes->get('checkout/(:num)', 'DonacionController::checkout/$1');
+
     $routes->get('exito', 'DonacionController::exito');
     $routes->get('fallo', 'DonacionController::fallo');
-    $routes->get('pendiente', 'DonacionController::exito'); // Redirige al mismo lugar
-    
-    // Ver detalles de una donación específica
+    $routes->get('pendiente', 'DonacionController::exito');
     $routes->get('ver/(:num)', 'DonacionController::ver/$1');
-    
-    // Rutas adicionales para administración (futuro)
     $routes->get('estadisticas', 'DonacionController::estadisticas');
 });
 
@@ -94,4 +87,3 @@ $routes->group('admin', ['filter' => 'auth'], function($routes) {
     $routes->post('categorias/actualizar/(:num)', 'Admin::actualizarCategoria/$1');
     $routes->get('estadisticas', 'Admin::estadisticas');
 });
-
