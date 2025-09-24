@@ -37,6 +37,7 @@ if (getcwd() . DIRECTORY_SEPARATOR !== FCPATH) {
     chdir(FCPATH);
 }
 
+require_once __DIR__ . '/../vendor/autoload.php';
 /*
  *---------------------------------------------------------------
  * BOOTSTRAP THE APPLICATION

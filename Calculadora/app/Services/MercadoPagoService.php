@@ -2,7 +2,10 @@
 namespace App\Services;
 
 // Importar el SDK de MercadoPago
-use MercadoPago\MercadoPagoConfig;
+// Asegúrate de esta línea:
+use MercadoPago\MercadoPagoConfig; // Importa la clase principal
+use MercadoPago\Preference; // Ejemplo de otra clase que probablemente uses
+use MercadoPago\Payment;    // Otro ejemplo
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Exceptions\MPApiException;
@@ -13,7 +16,7 @@ class MercadoPagoService
     private $publicKey;
     private $isSandbox;
 
-    public function __construct()
+   public function __construct()
     {
         // Configuración desde variables de entorno
         $this->accessToken = getenv('MERCADOPAGO_ACCESS_TOKEN') ?: env('MERCADOPAGO_ACCESS_TOKEN');
@@ -26,9 +29,14 @@ class MercadoPagoService
         // Determinar si estamos en sandbox o producción
         $this->isSandbox = strpos($this->accessToken, 'TEST') === 0;
         
-        // Configurar el SDK
-        MercadoPagoConfig::setAccessToken($this->accessToken);
-        MercadoPagoConfig::setRuntimeEnviroment($this->isSandbox ? 'test' : 'production');
+        // Configurar el SDK (compatibilidad con distintas versiones)
+        if (class_exists('\MercadoPago\SDK')) {
+            \MercadoPago\SDK::setAccessToken($this->accessToken);
+        } elseif (class_exists('\MercadoPago\MercadoPagoConfig')) {
+            \MercadoPago\MercadoPagoConfig::setAccessToken($this->accessToken);
+        } else {
+            throw new \Exception('SDK de MercadoPago no encontrado. Ejecuta: composer require mercadopago/dx-php y asegúrate de cargar vendor/autoload.php');
+        }
     }
 
     /**
