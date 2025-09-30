@@ -98,6 +98,10 @@ body { background: #333e48 !important; color: #ffffff; }
 .card-custom6{
     background-color: #516680 ;
 }
+.card-custom7{
+    background: linear-gradient(135deg, rgb(141, 18, 171) 0%, #146eb4 100%);
+    color: white;
+}
 /* Estilos para el formulario de búsqueda */
 .form-custom {
     color: white !important;
