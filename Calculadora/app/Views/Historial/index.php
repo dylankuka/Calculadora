@@ -151,11 +151,11 @@
                         </div>
                         
                         <div class="mt-4">
-                            <a href="<?= base_url('usuario/registro') ?>" class="btn btn-warning btn-lg me-2">
+                            <a href="<?= base_url('usuario/registro') ?>" class="btn btn-warning btn-lg me-2 card-custom5">
                                 <i class="bi bi-person-plus"></i> Crear Cuenta Gratis
                             </a>
-                            <a href="<?= base_url('usuario/login') ?>" class="btn btn-outline-light btn-lg">
-                                <i class="bi bi-box-arrow-in-right"></i> Ya tengo cuenta
+                            <a href="<?= base_url('usuario/login') ?>" class="btn btn-lg card-custom7">
+                                <i class="bi bi-box-arrow-in-right "></i> Ya tengo cuenta
                             </a>
                         </div>
                     </div>
@@ -345,20 +345,23 @@
                                                 <?php endif; ?>
                                                 
                                                 <!-- Acciones -->
-                                                <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-                                                    <a href="<?= base_url('historial/ver/' . $calculo['id']) ?>" 
-                                                       class="btn btn-outline-primary btn-sm flex-fill">
-                                                        <i class="bi bi-eye"></i> Ver
-                                                    </a>
-                                                    <a href="<?= base_url('historial/editar/' . $calculo['id']) ?>" 
-                                                       class="btn btn-outline-primary btn-sm flex-fill">
-                                                        <i class="bi bi-pencil"></i> Editar
-                                                    </a>
-                                                    <button onclick="confirmarEliminar(<?= $calculo['id'] ?>, '<?= esc(addslashes($calculo['nombre_producto'])) ?>')" 
-                                                            class="btn btn-outline-danger btn-sm flex-fill">
-                                                        <i class="bi bi-trash"></i> Eliminar
-                                                    </button>
-                                                </div>
+<!-- Acciones -->
+<!-- Acciones -->
+<div class="d-grid gap-2 d-md-flex justify-content-md-between">
+    <a href="<?= base_url('historial/ver/' . $calculo['id']) ?>" 
+       class="btn btn-outline-warning btn-sm flex-fill">
+        <i class="bi bi-eye"></i> Ver
+    </a>
+    <a href="<?= base_url('historial/editar/' . $calculo['id']) ?>" 
+       class="btn btn-sm flex-fill" 
+       style="color: #e119ec; border-color: #e119ec;">
+        <i class="bi bi-pencil"></i> Editar
+    </a>
+    <button onclick="confirmarEliminar(<?= $calculo['id'] ?>, '<?= esc(addslashes($calculo['nombre_producto'])) ?>')" 
+            class="btn btn-outline-danger btn-sm flex-fill">
+        <i class="bi bi-trash"></i> Eliminar
+    </button>
+</div>
                                             </div>
                                         </div>
                                     </div>
