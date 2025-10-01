@@ -12,26 +12,88 @@ MercadoPagoConfig::setAccessToken(getenv('MERCADOPAGO_ACCESS_TOKEN'));
 class DonacionController extends BaseController
 {
 
-public function testCredenciales() {
+public function testCredenciales() 
+{
     try {
-        MercadoPagoConfig::setAccessToken(getenv('MERCADOPAGO_ACCESS_TOKEN'));
-
+        echo "<h2>🔍 Test de Credenciales MercadoPago</h2>";
+        echo "<hr>";
+        
+        // 1. Verificar variables de entorno
+        echo "<h3>1️⃣ Variables de Entorno</h3>";
+        $accessToken = getenv('MERCADOPAGO_ACCESS_TOKEN');
+        $publicKey = getenv('MERCADOPAGO_PUBLIC_KEY');
+        
+        echo "Access Token: " . ($accessToken ? "✅ Configurado (" . substr($accessToken, 0, 20) . "...)" : "❌ NO configurado") . "<br>";
+        echo "Public Key: " . ($publicKey ? "✅ Configurado (" . substr($publicKey, 0, 20) . "...)" : "❌ NO configurado") . "<br>";
+        echo "Modo: " . (strpos($accessToken, 'TEST') === 0 ? "🧪 SANDBOX (Pruebas)" : "🚀 PRODUCCIÓN") . "<br>";
+        echo "<hr>";
+        
+        if (!$accessToken || !$publicKey) {
+            die("<strong>❌ ERROR:</strong> Credenciales no configuradas en .env");
+        }
+        
+        // 2. Configurar SDK
+        echo "<h3>2️⃣ Configuración del SDK</h3>";
+        MercadoPagoConfig::setAccessToken($accessToken);
+        echo "SDK inicializado ✅<br>";
+        echo "<hr>";
+        
+        // 3. Crear preferencia de prueba
+        echo "<h3>3️⃣ Crear Preferencia de Prueba</h3>";
         $client = new PreferenceClient();
-        $preference = $client->create([
-            "items" => [
+        
+        $testPreference = [
+            'items' => [
                 [
-                    "title" => "Prueba",
-                    "quantity" => 1,
-                    "unit_price" => 100
+                    'id' => 'test_' . time(),
+                    'title' => 'Test Item',
+                    'quantity' => 1,
+                    'currency_id' => 'ARS',
+                    'unit_price' => 100.0
                 ]
-            ]
-        ]);
-        return "✅ Credenciales correctas, init_point: " . $preference->init_point;
+            ],
+            'back_urls' => [
+                'success' => base_url('donacion/success'),
+                'failure' => base_url('donacion/failure'),
+                'pending' => base_url('donacion/success')
+            ],
+            'external_reference' => 'TEST_' . time()
+        ];
+        
+        echo "Enviando solicitud a MercadoPago...<br>";
+        $preference = $client->create($testPreference);
+        
+        echo "✅ <strong>Preferencia creada exitosamente!</strong><br>";
+        echo "ID: " . $preference->id . "<br>";
+        echo "Init Point: <a href='{$preference->init_point}' target='_blank'>{$preference->init_point}</a><br>";
+        
+        if (isset($preference->sandbox_init_point)) {
+            echo "Sandbox Init Point: <a href='{$preference->sandbox_init_point}' target='_blank'>{$preference->sandbox_init_point}</a><br>";
+        }
+        
+        echo "<hr>";
+        echo "<h3>✅ TODO FUNCIONA CORRECTAMENTE</h3>";
+        echo "<p>Tus credenciales están bien configuradas y la integración funciona.</p>";
+        echo "<p><a href='" . base_url('donacion') . "'>Ir a Donaciones</a></p>";
+        
+    } catch (\MercadoPago\Exceptions\MPApiException $e) {
+        echo "<h3>❌ ERROR DE API MERCADOPAGO</h3>";
+        echo "<strong>Mensaje:</strong> " . $e->getMessage() . "<br>";
+        echo "<strong>Status Code:</strong> " . ($e->getApiResponse() ? $e->getApiResponse()->getStatusCode() : 'N/A') . "<br>";
+        echo "<strong>Response:</strong> <pre>" . json_encode($e->getApiResponse() ? $e->getApiResponse()->getContent() : 'N/A', JSON_PRETTY_PRINT) . "</pre>";
+        
+        echo "<hr><h4>Posibles soluciones:</h4><ul>";
+        echo "<li>Verifica que tu Access Token sea válido</li>";
+        echo "<li>Asegúrate de usar credenciales TEST para modo sandbox</li>";
+        echo "<li>Revisa que las credenciales estén correctamente copiadas en el .env</li>";
+        echo "</ul>";
+        
     } catch (\Exception $e) {
-        return "❌ Error: " . $e->getMessage();
+        echo "<h3>❌ ERROR GENERAL</h3>";
+        echo "<strong>Mensaje:</strong> " . $e->getMessage() . "<br>";
+        echo "<strong>Trace:</strong> <pre>" . $e->getTraceAsString() . "</pre>";
     }
 }
-
     private $donacionModel;
     private $mercadoPagoService;
 
@@ -82,79 +144,145 @@ public function testCredenciales() {
    /**
      * Checkout directo - Crear preferencia y redirigir inmediatamente
      */
-    public function checkout($monto)
-    {
-        $redirect = $this->validarSesion();
-        if ($redirect) return $redirect;
 
-        // Validar monto
-        $montosPermitidos = [500, 1000, 2500, 5000, 10000];
-        $monto = (int)$monto;
+/**
+ * Checkout directo - Crear preferencia y redirigir inmediatamente
+ */
+public function checkout($monto)
+{
+    $redirect = $this->validarSesion();
+    if ($redirect) return $redirect;
+
+    // Validar monto
+    $montosPermitidos = [500, 1000, 2500, 5000, 10000];
+    $monto = (int)$monto;
+    
+    if (!in_array($monto, $montosPermitidos)) {
+        return redirect()->to('/donacion')
+            ->with('error', '❌ Monto de donación no válido.');
+    }
+
+    try {
+        $usuarioId = session()->get('usuario_id');
         
-        if (!in_array($monto, $montosPermitidos)) {
-            return redirect()->to('/donacion')
-                ->with('error', '❌ Monto de donación no válido.');
+        // Log inicial
+        log_message('info', "Iniciando checkout para usuario {$usuarioId} - Monto: {$monto}");
+        
+        // Verificar que las credenciales estén configuradas
+        $accessToken = getenv('MERCADOPAGO_ACCESS_TOKEN');
+        $publicKey = getenv('MERCADOPAGO_PUBLIC_KEY');
+        
+        if (empty($accessToken) || empty($publicKey)) {
+            log_message('error', 'Credenciales de MercadoPago no configuradas');
+            throw new \Exception('Sistema de pagos no disponible. Contacta al administrador.');
         }
 
-        try {
-            $usuarioId = session()->get('usuario_id');
-            
-            // Verificar configuración de MercadoPago
-            $verificacion = $this->mercadoPagoService->verificarConfiguracion();
-            if (!$verificacion['success']) {
-                throw new \Exception('Sistema de pagos temporalmente no disponible: ' . $verificacion['message']);
-            }
+        log_message('info', "Credenciales encontradas. Access Token: " . substr($accessToken, 0, 15) . "...");
 
-            // Generar referencia única
-            $referencia = 'DON_' . $usuarioId . '_' . time() . '_' . rand(1000, 9999);
+        // Generar referencia única
+        $referencia = 'DON_' . $usuarioId . '_' . time() . '_' . rand(1000, 9999);
+        log_message('info', "Referencia generada: {$referencia}");
 
-            // Crear registro en base de datos
-            $datosBasicos = [
-                'id_usuario' => $usuarioId,
-                'monto_ars' => $monto,
-                'metodo_pago' => 'mercadopago',
-                'estado' => 'pendiente',
-                'external_reference' => $referencia,
-                'fecha_donacion' => date('Y-m-d H:i:s'),
-                'datos_mp_json' => json_encode([
-                    'monto_seleccionado' => $monto,
-                    'ip' => $this->request->getIPAddress(),
-                    'user_agent' => substr($this->request->getUserAgent(), 0, 200)
-                ])
-            ];
+        // Crear registro en base de datos PRIMERO
+        $datosBasicos = [
+            'id_usuario' => $usuarioId,
+            'monto_ars' => $monto,
+            'metodo_pago' => 'mercadopago',
+            'estado' => 'pendiente',
+            'external_reference' => $referencia,
+            'fecha_donacion' => date('Y-m-d H:i:s'),
+            'datos_mp_json' => json_encode([
+                'monto_seleccionado' => $monto,
+                'ip' => $this->request->getIPAddress(),
+                'user_agent' => substr($this->request->getUserAgent()->__toString(), 0, 200)
+            ])
+        ];
 
-            $donacionId = $this->donacionModel->insert($datosBasicos);
+        $donacionId = $this->donacionModel->insert($datosBasicos);
 
-            if (!$donacionId) {
-                throw new \Exception('Error al crear donación en base de datos');
-            }
+        if (!$donacionId) {
+            log_message('error', 'Error al insertar donación en BD');
+            throw new \Exception('Error al registrar donación. Intenta nuevamente.');
+        }
 
-            // Crear preferencia en MercadoPago
-            $preferencia = $this->mercadoPagoService->crearPreferenciaDonacion([
-                'monto' => $monto,
-                'donacion_id' => $donacionId,
-                'external_reference' => $referencia,
-                'usuario_nombre' => session()->get('usuario_nombre') ?? 'Donante Anónimo',
-                'usuario_email' => session()->get('usuario_email') ?? 'donante@ejemplo.com',
-                'mensaje' => "Donación de $monto ARS para TaxImporter"
-            ]);
+        log_message('info', "Donación {$donacionId} creada en BD");
 
-            if (!$preferencia || !isset($preferencia['id'])) {
-                throw new \Exception('Error al crear preferencia de pago en MercadoPago');
-            }
+        // Preparar datos para la preferencia
+        $datosPreferencia = [
+            'monto' => $monto,
+            'donacion_id' => $donacionId,
+            'external_reference' => $referencia,
+            'usuario_nombre' => session()->get('usuario_nombre') ?? 'Donante Anónimo',
+            'usuario_email' => session()->get('usuario_email') ?? 'donante@ejemplo.com',
+            'mensaje' => "Donación de $monto ARS para TaxImporter"
+        ];
 
-            // Actualizar con preference_id
+        log_message('info', "Creando preferencia en MercadoPago para donación {$donacionId}");
+
+        // Crear preferencia en MercadoPago
+        $preferencia = $this->mercadoPagoService->crearPreferenciaDonacion($datosPreferencia);
+
+        if (!$preferencia || !isset($preferencia['id'])) {
+            log_message('error', 'MercadoPago no devolvió preference_id válido');
+            throw new \Exception('Error al comunicarse con MercadoPago. Intenta en unos minutos.');
+        }
+
+        log_message('info', "Preferencia creada: {$preferencia['id']}");
+
+        // Actualizar donación con preference_id
+        $updateResult = $this->donacionModel->update($donacionId, [
+            'preference_id' => $preferencia['id']
+        ]);
+
+        if (!$updateResult) {
+            log_message('warning', "No se pudo actualizar preference_id en donación {$donacionId}");
+        }
+
+        // Obtener URL de pago
+        $urlPago = $this->mercadoPagoService->obtenerUrlPago($preferencia);
+
+        if (empty($urlPago)) {
+            log_message('error', 'URL de pago vacía');
+            throw new \Exception('No se pudo generar el enlace de pago.');
+        }
+
+        log_message('info', "Redirigiendo a: {$urlPago}");
+
+        // Redirigir a MercadoPago
+        return redirect()->to($urlPago);
+
+    } catch (\MercadoPago\Exceptions\MPApiException $e) {
+        log_message('error', 'Error API MercadoPago en checkout: ' . $e->getMessage());
+        log_message('error', 'Status Code: ' . $e->getApiResponse()->getStatusCode());
+        log_message('error', 'Response: ' . json_encode($e->getApiResponse()->getContent()));
+        
+        if (isset($donacionId)) {
             $this->donacionModel->update($donacionId, [
-                'preference_id' => $preferencia['id']
+                'estado' => 'cancelado',
+                'datos_mp_json' => json_encode([
+                    'error' => $e->getMessage(),
+                    'api_response' => $e->getApiResponse()->getContent()
+                ])
             ]);
-
-            // Obtener URL de pago correcta
-            $urlPago = $this->mercadoPagoService->obtenerUrlPago($preferencia);
-
-            log_message('info', "Checkout directo - Donación {$donacionId} creada. Monto: $monto. Redirigiendo a: {$urlPago}");
-
-            // Redirigir INMEDIATAMENTE a MercadoPago
-            return redirect()->to($urlPago);
+        }
+        
+        return redirect()->to('/donacion')
+            ->with('error', '❌ Error de MercadoPago: ' . $e->getMessage() . '. Verifica tus credenciales.');
+            
+    } catch (\Exception $e) {
+        log_message('error', 'Error general en checkout: ' . $e->getMessage());
+        log_message('error', 'Trace: ' . $e->getTraceAsString());
+        
+        if (isset($donacionId)) {
+            $this->donacionModel->update($donacionId, [
+                'estado' => 'cancelado',
+                'datos_mp_json' => json_encode(['error' => $e->getMessage()])
+            ]);
+        }
+        
+        return redirect()->to('/donacion')
+            ->with('error', '❌ ' . $e->getMessage());
+    
 
         } catch (\Exception $e) {
             log_message('error', 'Error en checkout directo: ' . $e->getMessage());

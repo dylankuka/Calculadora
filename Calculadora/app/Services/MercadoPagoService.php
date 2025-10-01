@@ -40,76 +40,97 @@ class MercadoPagoService
     /**
      * Crear preferencia de pago para donación
      */
-    public function crearPreferenciaDonacion($datos)
-    {
-        try {
-            $client = new PreferenceClient();
-            
-            $preference = [
-                'items' => [
-                    [
-                        'id' => 'donacion_' . $datos['donacion_id'],
-                        'title' => '💖 Donación para TaxImporter',
-                        'description' => 'Apoyo al desarrollo de TaxImporter - Calculadora de impuestos Amazon',
-                        'quantity' => 1,
-                        'currency_id' => 'ARS',
-                        'unit_price' => (float)$datos['monto']
-                    ]
-                ],
-                'payer' => [
-                    'name' => $datos['usuario_nombre'] ?? 'Donante',
-                    'email' => $datos['usuario_email'] ?? 'donante@ejemplo.com'
-                ],
-                'external_reference' => $datos['external_reference'],
-                'back_urls' => [
-                    'success' => base_url('donacion/success'),
-                    'failure' => base_url('donacion/failure'), 
-                    'pending' => base_url('donacion/pending')
-                ],
-                'auto_return' => 'approved',
-                'notification_url' => base_url('donacion/webhook'),
-                'statement_descriptor' => 'TaxImporter',
-                'payment_methods' => [
-                    'default_payment_method_id' => null,
-                    'excluded_payment_methods' => [
-                        ['id' => 'amex'] // Excluir American Express si quieres
-                    ],
-                    'excluded_payment_types' => [
-                        // ['id' => 'atm'] // Excluir cajeros si quieres
-                    ],
-                    'installments' => 12
-                ],
-                'metadata' => [
-                    'donacion_id' => (int)$datos['donacion_id'],
-                    'mensaje' => $datos['mensaje'] ?? '',
-                    'tipo' => 'donacion',
-                    'plataforma' => 'TaxImporter'
-                ],
-                'expires' => true,
-                'expiration_date_from' => date('c'), // Fecha actual
-                'expiration_date_to' => date('c', strtotime('+1 day')) // Expira en 24 horas
-            ];
+    /**
+ * Crear preferencia de pago para donación
+ */
+public function crearPreferenciaDonacion($datos)
+{
+    try {
+        log_message('info', 'Iniciando creación de preferencia MP');
+        log_message('info', 'Access Token configurado: ' . (MercadoPagoConfig::getAccessToken() ? 'SI' : 'NO'));
+        
+        $client = new PreferenceClient();
+        
+        // Construir preferencia paso a paso
+        $preference = [
+            'items' => [
+                [
+                    'id' => 'donacion_' . $datos['donacion_id'],
+                    'title' => '💖 Donación TaxImporter',
+                    'description' => 'Apoyo al desarrollo de TaxImporter',
+                    'quantity' => 1,
+                    'currency_id' => 'ARS',
+                    'unit_price' => (float)$datos['monto']
+                ]
+            ],
+            'payer' => [
+                'name' => $datos['usuario_nombre'] ?? 'Donante',
+                'email' => $datos['usuario_email'] ?? 'donante@ejemplo.com'
+            ],
+            'external_reference' => $datos['external_reference'],
+            'back_urls' => [
+                'success' => base_url('donacion/success'),
+                'failure' => base_url('donacion/failure'), 
+                'pending' => base_url('donacion/success') // Cambiado para unificar
+            ],
+            'auto_return' => 'approved',
+            'notification_url' => base_url('donacion/webhook'),
+            'statement_descriptor' => 'TaxImporter',
+            'payment_methods' => [
+                'installments' => 12,
+                'default_installments' => 1
+            ],
+            'metadata' => [
+                'donacion_id' => (int)$datos['donacion_id'],
+                'tipo' => 'donacion',
+                'plataforma' => 'TaxImporter'
+            ]
+        ];
 
-            $response = $client->create($preference);
-            
-            if (!$response || !$response->id) {
-                throw new \Exception('Respuesta inválida de MercadoPago al crear preferencia');
-            }
-
-            return [
-                'id' => $response->id,
-                'init_point' => $response->init_point,
-                'sandbox_init_point' => $response->sandbox_init_point ?? null
-            ];
-
-        } catch (MPApiException $e) {
-            log_message('error', 'Error API MercadoPago: ' . $e->getMessage() . ' - Code: ' . $e->getApiResponse()->getStatusCode());
-            throw new \Exception('Error de MercadoPago: ' . $e->getMessage());
-        } catch (\Exception $e) {
-            log_message('error', 'Error creando preferencia MP: ' . $e->getMessage());
-            throw $e;
+        log_message('info', 'Preferencia construida: ' . json_encode($preference));
+        
+        // Crear preferencia
+        $response = $client->create($preference);
+        
+        log_message('info', 'Respuesta MP recibida: ' . json_encode([
+            'id' => $response->id ?? 'NO_ID',
+            'init_point' => $response->init_point ?? 'NO_INIT_POINT',
+            'sandbox_init_point' => $response->sandbox_init_point ?? 'NO_SANDBOX'
+        ]));
+        
+        if (!$response || !$response->id) {
+            throw new \Exception('MercadoPago no devolvió un ID de preferencia válido');
         }
+
+        return [
+            'id' => $response->id,
+            'init_point' => $response->init_point,
+            'sandbox_init_point' => $response->sandbox_init_point ?? null
+        ];
+
+    } catch (MPApiException $e) {
+        $statusCode = $e->getApiResponse() ? $e->getApiResponse()->getStatusCode() : 'N/A';
+        $content = $e->getApiResponse() ? json_encode($e->getApiResponse()->getContent()) : 'N/A';
+        
+        log_message('error', "Error API MP - Status: {$statusCode}");
+        log_message('error', "Error API MP - Content: {$content}");
+        log_message('error', "Error API MP - Message: " . $e->getMessage());
+        
+        // Mensajes de error más específicos
+        if ($statusCode == 401) {
+            throw new \Exception('Credenciales de MercadoPago inválidas. Verifica tu Access Token.');
+        } elseif ($statusCode == 400) {
+            throw new \Exception('Datos inválidos en la solicitud a MercadoPago.');
+        } else {
+            throw new \Exception('Error de MercadoPago: ' . $e->getMessage());
+        }
+        
+    } catch (\Exception $e) {
+        log_message('error', 'Error general en crearPreferencia: ' . $e->getMessage());
+        log_message('error', 'Trace: ' . $e->getTraceAsString());
+        throw $e;
     }
+}
 
     /**
      * Obtener información de un pago específico
