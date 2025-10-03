@@ -145,11 +145,20 @@ body { background: #333e48 !important; color: #ffffff; }
     background-color: #c82333 !important;
     border-color: #000000 !important;
 }
+ .table-dark-custom tbody tr {
+    background-color: #1f1f1f; 
+    color: #eaeaea; /* texto claro */
+}
 
 .input-group {
     border: 2px solid #000000;
     border-radius: 5px;
     overflow: hidden;
+}
+
+.table-dark-custom tbody tr:hover {
+    background-color: #333333; 
+    transition: background 0.2s ease-in-out;
 }
 
 .input-group .form-control,
@@ -167,6 +176,325 @@ body { background: #333e48 !important; color: #ffffff; }
     overflow: hidden;
 }
 
+.table-dark-custom {
+    background-color: #1a1a1a;
+    color: #eaeaea;
+}
+
+/* Header de la tabla */
+.table-dark-custom thead th {
+    background-color: #2d2d2d !important;
+    color: #ff9900 !important;
+    border-bottom: 2px solid #444;
+    padding: 12px;
+}
+
+/* Filas del body */
+.table-dark-custom tbody tr {
+    background-color: #232323 !important;
+    color: #eaeaea !important;
+    border-bottom: 1px solid #333;
+}
+
+/* Hover en filas */
+.table-dark-custom tbody tr:hover {
+    background-color: #2d2d2d !important;
+    transition: background 0.2s ease-in-out;
+}
+
+/* Celdas */
+.table-dark-custom tbody td {
+    padding: 12px;
+    vertical-align: middle;
+    color: #eaeaea !important;
+}
+
+/* Card body oscuro */
+.card-body.card-custom1 {
+    background-color: #1a1a1a !important;
+}
+
+/* Badges de estado */
+.badge-status {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+.badge-pendiente {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.badge-aprobado {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.badge-rechazado {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.badge-cancelado {
+    background-color: #6c757d;
+    color: #fff;
+}
+/* Tabla completa oscura */
+.table-dark-custom {
+    background-color: #0f0f0f;
+    color: #eaeaea;
+    border: none;
+}
+
+/* Header de la tabla */
+.table-dark-custom thead th {
+    background-color: #1a1a1a !important;
+    color: #ff9900 !important;
+    border-bottom: 2px solid #ff9900;
+    padding: 15px 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+/* Filas del body - FONDO OSCURO */
+.table-dark-custom tbody tr {
+    background-color: #1a1a1a !important;
+    color: #eaeaea !important;
+    border-bottom: 1px solid #2d2d2d;
+    transition: all 0.2s ease;
+}
+
+/* Hover en filas - MÁS CLARO */
+.table-dark-custom tbody tr:hover {
+    background-color: #252525 !important;
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(255, 153, 0, 0.1);
+}
+
+/* Celdas */
+.table-dark-custom tbody td {
+    padding: 15px 12px;
+    vertical-align: middle;
+    color: #eaeaea !important;
+    border: none;
+}
+
+/* Card body oscuro */
+.card-body.card-custom1 {
+    background-color: #0f0f0f !important;
+    padding: 0;
+}
+
+/* Container de tabla */
+.table-responsive {
+    background-color: #0f0f0f;
+}
+
+/* Badges de estado mejorados */
+.badge-status {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.badge-pendiente {
+    background-color: #ffc107;
+    color: #000;
+    box-shadow: 0 2px 5px rgba(255, 193, 7, 0.3);
+}
+
+.badge-aprobado {
+    background-color: #28a745;
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+}
+
+.badge-rechazado {
+    background-color: #dc3545;
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
+}
+
+.badge-cancelado {
+    background-color: #6c757d;
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(108, 117, 125, 0.3);
+}
+
+/* Botón Ver Detalles mejorado */
+.btn-outline-info {
+    border-color: #17a2b8;
+    color: #17a2b8;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-info:hover {
+    background-color: #17a2b8;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(23, 162, 184, 0.3);
+}
+
+/* Efecto de cebra más sutil (opcional) */
+.table-dark-custom tbody tr:nth-child(odd) {
+    background-color: #1a1a1a !important;
+}
+
+.table-dark-custom tbody tr:nth-child(even) {
+    background-color: #1f1f1f !important;
+}
+
+/* ========================================
+   TABLA DE DONACIONES - CORREGIDO
+   ======================================== */
+
+/* Card principal con bordes redondeados */
+.amazon-dark-card {
+    background: #1b2329 !important;
+    border: 1px solid #2d3a45;
+    border-radius: 12px !important; /* Bordes redondeados */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    overflow: hidden; /* Para que el contenido respete los bordes */
+}
+
+/* Header con bordes redondeados superiores */
+.amazon-dark-card .card-header {
+    background: #232f3e !important;
+    color: white !important;
+    border-radius: 12px 12px 0 0 !important; /* Solo arriba redondeado */
+    border-bottom: 2px solid #ff9900;
+    padding: 15px 20px;
+}
+
+/* Tabla completa oscura */
+.table-dark-custom {
+    background-color: #0f0f0f !important;
+    color: #eaeaea;
+    border: none;
+    margin-bottom: 0;
+}
+
+/* Header de la tabla - NEGRO */
+.table-dark-custom thead th {
+    background-color: #0a0a0a !important; /* Negro más oscuro */
+    color: #ff9900 !important;
+    border-bottom: 2px solid #ff9900;
+    padding: 15px 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+/* Filas del body - GRIS CLARO (más claro que el header) */
+.table-dark-custom tbody tr {
+    background-color: #2a2a2a !important; /* Gris claro */
+    color: #eaeaea !important;
+    border-bottom: 1px solid #1a1a1a;
+    transition: all 0.2s ease;
+}
+
+/* Filas alternas para efecto zebra */
+.table-dark-custom tbody tr:nth-child(odd) {
+    background-color: #2a2a2a !important; /* Gris claro */
+}
+
+.table-dark-custom tbody tr:nth-child(even) {
+    background-color: #333333 !important; /* Gris un poco más claro */
+}
+
+/* Hover en filas */
+.table-dark-custom tbody tr:hover {
+    background-color: #3a3a3a !important; /* Más claro al hacer hover */
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(255, 153, 0, 0.1);
+}
+
+/* Celdas */
+.table-dark-custom tbody td {
+    padding: 15px 12px;
+    vertical-align: middle;
+    color: #eaeaea !important;
+    border: none;
+}
+
+/* Card body oscuro */
+.card-body.card-custom1 {
+    background-color: #0f0f0f !important;
+    padding: 0;
+}
+
+/* Container de tabla */
+.table-responsive {
+    background-color: #0f0f0f;
+    border-radius: 0 0 12px 12px; /* Bordes redondeados inferiores */
+    overflow: hidden;
+}
+
+/* Badges de estado mejorados */
+.badge-status {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.badge-pendiente {
+    background-color: #ffc107;
+    color: #000;
+    box-shadow: 0 2px 5px rgba(255, 193, 7, 0.3);
+}
+
+.badge-aprobado {
+    background-color: #28a745;
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+}
+
+.badge-rechazado {
+    background-color: #dc3545;
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
+}
+
+.badge-cancelado {
+    background-color: #6c757d;
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(108, 117, 125, 0.3);
+}
+
+/* Botón Ver Detalles mejorado */
+.btn-outline-info {
+    border-color: #17a2b8;
+    color: #17a2b8;
+    transition: all 0.2s ease;
+    background-color: transparent;
+}
+
+.btn-outline-info:hover {
+    background-color: #17a2b8 !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(23, 162, 184, 0.3);
+}
+
+/* Texto naranja de Amazon */
+.text-amazon-orange {
+    color: #ff9900 !important;
+}
+
+.text-amazon-light {
+    color: #cccccc !important;
+}
 .card-header-historial {
     background: linear-gradient(135deg, #ff9900, #e68a00) !important;
     color: #333e48 !important;

@@ -250,62 +250,253 @@
                 </div>
             </div>
 
-            <!-- Historial de donaciones del usuario -->
-            <?php if (!empty($mis_donaciones)): ?>
-            <div class="amazon-dark-card shadow mb-5 slide-in">
-                <div class="card-header bg-secondary text-white py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="bi bi-clock-history"></i> Mis Donaciones
-                        </h5>
-                        <?php if (isset($resumen) && $resumen): ?>
-                            <small class="text-amazon-light">
-                                Total donado: <strong class="text-amazon-orange">$<?= number_format($resumen['total_donado'] ?? 0, 0, ',', '.') ?></strong> 
-                                (<?= $resumen['total_donaciones'] ?? 0 ?> donaciones)
-                            </small>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-dark-custom mb-0">
-                            <thead>
-                                <tr>
-                                    <th><i class="bi bi-calendar"></i> Fecha</th>
-                                    <th><i class="bi bi-currency-dollar"></i> Monto</th>
-                                    <th><i class="bi bi-check-circle"></i> Estado</th>
-                                    <th><i class="bi bi-gear"></i> Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($mis_donaciones as $donacion): ?>
-                                <tr>
-                                    <td class="text-amazon-light">
-                                        <?= date('d/m/Y H:i', strtotime($donacion['fecha_donacion'])) ?>
-                                    </td>
-                                    <td>
-                                        <strong class="text-amazon-orange">$<?= number_format($donacion['monto_ars'], 0, ',', '.') ?></strong>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-status badge-<?= $donacion['estado'] ?>">
-                                            <?= ucfirst($donacion['estado']) ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a href="<?= base_url('donacion/ver/' . $donacion['id']) ?>" 
-                                           class="btn btn-sm btn-outline-info">
-                                            <i class="bi bi-eye"></i> Ver Detalles
-                                        </a>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
+<!-- Historial de donaciones del usuario -->
+<style>
+/* Card principal con bordes redondeados */
+.amazon-dark-card.shadow.mb-5.slide-in {
+    background: #1b2329 !important;
+    border: 1px solid #2d3a45;
+    border-radius: 12px !important;
+    overflow: hidden;
+}
 
+/* Header oscuro con bordes redondeados superiores */
+.amazon-dark-card .card-header {
+    background-color: #1a1a1a !important; /* Gris muy oscuro, NO naranja */
+    color: #ffffff !important;
+    border-radius: 12px 12px 0 0 !important;
+    border-bottom: 2px solid #ff9900;
+    padding: 15px 20px;
+}
+
+/* Tabla completa oscura */
+.table-dark-custom {
+    background-color: #1a1a1a !important;
+    color: #eaeaea !important;
+    border: none;
+    margin-bottom: 0;
+    width: 100%;
+}
+
+/* Header de la tabla - NEGRO OSCURO */
+.table-dark-custom thead {
+    background-color: #0a0a0a !important;
+}
+
+.table-dark-custom thead th {
+    background-color: #0a0a0a !important; /* Negro muy oscuro */
+    color: #ff9900 !important;
+    border-bottom: 2px solid #333333;
+    padding: 15px 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    border-top: none;
+}
+
+.table-dark-custom thead tr {
+    background-color: #0a0a0a !important;
+}
+
+/* Filas del body - GRIS OSCURO (no blanco) */
+.table-dark-custom tbody {
+    background-color: #1a1a1a !important;
+}
+
+.table-dark-custom tbody tr {
+    background-color: #2a2a2a !important; /* Gris medio-oscuro */
+    color: #ffffff !important; /* Texto BLANCO para que se lea */
+    border-bottom: 1px solid #1a1a1a;
+    transition: all 0.2s ease;
+}
+
+/* Filas alternas (efecto zebra) */
+.table-dark-custom tbody tr:nth-child(odd) {
+    background-color: #2a2a2a !important; /* Gris medio-oscuro */
+}
+
+.table-dark-custom tbody tr:nth-child(even) {
+    background-color: #333333 !important; /* Un poco más claro */
+}
+
+/* Hover en filas */
+.table-dark-custom tbody tr:hover {
+    background-color: #3d3d3d !important; /* Más claro al hacer hover */
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(255, 153, 0, 0.2);
+}
+
+/* Celdas - TEXTO BLANCO */
+.table-dark-custom tbody td {
+    padding: 15px 12px;
+    vertical-align: middle;
+    color: #ffffff !important; /* Texto BLANCO */
+    border: none;
+    background-color: transparent !important;
+}
+
+/* Card body oscuro */
+.card-body.card-custom1 {
+    background-color: #1a1a1a !important;
+    padding: 0 !important;
+}
+
+/* Container de tabla */
+.table-responsive {
+    background-color: #1a1a1a !important;
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+}
+
+/* Badges de estado mejorados */
+.badge-status {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.badge-pendiente {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+    box-shadow: 0 2px 5px rgba(255, 193, 7, 0.3);
+}
+
+.badge-aprobado {
+    background-color: #28a745 !important;
+    color: #fff !important;
+    box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+}
+
+.badge-rechazado {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
+}
+
+.badge-cancelado {
+    background-color: #6c757d !important;
+    color: #fff !important;
+    box-shadow: 0 2px 5px rgba(108, 117, 125, 0.3);
+}
+
+/* Botón Ver Detalles mejorado */
+.btn-outline-info {
+    border-color: #17a2b8 !important;
+    color: #17a2b8 !important;
+    background-color: transparent !important;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-info:hover {
+    background-color: #17a2b8 !important;
+    border-color: #17a2b8 !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(23, 162, 184, 0.3);
+}
+
+/* Texto naranja de Amazon */
+.text-amazon-orange {
+    color: #ff9900 !important;
+}
+
+.text-amazon-light {
+    color: #cccccc !important;
+}
+
+/* Icono del calendario */
+.bi-calendar3.text-amazon-orange {
+    color: #ff9900 !important;
+    margin-right: 5px;
+}
+
+/* Texto de fecha en blanco */
+.text-light {
+    color: #ffffff !important;
+}
+
+/* Pequeño texto ARS */
+.text-muted {
+    color: #999999 !important;
+}
+</style>
+
+<div class="amazon-dark-card shadow mb-5 slide-in">
+    <!-- Header con bordes redondeados -->
+    <div class="card-header py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-white">
+                <i class="bi bi-clock-history"></i> Mis Donaciones
+            </h5>
+            <?php if (isset($resumen) && $resumen): ?>
+                <small class="text-amazon-light">
+                    Total donado: <strong class="text-amazon-orange">$<?= number_format($resumen['total_donado'] ?? 0, 0, ',', '.') ?></strong> 
+                    (<?= $resumen['total_donaciones'] ?? 0 ?> donaciones)
+                </small>
+            <?php endif; ?>
+        </div>
+    </div>
+    
+    <!-- Tabla -->
+    <div class="card-body card-custom1 p-0">
+        <div class="table-responsive">
+            <table class="table table-dark-custom mb-0">
+                <thead>
+                    <tr>
+                        <th><i class="bi bi-calendar"></i> Fecha</th>
+                        <th><i class="bi bi-currency-dollar"></i> Monto</th>
+                        <th><i class="bi bi-check-circle"></i> Estado</th>
+                        <th><i class="bi bi-gear"></i> Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($mis_donaciones as $donacion): ?>
+                    <tr>
+                        <td>
+                            <i class="bi bi-calendar3 text-amazon-orange"></i>
+                            <span class="text-light">
+                                <?= date('d/m/Y H:i', strtotime($donacion['fecha_donacion'])) ?>
+                            </span>
+                        </td>
+                        <td>
+                            <strong class="text-amazon-orange" style="font-size: 1.1rem;">
+                                $<?= number_format($donacion['monto_ars'], 0, ',', '.') ?>
+                            </strong>
+                            <small class="text-muted d-block">ARS</small>
+                        </td>
+                        <td>
+                            <?php
+                            $estadoIcons = [
+                                'pendiente' => 'clock',
+                                'aprobado' => 'check-circle-fill',
+                                'rechazado' => 'x-circle-fill',
+                                'cancelado' => 'dash-circle-fill'
+                            ];
+                            $icon = $estadoIcons[$donacion['estado']] ?? 'question-circle';
+                            ?>
+                            <span class="badge badge-status badge-<?= $donacion['estado'] ?>">
+                                <i class="bi bi-<?= $icon ?>"></i>
+                                <?= ucfirst($donacion['estado']) ?>
+                            </span>
+                        </td>
+                        <td>
+                            <a href="<?= base_url('donacion/ver/' . $donacion['id']) ?>" 
+                               class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-eye"></i> Ver Detalles
+                            </a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
             <!-- Mensaje de agradecimiento -->
             <div class="gratitude-section text-center slide-in">
                 <h3 class="gratitude-title">
