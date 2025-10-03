@@ -173,8 +173,8 @@
                         </div>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <div class="card bg-warning text-dark h-100">
-                            <div class="card-body text-center">
+                        <div class="card bg-warning text-dark h-100 ">
+                            <div class="card-body text-center card-custom">
                                 <i class="bi bi-percent" style="font-size: 2rem;"></i>
                                 <h6 class="mt-2">Aranceles Variables</h6>
                                 <p class="small">Según categoría: 0% a 20%</p>
@@ -182,8 +182,8 @@
                         </div>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <div class="card bg-info text-white h-100">
-                            <div class="card-body text-center">
+                        <div class="card bg-info text-white h-100 ">
+                            <div class="card-body text-center card-custom4">
                                 <i class="bi bi-credit-card" style="font-size: 2rem;"></i>
                                 <h6 class="mt-2">Percepciones AFIP</h6>
                                 <p class="small">30% adicional con tarjeta argentina</p>
