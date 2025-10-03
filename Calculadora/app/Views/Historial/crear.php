@@ -121,7 +121,7 @@
                 <?= csrf_field() ?>
 
                 <!-- PASO 1: Producto de Amazon -->
-                <div class="card shadow step-card card-custom2 mb-4">
+                <div class="card mb-4">
                     <div class="card-header card-custom textcolor">
                         <h5><i class="bi bi-1-circle-fill text-warning"></i> Producto de Amazon</h5>
                     </div>
@@ -228,7 +228,7 @@
                 </div>
 
                 <!-- PASO 2: Categoría y Aranceles -->
-                <div class="card shadow step-card card-custom2 mb-4">
+                <div class="card shadow card-custom2 mb-4">
                     <div class="card-header card-custom textcolor">
                         <h5><i class="bi bi-2-circle-fill text-warning"></i> Categoría del Producto</h5>
                     </div>
@@ -282,7 +282,7 @@
                 </div>
 
                 <!-- PASO 3: Método de Pago y Cotización -->
-                <div class="card shadow step-card card-custom2 mb-4">
+                <div class="card shadow card-custom2 mb-4">
                     <div class="card-header card-custom textcolor">
                         <h5><i class="bi bi-3-circle-fill text-warning"></i> Método de Pago</h5>
                     </div>
@@ -315,7 +315,7 @@
                                 <label class="form-label">
                                     <i class="bi bi-currency-exchange"></i> Cotización Actual
                                 </label>
-                                <div class="card bg-info text-white">
+                                <div class="card resumen-card text-white">
                                     <div class="card-body p-3">
                                         <div class="d-flex justify-content-between">
                                             <div>
