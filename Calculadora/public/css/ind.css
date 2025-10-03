@@ -107,6 +107,10 @@ body { background: #333e48 !important; color: #ffffff; }
     color: white !important;
 }
 
+        .resumen-card {
+            background: linear-gradient(135deg, #003e79ff 0%, #146eb4 100%);
+            color: white;
+        }
 .input-custom {
     background-color: #37475a !important;
     color: white !important;

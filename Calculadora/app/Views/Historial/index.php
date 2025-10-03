@@ -154,8 +154,8 @@
                             <a href="<?= base_url('usuario/registro') ?>" class="btn btn-warning btn-lg me-2 card-custom5">
                                 <i class="bi bi-person-plus"></i> Crear Cuenta Gratis
                             </a>
-                            <a href="<?= base_url('usuario/login') ?>" class="btn btn-lg card-custom7">
-                                <i class="bi bi-box-arrow-in-right "></i> Ya tengo cuenta
+                            <a href="<?= base_url('usuario/login') ?>" class="btn btn-lg text-light card-custom7">
+                                <i class="bi bi-box-arrow-in-right text-light "></i> Ya tengo cuenta
                             </a>
                         </div>
                     </div>

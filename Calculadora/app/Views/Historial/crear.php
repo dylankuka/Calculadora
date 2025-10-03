@@ -121,7 +121,7 @@
                 <?= csrf_field() ?>
 
                 <!-- PASO 1: Producto de Amazon -->
-                <div class="card shadow step-card card-custom2 mb-4">
+                <div class="card mb-4">
                     <div class="card-header card-custom textcolor">
                         <h5><i class="bi bi-1-circle-fill text-warning"></i> Producto de Amazon</h5>
                     </div>
@@ -228,7 +228,7 @@
                 </div>
 
                 <!-- PASO 2: Categoría y Aranceles -->
-                <div class="card shadow step-card card-custom2 mb-4">
+                <div class="card shadow card-custom2 mb-4">
                     <div class="card-header card-custom textcolor">
                         <h5><i class="bi bi-2-circle-fill text-warning"></i> Categoría del Producto</h5>
                     </div>
@@ -268,7 +268,7 @@
                                             </div>
                                         </div>
                                         <div class="col-6">
-                                            <h4 class="mb-1" id="categoria-iva">21%</h4>
+                                            <h4 class="mb-1" id="categoria-iva">21.00%</h4>
                                             <small>IVA</small>
                                         </div>
                                     </div>
@@ -282,7 +282,7 @@
                 </div>
 
                 <!-- PASO 3: Método de Pago y Cotización -->
-                <div class="card shadow step-card card-custom2 mb-4">
+                <div class="card shadow card-custom2 mb-4">
                     <div class="card-header card-custom textcolor">
                         <h5><i class="bi bi-3-circle-fill text-warning"></i> Método de Pago</h5>
                     </div>
@@ -315,7 +315,7 @@
                                 <label class="form-label">
                                     <i class="bi bi-currency-exchange"></i> Cotización Actual
                                 </label>
-                                <div class="card bg-info text-white">
+                                <div class="card resumen-card text-white">
                                     <div class="card-body p-3">
                                         <div class="d-flex justify-content-between">
                                             <div>
@@ -362,7 +362,7 @@
                                     <strong>$<span id="resumen-tasa-estadistica-ars">0.00</span></strong>
                                 </div>
                                 <div class="mb-2 d-flex justify-content-between">
-                                    <span>IVA (21%):</span>
+                                    <span>IVA (21.00%):</span>
                                     <strong>$<span id="resumen-iva-ars">0.00</span></strong>
                                 </div>
                                 <div class="mb-2 d-flex justify-content-between" id="percepcion-row" style="display: none;">
@@ -450,7 +450,7 @@
                             <div class="accordion-body">
                                 <p><strong>Para compras ≤ $400 USD:</strong></p>
                                 <ul>
-                                    <li>Solo se aplica IVA del 21% (excepto libros que están exentos)</li>
+                                    <li>Solo se aplica IVA del 21.00% (excepto libros que están exentos)</li>
                                     <li>NO se cobran derechos de importación</li>
                                     <li>NO se cobra tasa estadística</li>
                                 </ul>
@@ -458,7 +458,7 @@
                                 <ul>
                                     <li>Derechos de importación se aplican solo sobre el excedente</li>
                                     <li>Tasa estadística del 3% sobre el valor total CIF</li>
-                                    <li>IVA del 21% sobre (CIF + derechos)</li>
+                                    <li>IVA del 21.00% sobre (CIF + derechos)</li>
                                 </ul>
                             </div>
                         </div>
@@ -630,7 +630,7 @@ function mostrarInfoCategoria() {
         const descripcion = selectedOption.dataset.descripcion;
         
         document.getElementById('categoria-arancel').textContent = arancel + '%';
-        document.getElementById('categoria-iva').textContent = exento ? 'EXENTO' : '21%';
+        document.getElementById('categoria-iva').textContent = exento ? 'EXENTO' : '21.00%';
         document.getElementById('categoria-descripcion').textContent = descripcion;
         document.getElementById('categoria-info').style.display = 'block';
         
