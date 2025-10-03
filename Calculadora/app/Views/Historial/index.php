@@ -353,8 +353,7 @@
         <i class="bi bi-eye"></i> Ver
     </a>
     <a href="<?= base_url('historial/editar/' . $calculo['id']) ?>" 
-       class="btn btn-sm flex-fill" 
-       style="color: #e119ec; border-color: #e119ec;">
+       class="btn btn-outline-success btn-sm flex-fill" >
         <i class="bi bi-pencil"></i> Editar
     </a>
     <button onclick="confirmarEliminar(<?= $calculo['id'] ?>, '<?= esc(addslashes($calculo['nombre_producto'])) ?>')" 
