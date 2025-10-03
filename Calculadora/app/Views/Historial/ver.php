@@ -27,7 +27,7 @@
             padding: 20px;
         }
         .franquicia-info {
-            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(to left, #FFD700, #FF8C00);
             color: white;
             border-radius: 10px;
             padding: 15px;
@@ -103,7 +103,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-8">
-                            <h4 class="text-primary mb-3"><?= esc($calculo['nombre_producto']) ?></h4>
+                            <h4 class="textcolor3 mb-3"><?= esc($calculo['nombre_producto']) ?></h4>
                             
                             <div class="row mb-3">
                                 <div class="col-sm-6">
@@ -128,9 +128,9 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <!-- Estado de franquicia -->
-                            <div class="<?= $bajoFranquicia ? 'franquicia-info' : 'bg-warning text-dark rounded p-3' ?>">
+                            <div class="<?= $bajoFranquicia ? 'franquicia-info text-dark' : 'bg-warning text-dark rounded p-3' ?>">
                                 <h6>
-                                    <i class="bi bi-info-circle"></i> 
+                                    <i class="bi bi-info-circle text-dark"></i> 
                                     <?= $bajoFranquicia ? 'Bajo Franquicia' : 'Sobre Franquicia' ?>
                                 </h6>
                                 <p class="mb-0">
