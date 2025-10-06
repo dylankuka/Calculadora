@@ -73,6 +73,7 @@ class Usuario extends BaseController
                 'usuario_id' => $usuario['id'],
                 'usuario_nombre' => $usuario['nombredeusuario'],
                 'usuario_email' => $usuario['email'],
+                'usuario_rol' => $usuario['rol'] ?? 'usuario',
                 'logueado' => true
             ]);
 
@@ -135,6 +136,7 @@ class Usuario extends BaseController
                 'usuario_id' => $usuario['id'],
                 'usuario_nombre' => $usuario['nombredeusuario'],
                 'usuario_email' => $usuario['email'],
+                'usuario_rol' => $usuario['rol'] ?? 'usuario',
                 'logueado' => true
             ]);
 

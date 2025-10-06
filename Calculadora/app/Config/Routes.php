@@ -88,3 +88,29 @@ $routes->group('admin', ['filter' => 'auth'], function($routes) {
     $routes->post('categorias/actualizar/(:num)', 'Admin::actualizarCategoria/$1');
     $routes->get('estadisticas', 'Admin::estadisticas');
 });
+
+// AGREGAR AL FINAL DE Routes.php
+
+// ✅ RUTAS DE ADMINISTRACIÓN
+$routes->group('admin', function($routes) {
+    $routes->get('', 'Admin::index'); // Dashboard principal
+    
+    // Gestión de usuarios
+    $routes->get('usuarios', 'Admin::usuarios');
+    $routes->post('usuarios/cambiar-rol/(:num)', 'Admin::cambiarRol/$1');
+    $routes->get('usuarios/toggle/(:num)', 'Admin::toggleUsuario/$1');
+    
+    // Gestión de donaciones
+    $routes->get('donaciones', 'Admin::donaciones');
+    
+    // Gestión de cotizaciones
+    $routes->get('cotizaciones', 'Admin::cotizaciones');
+    $routes->get('cotizaciones/actualizar', 'Admin::actualizarCotizaciones');
+    
+    // Gestión de categorías
+    $routes->get('categorias', 'Admin::categorias');
+    $routes->post('categorias/actualizar/(:num)', 'Admin::actualizarCategoria/$1');
+    
+    // Estadísticas
+    $routes->get('estadisticas', 'Admin::estadisticas');
+});

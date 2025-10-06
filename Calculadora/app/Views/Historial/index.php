@@ -53,30 +53,39 @@
             <i class="bi bi-calculator"></i> TaxImporter
         </a>
         
-        <div class="navbar-nav ms-auto">
-            <?php if ($usuario_logueado): ?>
-                <span class="navbar-text me-3 textcolor">
-                    👤 <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
-                </span>
-                <a class="btn btn-outline-dark btn-sm me-2" href="<?= base_url('historial/crear') ?>">
-                    <i class="bi bi-plus-circle textcolor"></i> Nueva Calculadora
-                </a>
- <a class="btn btn-outline-dark btn-sm" href="<?= base_url('donacion') ?>">
-                    <i class="textcolor2"></i> 🧡Donar
-                </a>
-                <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
-                    <i class="bi bi-box-arrow-right textcolor"></i> Salir
-                </a>
-            <?php else: ?>
-                <a class="btn btn-outline-dark btn-sm me-2" href="<?= base_url('usuario/login') ?>">
-                    <i class="bi bi-box-arrow-in-right textcolor"></i> Iniciar Sesión
-                </a>
-                <a class="btn btn-warning btn-sm" href="<?= base_url('usuario/registro') ?>">
-                    <i class="bi bi-person-plus"></i> Registrarse
-                </a>
+<div class="navbar-nav ms-auto">
+    <?php if ($usuario_logueado): ?>
+        <span class="navbar-text me-3 textcolor">
+            👤 <strong><?= esc(session()->get('usuario_nombre')) ?></strong>
+            <?php if (session()->get('usuario_rol') === 'admin'): ?>
+                <span class="badge bg-danger ms-1">ADMIN</span>
             <?php endif; ?>
-        </div>
-    </div>
+        </span>
+        
+        <?php if (session()->get('usuario_rol') === 'admin'): ?>
+            <a class="btn btn-danger btn-sm me-2" href="<?= base_url('admin') ?>">
+                <i class="bi bi-speedometer2 text-white"></i> Panel Admin
+            </a>
+        <?php endif; ?>
+        
+        <a class="btn btn-outline-dark btn-sm me-2" href="<?= base_url('historial/crear') ?>">
+            <i class="bi bi-plus-circle textcolor"></i> Nueva Calculadora
+        </a>
+        <a class="btn btn-outline-dark btn-sm me-2" href="<?= base_url('donacion') ?>">
+            <i class="textcolor2"></i> 🧡Donar
+        </a>
+        <a class="btn btn-outline-dark btn-sm" href="<?= base_url('usuario/logout') ?>">
+            <i class="bi bi-box-arrow-right textcolor"></i> Salir
+        </a>
+    <?php else: ?>
+        <a class="btn btn-outline-dark btn-sm me-2" href="<?= base_url('usuario/login') ?>">
+            <i class="bi bi-box-arrow-in-right textcolor"></i> Iniciar Sesión
+        </a>
+        <a class="btn btn-warning btn-sm" href="<?= base_url('usuario/registro') ?>">
+            <i class="bi bi-person-plus"></i> Registrarse
+        </a>
+    <?php endif; ?>
+</div>
 </nav>
 
 <div class="container mt-4">
