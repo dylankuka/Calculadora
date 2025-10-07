@@ -7,7 +7,7 @@ class UsuarioModel extends Model
 {
     protected $table      = 'usuarios';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['nombredeusuario', 'email', 'password', 'fecha_registro'];
+    protected $allowedFields = ['nombredeusuario', 'email', 'password', 'rol', 'activo', 'fecha_registro'];
     protected $returnType = 'array';
     
     protected $useTimestamps = false;
@@ -16,7 +16,9 @@ class UsuarioModel extends Model
     protected $validationRules = [
         'nombredeusuario' => 'required|min_length[3]|max_length[100]',
         'email'           => 'required|valid_email|max_length[100]|is_unique[usuarios.email]',
-        'password'        => 'required|min_length[6]|max_length[255]'
+        'password'        => 'required|min_length[6]|max_length[255]',
+        'rol'             => 'permit_empty|in_list[usuario,admin]',
+        'activo'          => 'permit_empty|in_list[0,1]'
     ];
     
     protected $validationMessages = [
@@ -35,6 +37,12 @@ class UsuarioModel extends Model
             'required'   => 'La contraseña es obligatoria.',
             'min_length' => 'La contraseña debe tener al menos 6 caracteres.',
             'max_length' => 'La contraseña es demasiado larga.'
+        ],
+        'rol' => [
+            'in_list' => 'El rol debe ser usuario o admin.'
+        ],
+        'activo' => [
+            'in_list' => 'El estado activo debe ser 0 o 1.'
         ]
     ];
     
@@ -52,5 +60,25 @@ class UsuarioModel extends Model
     public function usuarioExiste($username)
     {
         return $this->where('nombredeusuario', $username)->first() !== null;
+    }
+    
+    /**
+     * Obtener solo usuarios activos
+     */
+    public function obtenerActivos()
+    {
+        return $this->where('activo', 1)->findAll();
+    }
+    
+    /**
+     * Activar/Desactivar usuario
+     */
+    public function toggleActivo($id)
+    {
+        $usuario = $this->find($id);
+        if (!$usuario) return false;
+        
+        $nuevoEstado = $usuario['activo'] ? 0 : 1;
+        return $this->update($id, ['activo' => $nuevoEstado]);
     }
 }

@@ -1,0 +1,475 @@
+<?php
+namespace App\Controllers;
+
+use App\Models\UsuarioModel;
+use App\Models\DonacionModel;
+use App\Models\CotizacionDolarModel;
+use App\Models\HistorialModel;
+use App\Models\CategoriaProductoModel;
+
+class Admin extends BaseController
+{
+    private $usuarioModel;
+    private $donacionModel;
+    private $cotizacionModel;
+    private $historialModel;
+    private $categoriaModel;
+
+    public function __construct()
+    {
+        $this->usuarioModel = new UsuarioModel();
+        $this->donacionModel = new DonacionModel();
+        $this->cotizacionModel = new CotizacionDolarModel();
+        $this->historialModel = new HistorialModel();
+        $this->categoriaModel = new CategoriaProductoModel();
+    }
+
+    /**
+     * Validar que el usuario sea administrador
+     */
+    private function validarAdmin()
+    {
+        if (!session()->get('logueado')) {
+            return redirect()->to('/usuario/login')
+                ->with('error', '❌ Debes iniciar sesión.');
+        }
+
+        if (session()->get('usuario_rol') !== 'admin') {
+            return redirect()->to('/historial')
+                ->with('error', '❌ No tienes permisos de administrador.');
+        }
+
+        return null;
+    }
+
+    /**
+     * Dashboard principal - Vista unificada con tabs
+     */
+    public function index()
+    {
+        $redirect = $this->validarAdmin();
+        if ($redirect) return $redirect;
+
+        // Obtener filtros desde GET
+        $busqueda = $this->request->getGet('buscar');
+        $rol_filtro = $this->request->getGet('rol');
+        $estado_filtro = $this->request->getGet('estado');
+        $tipo_filtro = $this->request->getGet('tipo');
+
+        // ========== ESTADÍSTICAS GENERALES ==========
+        $estadisticas = [
+            'total_usuarios' => $this->usuarioModel->countAll(),
+            'usuarios_activos' => $this->usuarioModel->where('activo', 1)->countAllResults(),
+            'total_calculos' => $this->historialModel->countAll(),
+            'total_donaciones' => $this->donacionModel->countAll(),
+            'donaciones_aprobadas' => $this->donacionModel->where('estado', 'aprobado')->countAllResults(),
+            'total_recaudado' => $this->obtenerTotalRecaudado(),
+            'total_categorias' => $this->categoriaModel->countAll(),
+            'ultima_cotizacion' => $this->obtenerUltimaCotizacion()
+        ];
+
+        // ========== ACTIVIDAD RECIENTE (Dashboard Tab) ==========
+        $actividadReciente = [
+            'ultimos_usuarios' => $this->usuarioModel->orderBy('fecha_registro', 'DESC')->limit(5)->findAll(),
+            'ultimas_donaciones' => $this->obtenerUltimasDonaciones(5),
+            'ultimos_calculos' => $this->obtenerUltimosCalculos(5)
+        ];
+
+        // ========== USUARIOS TAB ==========
+        $builderUsuarios = $this->usuarioModel;
+
+        if ($busqueda && $this->request->getGet('tab') === 'usuarios') {
+            $builderUsuarios = $builderUsuarios->groupStart()
+                ->like('nombredeusuario', $busqueda)
+                ->orLike('email', $busqueda)
+                ->groupEnd();
+        }
+
+        if ($rol_filtro && in_array($rol_filtro, ['admin', 'usuario'])) {
+            $builderUsuarios = $builderUsuarios->where('rol', $rol_filtro);
+        }
+
+        $usuarios = $builderUsuarios->orderBy('fecha_registro', 'DESC')->findAll();
+
+        // Agregar estadísticas por usuario
+        foreach ($usuarios as &$usuario) {
+            $usuario['total_calculos'] = $this->historialModel->where('usuario_id', $usuario['id'])->countAllResults();
+            $usuario['total_donaciones'] = $this->donacionModel->where('id_usuario', $usuario['id'])->countAllResults();
+        }
+
+        // ========== DONACIONES TAB ==========
+        $builderDonaciones = $this->donacionModel
+            ->select('donaciones.*, usuarios.nombredeusuario, usuarios.email')
+            ->join('usuarios', 'usuarios.id = donaciones.id_usuario');
+
+        if ($estado_filtro && in_array($estado_filtro, ['pendiente', 'aprobado', 'rechazado', 'cancelado'])) {
+            $builderDonaciones = $builderDonaciones->where('donaciones.estado', $estado_filtro);
+        }
+
+        if ($busqueda && $this->request->getGet('tab') === 'donaciones') {
+            $builderDonaciones = $builderDonaciones->groupStart()
+                ->like('usuarios.nombredeusuario', $busqueda)
+                ->orLike('usuarios.email', $busqueda)
+                ->groupEnd();
+        }
+
+        $donaciones = $builderDonaciones->orderBy('donaciones.fecha_donacion', 'DESC')->limit(50)->findAll();
+
+        // Estadísticas de donaciones
+        $estadisticas_donaciones = [
+            'total' => $this->donacionModel->countAll(),
+            'aprobadas' => $this->donacionModel->where('estado', 'aprobado')->countAllResults(),
+            'pendientes' => $this->donacionModel->where('estado', 'pendiente')->countAllResults(),
+            'rechazadas' => $this->donacionModel->where('estado', 'rechazado')->countAllResults(),
+            'total_recaudado' => $this->obtenerTotalRecaudado()
+        ];
+
+        // ========== COTIZACIONES TAB ==========
+        $builderCotizaciones = $this->cotizacionModel;
+
+        if ($tipo_filtro && in_array($tipo_filtro, ['tarjeta', 'MEP'])) {
+            $builderCotizaciones = $builderCotizaciones->where('tipo', $tipo_filtro);
+        }
+
+        $cotizaciones = $builderCotizaciones->orderBy('fecha', 'DESC')->limit(50)->findAll();
+
+        // Últimas cotizaciones
+        $ultima_tarjeta = $this->cotizacionModel->obtenerUltimaCotizacion('tarjeta');
+        $ultimo_mep = $this->cotizacionModel->obtenerUltimaCotizacion('MEP');
+
+        // Si no hay cotizaciones, usar valores por defecto
+        if (!$ultima_tarjeta) {
+            $ultima_tarjeta = ['valor_ars' => 0, 'fecha' => date('Y-m-d H:i:s')];
+        }
+        if (!$ultimo_mep) {
+            $ultimo_mep = ['valor_ars' => 0, 'fecha' => date('Y-m-d H:i:s')];
+        }
+
+        // ========== CATEGORÍAS TAB ==========
+        $categorias = $this->categoriaModel->obtenerTodasOrdenadas();
+
+        // Obtener uso de cada categoría
+        foreach ($categorias as &$categoria) {
+            $categoria['total_usos'] = $this->historialModel
+                ->where('categoria_id', $categoria['id'])
+                ->countAllResults();
+        }
+
+        // ========== RENDERIZAR VISTA UNIFICADA ==========
+        return view('admin/dashboard', [
+            'estadisticas' => $estadisticas,
+            'actividad' => $actividadReciente,
+            
+            // Usuarios
+            'usuarios' => $usuarios,
+            'busqueda' => $busqueda,
+            'rol_filtro' => $rol_filtro,
+            
+            // Donaciones
+            'donaciones' => $donaciones,
+            'estadisticas_donaciones' => $estadisticas_donaciones,
+            'estado_filtro' => $estado_filtro,
+            
+            // Cotizaciones
+            'cotizaciones' => $cotizaciones,
+            'ultima_tarjeta' => $ultima_tarjeta,
+            'ultimo_mep' => $ultimo_mep,
+            'tipo_filtro' => $tipo_filtro,
+            
+            // Categorías
+            'categorias' => $categorias
+        ]);
+    }
+
+    /**
+     * Cambiar rol de usuario
+     */
+    public function cambiarRol($userId)
+    {
+        $redirect = $this->validarAdmin();
+        if ($redirect) return $redirect;
+
+        $nuevoRol = $this->request->getPost('rol');
+
+        if (!in_array($nuevoRol, ['admin', 'usuario'])) {
+            return redirect()->to('/admin?tab=usuarios')
+                ->with('error', '❌ Rol inválido.');
+        }
+
+        // No permitir que el admin se quite a sí mismo el rol
+        if ($userId == session()->get('usuario_id') && $nuevoRol === 'usuario') {
+            return redirect()->to('/admin?tab=usuarios')
+                ->with('error', '❌ No puedes quitarte tu propio rol de administrador.');
+        }
+
+        $this->usuarioModel->update($userId, ['rol' => $nuevoRol]);
+
+        return redirect()->to('/admin?tab=usuarios')
+            ->with('success', "✅ Rol actualizado a: $nuevoRol");
+    }
+
+    /**
+     * Activar/Desactivar usuario
+     */
+    public function toggleUsuario($userId)
+    {
+        $redirect = $this->validarAdmin();
+        if ($redirect) return $redirect;
+
+        $usuario = $this->usuarioModel->find($userId);
+
+        if (!$usuario) {
+            return redirect()->to('/admin?tab=usuarios')
+                ->with('error', '❌ Usuario no encontrado.');
+        }
+
+        // No permitir desactivar al propio admin
+        if ($userId == session()->get('usuario_id')) {
+            return redirect()->to('/admin?tab=usuarios')
+                ->with('error', '❌ No puedes desactivar tu propia cuenta.');
+        }
+
+        $nuevoEstado = $usuario['activo'] ? 0 : 1;
+        $this->usuarioModel->update($userId, ['activo' => $nuevoEstado]);
+
+        $mensaje = $nuevoEstado ? 'activado' : 'desactivado';
+        return redirect()->to('/admin?tab=usuarios')
+            ->with('success', "✅ Usuario $mensaje correctamente.");
+    }
+
+    /**
+     * Forzar actualización de cotizaciones
+     */
+    public function actualizarCotizaciones()
+    {
+        $redirect = $this->validarAdmin();
+        if ($redirect) return $redirect;
+
+        try {
+            $dolarService = new \App\Services\DolarService();
+            $cotizaciones = $dolarService->obtenerCotizaciones();
+
+            // Si es petición AJAX, devolver JSON
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Cotizaciones actualizadas exitosamente',
+                    'data' => $cotizaciones
+                ]);
+            }
+
+            return redirect()->to('/admin?tab=cotizaciones')
+                ->with('success', "✅ Cotizaciones actualizadas: Tarjeta \${$cotizaciones['tarjeta']}, MEP \${$cotizaciones['MEP']}");
+        } catch (\Exception $e) {
+            log_message('error', 'Error actualizando cotizaciones: ' . $e->getMessage());
+            
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Error actualizando cotizaciones: ' . $e->getMessage()
+                ]);
+            }
+
+            return redirect()->to('/admin?tab=cotizaciones')
+                ->with('error', '❌ Error actualizando cotizaciones: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Actualizar arancel de categoría
+     */
+    public function actualizarCategoria($id)
+    {
+        $redirect = $this->validarAdmin();
+        if ($redirect) return $redirect;
+
+        $nuevoArancel = $this->request->getPost('arancel_porcentaje');
+
+        if (!is_numeric($nuevoArancel) || $nuevoArancel < 0 || $nuevoArancel > 100) {
+            return redirect()->to('/admin?tab=categorias')
+                ->with('error', '❌ Arancel inválido (debe ser entre 0 y 100).');
+        }
+
+        $categoria = $this->categoriaModel->find($id);
+        
+        if (!$categoria) {
+            return redirect()->to('/admin?tab=categorias')
+                ->with('error', '❌ Categoría no encontrada.');
+        }
+
+        $this->categoriaModel->update($id, ['arancel_porcentaje' => $nuevoArancel]);
+
+        return redirect()->to('/admin?tab=categorias')
+            ->with('success', "✅ Arancel de '{$categoria['nombre']}' actualizado a {$nuevoArancel}%");
+    }
+
+    // ========================================
+    // MÉTODOS AUXILIARES PRIVADOS
+    // ========================================
+
+    /**
+     * Obtener total recaudado de donaciones aprobadas
+     */
+    private function obtenerTotalRecaudado()
+    {
+        $result = $this->donacionModel
+            ->selectSum('monto_ars', 'total')
+            ->where('estado', 'aprobado')
+            ->first();
+
+        return $result['total'] ?? 0;
+    }
+
+    /**
+     * Obtener última cotización registrada
+     */
+    private function obtenerUltimaCotizacion()
+    {
+        $tarjeta = $this->cotizacionModel->obtenerUltimaCotizacion('tarjeta');
+        $mep = $this->cotizacionModel->obtenerUltimaCotizacion('MEP');
+
+        return [
+            'tarjeta' => $tarjeta['valor_ars'] ?? 0,
+            'mep' => $mep['valor_ars'] ?? 0,
+            'fecha' => $tarjeta['fecha'] ?? date('Y-m-d H:i:s')
+        ];
+    }
+
+    /**
+     * Obtener últimas donaciones con información del usuario
+     */
+    private function obtenerUltimasDonaciones($limite = 5)
+    {
+        return $this->donacionModel
+            ->select('donaciones.*, usuarios.nombredeusuario')
+            ->join('usuarios', 'usuarios.id = donaciones.id_usuario')
+            ->orderBy('donaciones.fecha_donacion', 'DESC')
+            ->limit($limite)
+            ->findAll();
+    }
+
+    /**
+     * Obtener últimos cálculos con información del usuario
+     */
+    private function obtenerUltimosCalculos($limite = 5)
+    {
+        return $this->historialModel
+            ->select('historial_calculos.*, usuarios.nombredeusuario')
+            ->join('usuarios', 'usuarios.id = historial_calculos.usuario_id')
+            ->orderBy('historial_calculos.fecha_calculo', 'DESC')
+            ->limit($limite)
+            ->findAll();
+    }
+
+    /**
+     * Obtener cálculos por mes (últimos 12 meses) - Para estadísticas futuras
+     */
+    private function obtenerCalculosPorMes()
+    {
+        $db = \Config\Database::connect();
+        return $db->query("
+            SELECT 
+                DATE_FORMAT(fecha_calculo, '%Y-%m') as mes,
+                COUNT(*) as cantidad,
+                SUM(total_ars) as total_ars,
+                AVG(precio_usd) as promedio_usd
+            FROM historial_calculos
+            WHERE fecha_calculo >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+            GROUP BY mes
+            ORDER BY mes ASC
+        ")->getResultArray();
+    }
+
+    /**
+     * Obtener donaciones por mes (últimos 12 meses) - Para estadísticas futuras
+     */
+    private function obtenerDonacionesPorMes()
+    {
+        $db = \Config\Database::connect();
+        return $db->query("
+            SELECT 
+                DATE_FORMAT(fecha_donacion, '%Y-%m') as mes,
+                COUNT(*) as cantidad,
+                SUM(monto_ars) as total
+            FROM donaciones
+            WHERE fecha_donacion >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+            AND estado = 'aprobado'
+            GROUP BY mes
+            ORDER BY mes ASC
+        ")->getResultArray();
+    }
+
+    /**
+     * Obtener top usuarios por actividad - Para estadísticas futuras
+     */
+    private function obtenerTopUsuarios($limite = 10)
+    {
+        $db = \Config\Database::connect();
+        return $db->query("
+            SELECT 
+                u.id,
+                u.nombredeusuario,
+                u.email,
+                COUNT(h.id) as total_calculos,
+                COALESCE(SUM(d.monto_ars), 0) as total_donado
+            FROM usuarios u
+            LEFT JOIN historial_calculos h ON u.id = h.usuario_id
+            LEFT JOIN donaciones d ON u.id = d.id_usuario AND d.estado = 'aprobado'
+            GROUP BY u.id
+            ORDER BY total_calculos DESC
+            LIMIT $limite
+        ")->getResultArray();
+    }
+
+    /**
+     * Obtener categorías más populares - Para estadísticas futuras
+     */
+    private function obtenerCategoriasPopulares()
+    {
+        $db = \Config\Database::connect();
+        return $db->query("
+            SELECT 
+                c.nombre,
+                c.arancel_porcentaje,
+                COUNT(h.id) as cantidad_usos,
+                AVG(h.precio_usd) as promedio_usd
+            FROM categorias_productos c
+            LEFT JOIN historial_calculos h ON c.id = h.categoria_id
+            GROUP BY c.id
+            ORDER BY cantidad_usos DESC
+            LIMIT 10
+        ")->getResultArray();
+    }
+
+    // ========================================
+    // MÉTODOS LEGACY (Mantener por compatibilidad)
+    // ========================================
+
+    /**
+     * Redireccionar rutas antiguas al dashboard unificado
+     */
+    public function usuarios()
+    {
+        return redirect()->to('/admin?tab=usuarios');
+    }
+
+    public function donaciones()
+    {
+        return redirect()->to('/admin?tab=donaciones');
+    }
+
+    public function cotizaciones()
+    {
+        return redirect()->to('/admin?tab=cotizaciones');
+    }
+
+    public function categorias()
+    {
+        return redirect()->to('/admin?tab=categorias');
+    }
+
+    public function estadisticas()
+    {
+        return redirect()->to('/admin?tab=dashboard');
+    }
+}

@@ -24,6 +24,9 @@ $routes->get('historial/ver/(:num)', 'Historial::ver/$1');
 $routes->get('historial/editar/(:num)', 'Historial::editar/$1');
 $routes->post('historial/actualizar/(:num)', 'Historial::actualizar/$1');
 $routes->get('historial/eliminar/(:num)', 'Historial::eliminar/$1');
+$routes->post('historial/calcular', 'Historial::calcular');
+$routes->get('historial/categoria/(:num)', 'Historial::obtenerCategoria/$1');
+$routes->post('historial/simular', 'Historial::simularCalculo');
 
 // ✅ RUTAS DE CALCULADORA (OPCIONAL)
 $routes->get('calculadora', 'Calculadora::formulario');
@@ -38,79 +41,51 @@ $routes->get('dolar/obtener', 'Dolar::obtener');
 $routes->post('amazon/obtener', 'Amazon::obtener');
 $routes->post('amazon/validar', 'Amazon::validar');
 
-// ✅ NUEVA RUTA PARA CÁLCULO AVANZADO  
-$routes->post('historial/calcular', 'Historial::calcular');
-
-// 🧡 RUTAS PARA DONACIONES CON MERCADOPAGO - CORREGIDO
+// 🧡 RUTAS PARA DONACIONES CON MERCADOPAGO
 $routes->group('donacion', function($routes) {
     $routes->get('', 'DonacionController::index');
     $routes->post('crear', 'DonacionController::crear');
     $routes->post('webhook', 'DonacionController::webhook');
-
-    // ✅ ESTA ES LA QUE NECESITÁS
     $routes->get('checkout/(:num)', 'DonacionController::checkout/$1');
-
+    $routes->get('success', 'DonacionController::success');
     $routes->get('exito', 'DonacionController::exito');
+    $routes->get('failure', 'DonacionController::failure');
     $routes->get('fallo', 'DonacionController::fallo');
     $routes->get('pendiente', 'DonacionController::exito');
     $routes->get('ver/(:num)', 'DonacionController::ver/$1');
     $routes->get('estadisticas', 'DonacionController::estadisticas');
 });
 
-// 🧡 RUTAS ALTERNATIVAS PARA DONACIONES (compatibilidad) - CORREGIDO
+// 🧡 RUTAS ALTERNATIVAS PARA DONACIONES (compatibilidad)
 $routes->get('donar', 'DonacionController::index');
 $routes->get('apoyo', 'DonacionController::index');
 $routes->get('contribuir', 'DonacionController::index');
 
-// DEBUG: Ruta simple de prueba
+// 🧡 DEBUG DONACIONES
 $routes->get('test-donacion', function() {
     return 'La ruta funciona';
 });
 $routes->get('donacion/test', 'DonacionController::testCredenciales');
 
-// ✅ NUEVA RUTA PARA CÁLCULO AVANZADO  
-$routes->post('historial/calcular', 'Historial::calcular');
-
-// ✅ NUEVAS RUTAS PARA CATEGORÍAS Y SIMULACIONES
-$routes->get('historial/categoria/(:num)', 'Historial::obtenerCategoria/$1');
-$routes->post('historial/simular', 'Historial::simularCalculo');
-
-// ✅ NUEVA RUTA PARA CÁLCULO AVANZADO  
-$routes->post('historial/calcular', 'Historial::calcular');
-
-// ✅ NUEVAS RUTAS PARA CATEGORÍAS Y SIMULACIONES
-$routes->get('historial/categoria/(:num)', 'Historial::obtenerCategoria/$1');
-$routes->post('historial/simular', 'Historial::simularCalculo');
-
-// ✅ RUTAS PARA GESTIÓN DE CATEGORÍAS (ADMIN FUTURO)
-$routes->group('admin', ['filter' => 'auth'], function($routes) {
-    $routes->get('categorias', 'Admin::categorias');
-    $routes->post('categorias/actualizar/(:num)', 'Admin::actualizarCategoria/$1');
-    $routes->get('estadisticas', 'Admin::estadisticas');
-});
-
-// AGREGAR AL FINAL DE Routes.php
-
-// ✅ RUTAS DE ADMINISTRACIÓN
+// ✅ RUTAS DE ADMINISTRACIÓN (UNIFICADAS)
 $routes->group('admin', function($routes) {
-    $routes->get('', 'Admin::index'); // Dashboard principal
+    // Dashboard unificado (todas las secciones en tabs)
+    $routes->get('', 'Admin::index');
     
-    // Gestión de usuarios
-    $routes->get('usuarios', 'Admin::usuarios');
+    // Acciones de usuarios
     $routes->post('usuarios/cambiar-rol/(:num)', 'Admin::cambiarRol/$1');
     $routes->get('usuarios/toggle/(:num)', 'Admin::toggleUsuario/$1');
     
-    // Gestión de donaciones
-    $routes->get('donaciones', 'Admin::donaciones');
-    
-    // Gestión de cotizaciones
-    $routes->get('cotizaciones', 'Admin::cotizaciones');
+    // Acciones de cotizaciones
     $routes->get('cotizaciones/actualizar', 'Admin::actualizarCotizaciones');
     
-    // Gestión de categorías
-    $routes->get('categorias', 'Admin::categorias');
+    // Acciones de categorías
     $routes->post('categorias/actualizar/(:num)', 'Admin::actualizarCategoria/$1');
     
-    // Estadísticas
+    // Rutas legacy (redirigen al dashboard con tab correspondiente)
+    $routes->get('usuarios', 'Admin::usuarios');
+    $routes->get('donaciones', 'Admin::donaciones');
+    $routes->get('cotizaciones', 'Admin::cotizaciones');
+    $routes->get('categorias', 'Admin::categorias');
     $routes->get('estadisticas', 'Admin::estadisticas');
 });
