@@ -96,11 +96,11 @@
     <!-- Header con estadísticas generales -->
     <div class="row mb-4">
         <div class="col-md-3 mb-3">
-            <div class="card admin-card card-custom2 text-center">
+            <div class="card card-custom2 text-center">
                 <div class="card-body">
                     <i class="bi bi-people stat-icon text-primary"></i>
-                    <h3 class="text-white mt-2"><?= $estadisticas['total_usuarios'] ?></h3>
-                    <p class="text-light mb-1">Total Usuarios</p>
+                    <h3 class="text-dark mt-2"><?= $estadisticas['total_usuarios'] ?></h3>
+                    <p class="text-dark mb-1">Total Usuarios</p>
                     <small class="text-success">
                         <?= $estadisticas['usuarios_activos'] ?> activos
                     </small>
@@ -109,21 +109,21 @@
         </div>
 
         <div class="col-md-3 mb-3">
-            <div class="card admin-card card-custom2 text-center">
+            <div class="card card-custom2 text-center">
                 <div class="card-body">
                     <i class="bi bi-calculator stat-icon text-warning"></i>
-                    <h3 class="text-white mt-2"><?= $estadisticas['total_calculos'] ?></h3>
-                    <p class="text-light mb-0">Cálculos Realizados</p>
+                    <h3 class="text-dark mt-2"><?= $estadisticas['total_calculos'] ?></h3>
+                    <p class="text-dark mb-0">Cálculos Realizados</p>
                 </div>
             </div>
         </div>
 
         <div class="col-md-3 mb-3">
-            <div class="card admin-card card-custom2 text-center">
+            <div class="card card-custom2 text-center">
                 <div class="card-body">
                     <i class="bi bi-heart-fill stat-icon text-danger"></i>
-                    <h3 class="text-white mt-2"><?= $estadisticas['total_donaciones'] ?></h3>
-                    <p class="text-light mb-1">Total Donaciones</p>
+                    <h3 class="text-dark mt-2"><?= $estadisticas['total_donaciones'] ?></h3>
+                    <p class="text-dark mb-1">Total Donaciones</p>
                     <small class="text-success">
                         <?= $estadisticas['donaciones_aprobadas'] ?> aprobadas
                     </small>
@@ -132,11 +132,11 @@
         </div>
 
         <div class="col-md-3 mb-3">
-            <div class="card admin-card card-custom2 text-center">
+            <div class="card card-custom2 text-center">
                 <div class="card-body">
                     <i class="bi bi-currency-dollar stat-icon text-success"></i>
-                    <h3 class="text-white mt-2">$<?= number_format($estadisticas['total_recaudado'], 0) ?></h3>
-                    <p class="text-light mb-0">Recaudado (ARS)</p>
+                    <h3 class="text-dark mt-2">$<?= number_format($estadisticas['total_recaudado'], 0) ?></h3>
+                    <p class="text-dark mb-0">Recaudado (ARS)</p>
                 </div>
             </div>
         </div>
@@ -144,7 +144,7 @@
 
     <!-- Pestañas de navegación -->
     <div class="card card-custom2">
-        <div class="card-header card-custom">
+        <div class="card-header card-custom5">
             <ul class="nav nav-tabs card-header-tabs" id="adminTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" 
@@ -184,7 +184,7 @@
                 
                 <!-- TAB 1: DASHBOARD -->
                 <div class="tab-pane fade show active" id="dashboard" role="tabpanel">
-                    <h4 class="text-white mb-4">
+                    <h4 class="text-dark mb-4">
                         <i class="bi bi-graph-up"></i> Actividad Reciente
                     </h4>
                     
@@ -206,7 +206,7 @@
                                                             <?= strtoupper($usuario['rol']) ?>
                                                         </span>
                                                     </div>
-                                                    <small class="text-muted">
+                                                    <small class="text-light">
                                                         <?= date('d/m/Y H:i', strtotime($usuario['fecha_registro'])) ?>
                                                     </small>
                                                 </div>
@@ -235,7 +235,7 @@
                                                         <strong class="text-warning">$<?= number_format($donacion['monto_ars'], 0) ?></strong>
                                                     </div>
                                                     <div class="d-flex justify-content-between">
-                                                        <small class="text-muted">
+                                                        <small class="text-light">
                                                             <?= date('d/m/Y H:i', strtotime($donacion['fecha_donacion'])) ?>
                                                         </small>
                                                         <span class="badge bg-<?= $donacion['estado'] === 'aprobado' ? 'success' : 'warning' ?>">
@@ -267,10 +267,10 @@
                                                         <span><?= esc($calculo['nombredeusuario']) ?></span>
                                                         <strong class="text-success">$<?= number_format($calculo['precio_usd'], 0) ?></strong>
                                                     </div>
-                                                    <small class="text-muted d-block">
+                                                    <small class="text-light d-block">
                                                         <?= esc(substr($calculo['nombre_producto'], 0, 40)) ?>...
                                                     </small>
-                                                    <small class="text-muted">
+                                                    <small class="text-light">
                                                         <?= date('d/m/Y H:i', strtotime($calculo['fecha_calculo'])) ?>
                                                     </small>
                                                 </div>
@@ -421,7 +421,7 @@
                 <!-- TAB 3: DONACIONES -->
                 <div class="tab-pane fade" id="donaciones" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="text-white mb-0">
+                        <h4 class="text-dark mb-0">
                             <i class="bi bi-heart-fill"></i> Gestión de Donaciones
                         </h4>
                         
@@ -448,7 +448,7 @@
                             <div class="card bg-dark border-secondary text-center">
                                 <div class="card-body">
                                     <h5 class="text-success"><?= $estadisticas_donaciones['aprobadas'] ?></h5>
-                                    <small class="text-muted">Aprobadas</small>
+                                    <small class="text-light">Aprobadas</small>
                                 </div>
                             </div>
                         </div>
@@ -456,7 +456,7 @@
                             <div class="card bg-dark border-secondary text-center">
                                 <div class="card-body">
                                     <h5 class="text-warning"><?= $estadisticas_donaciones['pendientes'] ?></h5>
-                                    <small class="text-muted">Pendientes</small>
+                                    <small class="text-light">Pendientes</small>
                                 </div>
                             </div>
                         </div>
@@ -464,7 +464,7 @@
                             <div class="card bg-dark border-secondary text-center">
                                 <div class="card-body">
                                     <h5 class="text-danger"><?= $estadisticas_donaciones['rechazadas'] ?></h5>
-                                    <small class="text-muted">Rechazadas</small>
+                                    <small class="text-light">Rechazadas</small>
                                 </div>
                             </div>
                         </div>
@@ -472,7 +472,7 @@
                             <div class="card bg-dark border-secondary text-center">
                                 <div class="card-body">
                                     <h5 class="text-info">$<?= number_format($estadisticas_donaciones['total_recaudado'], 0) ?></h5>
-                                    <small class="text-muted">Total Recaudado</small>
+                                    <small class="text-light">Total Recaudado</small>
                                 </div>
                             </div>
                         </div>
@@ -504,7 +504,7 @@
                                             <td><?= $donacion['id'] ?></td>
                                             <td>
                                                 <strong><?= esc($donacion['nombredeusuario']) ?></strong>
-                                                <br><small class="text-muted"><?= esc($donacion['email']) ?></small>
+                                                <br><small class="text-light"><?= esc($donacion['email']) ?></small>
                                             </td>
                                             <td>
                                                 <strong class="text-warning">$<?= number_format($donacion['monto_ars'], 2) ?></strong>
@@ -531,9 +531,9 @@
                                             </td>
                                             <td>
                                                 <?php if ($donacion['payment_id']): ?>
-                                                    <small class="text-muted"><?= esc(substr($donacion['payment_id'], 0, 15)) ?>...</small>
+                                                    <small class="text-light"><?= esc(substr($donacion['payment_id'], 0, 15)) ?>...</small>
                                                 <?php else: ?>
-                                                    <small class="text-muted">-</small>
+                                                    <small class="text-light">-</small>
                                                 <?php endif; ?>
                                             </td>
                                         </tr>
@@ -547,7 +547,7 @@
                 <!-- TAB 4: COTIZACIONES -->
                 <div class="tab-pane fade" id="cotizaciones" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="text-white mb-0">
+                        <h4 class="text-black mb-0">
                             <i class="bi bi-currency-exchange"></i> Gestión de Cotizaciones
                         </h4>
                         
@@ -639,7 +639,7 @@
 
                 <!-- TAB 5: CATEGORÍAS -->
                 <div class="tab-pane fade" id="categorias" role="tabpanel">
-                    <h4 class="text-white mb-4">
+                    <h4 class="text-dark mb-4">
                         <i class="bi bi-tags-fill"></i> Gestión de Categorías de Productos
                     </h4>
 
@@ -665,7 +665,7 @@
                             <tbody>
                                 <?php if (empty($categorias)): ?>
                                     <tr>
-                                        <td colspan="7" class="text-center text-muted py-4">
+                                        <td colspan="7" class="text-center text-light py-4">
                                             No hay categorías registradas
                                         </td>
                                     </tr>
@@ -677,7 +677,7 @@
                                                 <strong><?= esc($categoria['nombre']) ?></strong>
                                             </td>
                                             <td>
-                                                <small class="text-muted"><?= esc($categoria['descripcion']) ?></small>
+                                                <small class="text-light"><?= esc($categoria['descripcion']) ?></small>
                                             </td>
                                             <td>
                                                 <span class="badge bg-primary">

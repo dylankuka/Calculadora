@@ -57,6 +57,9 @@ body { background: #333e48 !important; color: #ffffff; }
 .textcolor4{
   color: #0bb90b;
 }
+.textcolor5{
+  color: #d20f0f;
+}
 .texto-transparente {
   background-color: rgba(0, 0, 0, 0.4); /* negro con 40% opacidad */
   color: white; /* texto en blanco para contraste */
@@ -83,10 +86,11 @@ body { background: #333e48 !important; color: #ffffff; }
 
 .card-custom2{
   background-color: #37475a;
-  color: white;
+
 }
 .card-custom3{
     background-color: rgb(146, 146, 146) ;
+     color: rgb(146, 146, 146);
 }
 
 .card-custom4{
