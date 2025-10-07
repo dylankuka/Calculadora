@@ -98,64 +98,71 @@ class Usuario extends BaseController
     }
 
     public function iniciarSesion()
-    {
-        // ✅ VALIDACIONES MEJORADAS
-        $rules = [
-            'email' => [
-                'rules' => 'required|valid_email',
-                'errors' => [
-                    'required' => 'El email es obligatorio.',
-                    'valid_email' => 'Debes ingresar un email válido.'
-                ]
-            ],
-            'password' => [
-                'rules' => 'required|min_length[6]',
-                'errors' => [
-                    'required' => 'La contraseña es obligatoria.',
-                    'min_length' => 'La contraseña debe tener al menos 6 caracteres.'
-                ]
+{
+    // Validaciones
+    $rules = [
+        'email' => [
+            'rules' => 'required|valid_email',
+            'errors' => [
+                'required' => 'El email es obligatorio.',
+                'valid_email' => 'Debes ingresar un email válido.'
             ]
-        ];
+        ],
+        'password' => [
+            'rules' => 'required|min_length[6]',
+            'errors' => [
+                'required' => 'La contraseña es obligatoria.',
+                'min_length' => 'La contraseña debe tener al menos 6 caracteres.'
+            ]
+        ]
+    ];
 
-        if (!$this->validate($rules)) {
-            return view('login', [
-                'validation' => $this->validator,
-                'old_input' => $this->request->getPost()
-            ]);
-        }
-
-        $usuarioModel = new UsuarioModel();
-
-        $email    = strtolower(trim($this->request->getPost('email')));
-        $password = $this->request->getPost('password');
-
-        $usuario = $usuarioModel->where('email', $email)->first();
-
-        if ($usuario && password_verify($password, $usuario['password'])) {
-            session()->set([
-                'usuario_id' => $usuario['id'],
-                'usuario_nombre' => $usuario['nombredeusuario'],
-                'usuario_email' => $usuario['email'],
-                'usuario_rol' => $usuario['rol'] ?? 'usuario',
-                'logueado' => true
-            ]);
-
-            // ✅ VERIFICAR SI HAY UN CÁLCULO PENDIENTE PARA GUARDAR
-            if (session()->getTempdata('calculo_pendiente')) {
-                return redirect()->to('/historial/crear')
-                    ->with('success', '✅ ¡Sesión iniciada! Ahora puedes guardar tu cálculo.');
-            }
-
-            return redirect()->to('/historial')
-                ->with('success', '✅ ¡Bienvenido/a ' . $usuario['nombredeusuario'] . '!');
-        }
-
-        // ❌ MENSAJE DE ERROR CLARO
+    if (!$this->validate($rules)) {
         return view('login', [
-            'error' => '❌ Email o contraseña incorrectos. Verifica tus datos e intenta nuevamente.',
-            'old_input' => ['email' => $email]
+            'validation' => $this->validator,
+            'old_input' => $this->request->getPost()
         ]);
     }
+
+    $usuarioModel = new UsuarioModel();
+    $email = strtolower(trim($this->request->getPost('email')));
+    $password = $this->request->getPost('password');
+    $usuario = $usuarioModel->where('email', $email)->first();
+
+    if ($usuario && password_verify($password, $usuario['password'])) {
+        
+        // ✅ VERIFICAR SI EL USUARIO ESTÁ ACTIVO
+        if ($usuario['activo'] == 0) {
+            return view('login', [
+                'error' => '❌ Tu cuenta ha sido desactivada. Contacta al administrador para más información.',
+                'old_input' => ['email' => $email]
+            ]);
+        }
+        
+        // Usuario activo - permitir login
+        session()->set([
+            'usuario_id' => $usuario['id'],
+            'usuario_nombre' => $usuario['nombredeusuario'],
+            'usuario_email' => $usuario['email'],
+            'usuario_rol' => $usuario['rol'] ?? 'usuario',
+            'logueado' => true
+        ]);
+
+        if (session()->getTempdata('calculo_pendiente')) {
+            return redirect()->to('/historial/crear')
+                ->with('success', '✅ ¡Sesión iniciada! Ahora puedes guardar tu cálculo.');
+        }
+
+        return redirect()->to('/historial')
+            ->with('success', '✅ ¡Bienvenido/a ' . $usuario['nombredeusuario'] . '!');
+    }
+
+    // Error de credenciales
+    return view('login', [
+        'error' => '❌ Email o contraseña incorrectos. Verifica tus datos e intenta nuevamente.',
+        'old_input' => ['email' => $email]
+    ]);
+}
 
     public function logout()
     {
