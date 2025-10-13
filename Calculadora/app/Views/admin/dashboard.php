@@ -785,25 +785,43 @@ function editarArancel(categoriaId, nombre, arancelActual) {
     new bootstrap.Modal(document.getElementById('modalEditarArancel')).show();
 }
 
-// Actualizar cotizaciones
+// Actualizar cotizaciones - VERSIÓN CORREGIDA
 async function actualizarCotizaciones() {
-    const btn = event.target;
+    const btn = event.target.closest('button');
     const originalHTML = btn.innerHTML;
     
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Actualizando...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Actualizando...';
     btn.disabled = true;
     
     try {
-        const response = await fetch('<?= base_url('admin/cotizaciones/actualizar') ?>');
+        const response = await fetch('<?= base_url('admin/cotizaciones/actualizar') ?>', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const resultado = await response.json();
         
         if (resultado.success) {
-            location.reload();
+            // Mostrar alerta de éxito
+            alert('✅ Cotizaciones actualizadas exitosamente!\n\nTarjeta: $' + resultado.data.tarjeta + '\nMEP: $' + resultado.data.MEP);
+            
+            // Recargar la página después de 1 segundo
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
         } else {
             throw new Error(resultado.message || 'Error desconocido');
         }
     } catch (error) {
-        alert('❌ Error actualizando cotizaciones: ' + error.message);
+        console.error('Error:', error);
+        alert('❌ Error actualizando cotizaciones:\n' + error.message);
         btn.innerHTML = originalHTML;
         btn.disabled = false;
     }
@@ -836,6 +854,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+    // Agregar el parámetro tab a los formularios
+    document.querySelectorAll('form[method="GET"]').forEach(form => {
+        form.addEventListener('submit', function() {
+            const activeTab = document.querySelector('.nav-link.active');
+            if (activeTab && !form.querySelector('input[name="tab"]')) {
+                const tabInput = document.createElement('input');
+                tabInput.type = 'hidden';
+                tabInput.name = 'tab';
+                tabInput.value = activeTab.id.replace('-tab', '');
+                form.appendChild(tabInput);
+            }
+        });
+    });
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
