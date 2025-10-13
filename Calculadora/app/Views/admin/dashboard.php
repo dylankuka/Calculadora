@@ -55,7 +55,7 @@
 </div>
 
 <!-- Navbar Admin -->
-<nav class="navbar navbar-expand-lg navbar-dark card-custom">
+<nav class="navbar navbar-expand-lg navbar-dark card-custom" style="position: relative; z-index: 999; padding-left: 110px;">
     <div class="container-fluid">
         <a class="navbar-brand textcolor" href="<?= base_url('admin') ?>">
             <i class="bi bi-speedometer2"></i> Panel de Administración
