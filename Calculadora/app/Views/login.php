@@ -104,11 +104,12 @@
       </div>
     </div>
 
-    <!-- Link a registro -->
-    <p class="mt-3 text-center">
-      ¿No tienes cuenta? <a href="<?= base_url('usuario/registro') ?>">Regístrate aquí</a>
-    </p>
-  </div>
+  <!-- Link a registro -->
+<p class="mt-3 text-center">
+  ¿No tienes cuenta? <a href="<?= base_url('usuario/registro') ?>">Regístrate aquí</a>
+  <br>
+  <a href="<?= base_url('usuario/olvide-password') ?>">¿Olvidaste tu contraseña?</a>
+</p>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -170,4 +170,88 @@ class Usuario extends BaseController
         return redirect()->to('/')
             ->with('success', '✅ Sesión cerrada correctamente. ¡Vuelve pronto!');
     }
+    public function olvidePassword()
+{
+    return view('olvide_password');
+}
+
+public function enviarRecuperacion()
+{
+    $email = strtolower(trim($this->request->getPost('email')));
+    
+    $usuarioModel = new UsuarioModel();
+    $usuario = $usuarioModel->where('email', $email)->first();
+
+    if (!$usuario) {
+        return redirect()->back()
+            ->with('error', '❌ Email no registrado en el sistema.');
+    }
+
+    $recoveryService = new \App\Services\PasswordRecoveryService();
+    $token = $recoveryService->generarToken($usuario['id']);
+    
+    if ($recoveryService->enviarRecuperacion($email, $usuario['nombredeusuario'], $token)) {
+        return redirect()->to('/usuario/login')
+            ->with('success', '✅ Email de recuperación enviado. Revisa tu bandeja de entrada.');
+    }
+
+    return redirect()->back()
+        ->with('error', '❌ Error al enviar email. Intenta más tarde.');
+}
+
+public function resetear($token)
+{
+    $recoveryService = new \App\Services\PasswordRecoveryService();
+    $usuario = $recoveryService->validarToken($token);
+
+    if (!$usuario) {
+        return redirect()->to('/usuario/olvide-password')
+            ->with('error', '❌ Token inválido o expirado.');
+    }
+
+    return view('resetear_password', ['token' => $token]);
+}
+
+public function guardarPassword()
+{
+    $token = $this->request->getPost('token');
+    $password = $this->request->getPost('password');
+    $passConfirm = $this->request->getPost('pass_confirm');
+
+    $rules = [
+        'password' => [
+            'rules' => 'required|min_length[6]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/]',
+            'errors' => [
+                'required' => 'La contraseña es obligatoria.',
+                'min_length' => 'Mínimo 6 caracteres.',
+                'regex_match' => 'Debe contener: 1 minúscula, 1 mayúscula y 1 número.'
+            ]
+        ],
+        'pass_confirm' => [
+            'rules' => 'required|matches[password]',
+            'errors' => [
+                'matches' => 'Las contraseñas no coinciden.'
+            ]
+        ]
+    ];
+
+    if (!$this->validate($rules)) {
+        return redirect()->back()
+            ->with('validation', $this->validator)
+            ->with('token', $token);
+    }
+
+    $recoveryService = new \App\Services\PasswordRecoveryService();
+    $usuario = $recoveryService->validarToken($token);
+
+    if (!$usuario) {
+        return redirect()->to('/usuario/olvide-password')
+            ->with('error', '❌ Token expirado.');
+    }
+
+    $recoveryService->resetearPassword($usuario['id'], $password);
+
+    return redirect()->to('/usuario/login')
+        ->with('success', '✅ Contraseña actualizada. Inicia sesión con tu nueva contraseña.');
+}
 }

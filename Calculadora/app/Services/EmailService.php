@@ -8,22 +8,23 @@ class EmailService
     private $email;
 
     public function __construct()
-    {
-        $this->email = new Email();
-        
-        // Configuración desde .env
-        $this->email->setFrom(getenv('MAIL_FROM_EMAIL'), getenv('MAIL_FROM_NAME') ?? 'TaxImporter');
-        $this->email->initialize([
-            'protocol'  => getenv('MAIL_PROTOCOL') ?? 'smtp',
-            'SMTPHost'  => getenv('MAIL_HOST'),
-            'SMTPPort'  => getenv('MAIL_PORT'),
-            'SMTPUser'  => getenv('MAIL_USERNAME'),
-            'SMTPPass'  => getenv('MAIL_PASSWORD'),
-            'mailType'  => 'html',
-            'charset'   => 'UTF-8',
-            'newline'   => "\r\n"
-        ]);
-    }
+{
+    $this->email = new Email();
+    $fromEmail = getenv('MAIL_FROM_EMAIL') ?: env('MAIL_FROM_EMAIL');
+    $fromName = getenv('MAIL_FROM_NAME') ?: env('MAIL_FROM_NAME', 'TaxImporter');
+    
+    $this->email->setFrom($fromEmail, $fromName);
+    $this->email->initialize([
+        'protocol'  => getenv('MAIL_PROTOCOL') ?: env('MAIL_PROTOCOL', 'smtp'),
+        'SMTPHost'  => getenv('MAIL_HOST') ?: env('MAIL_HOST'),
+        'SMTPPort'  => getenv('MAIL_PORT') ?: env('MAIL_PORT'),
+        'SMTPUser'  => getenv('MAIL_USERNAME') ?: env('MAIL_USERNAME'),
+        'SMTPPass'  => getenv('MAIL_PASSWORD') ?: env('MAIL_PASSWORD'),
+        'mailType'  => 'html',
+        'charset'   => 'UTF-8',
+        'newline'   => "\r\n"
+    ]);
+}
 
     /**
      * Enviar email de donación exitosa

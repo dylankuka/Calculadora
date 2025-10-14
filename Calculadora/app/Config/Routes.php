@@ -89,3 +89,8 @@ $routes->group('admin', function($routes) {
     $routes->get('categorias', 'Admin::categorias');
     $routes->get('estadisticas', 'Admin::estadisticas');
 });
+
+$routes->get('usuario/olvide-password', 'Usuario::olvidePassword');
+$routes->post('usuario/enviar-recuperacion', 'Usuario::enviarRecuperacion');
+$routes->get('usuario/resetear/(:any)', 'Usuario::resetear/$1');
+$routes->post('usuario/guardar-password', 'Usuario::guardarPassword');
