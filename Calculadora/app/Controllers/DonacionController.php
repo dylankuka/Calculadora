@@ -185,17 +185,19 @@ public function checkout($monto)
 
         // Crear registro en base de datos PRIMERO
         $datosBasicos = [
-            'id_usuario' => $usuarioId,
-            'monto_ars' => $monto,
-            'metodo_pago' => 'mercadopago',
-            'estado' => 'pendiente',
-            'external_reference' => $referencia,
-            'fecha_donacion' => date('Y-m-d H:i:s'),
-            'datos_mp_json' => json_encode([
-                'monto_seleccionado' => $monto,
-                'ip' => $this->request->getIPAddress(),
-                'user_agent' => substr($this->request->getUserAgent()->__toString(), 0, 200)
-            ])
+'id_usuario' => $usuarioId,
+    'monto_ars' => $monto,
+    'metodo_pago' => 'mercadopago',
+    'estado' => 'pendiente',
+    'external_reference' => $referencia,
+    'fecha_donacion' => date('Y-m-d H:i:s'),
+    'usuario_email' => session()->get('usuario_email'),  // ✅ AGREGAR
+    'usuario_nombre' => session()->get('usuario_nombre'), // ✅ AGREGAR
+    'datos_mp_json' => json_encode([
+        'monto_seleccionado' => $monto,
+        'ip' => $this->request->getIPAddress(),
+        'user_agent' => substr($this->request->getUserAgent()->__toString(), 0, 200)
+    ])
         ];
 
         $donacionId = $this->donacionModel->insert($datosBasicos);
@@ -398,57 +400,74 @@ public function checkout($monto)
      * Webhook de MercadoPago para notificaciones
      */
     public function webhook()
-    {
-        try {
-            $json = $this->request->getJSON();
-            
-            // Verificar que sea una notificación de payment
-            if ($json->type !== 'payment') {
-                return $this->response->setStatusCode(200, 'OK');
-            }
-
-            $paymentId = $json->data->id ?? null;
-            
-            if (!$paymentId) {
-                return $this->response->setStatusCode(400, 'Payment ID requerido');
-            }
-
-            // Obtener información del pago desde MercadoPago
-            $payment = $this->mercadoPagoService->obtenerPago($paymentId);
-            
-            if (!$payment) {
-                return $this->response->setStatusCode(404, 'Payment no encontrado');
-            }
-
-            // Buscar donación por external_reference
-            $donacion = $this->donacionModel->obtenerPorReferencia($payment['external_reference']);
-            
-            if (!$donacion) {
-                log_message('warning', 'Donación no encontrada para referencia: ' . $payment['external_reference']);
-                return $this->response->setStatusCode(404, 'Donación no encontrada');
-            }
-
-            // Mapear estado de MercadoPago
-            $estadoMP = $payment['status'];
-            $estadoLocal = $this->mapearEstadoMP($estadoMP);
-
-            // Actualizar estado
-            $this->donacionModel->actualizarEstado(
-                $donacion['id'], 
-                $estadoLocal, 
-                $paymentId, 
-                $payment
-            );
-
-            log_message('info', "Donación {$donacion['id']} actualizada a estado: $estadoLocal");
-
+{
+    try {
+        $json = $this->request->getJSON();
+        
+        // Verificar que sea una notificación de payment
+        if ($json->type !== 'payment') {
             return $this->response->setStatusCode(200, 'OK');
-
-        } catch (\Exception $e) {
-            log_message('error', 'Error en webhook: ' . $e->getMessage());
-            return $this->response->setStatusCode(500, 'Error interno');
         }
+
+        $paymentId = $json->data->id ?? null;
+        
+        if (!$paymentId) {
+            return $this->response->setStatusCode(400, 'Payment ID requerido');
+        }
+
+        // Obtener información del pago desde MercadoPago
+        $payment = $this->mercadoPagoService->obtenerPago($paymentId);
+        
+        if (!$payment) {
+            return $this->response->setStatusCode(404, 'Payment no encontrado');
+        }
+
+        // Buscar donación por external_reference
+        $donacion = $this->donacionModel->obtenerPorReferencia($payment['external_reference']);
+        
+        if (!$donacion) {
+            log_message('warning', 'Donación no encontrada para referencia: ' . $payment['external_reference']);
+            return $this->response->setStatusCode(404, 'Donación no encontrada');
+        }
+
+        // Mapear estado de MercadoPago
+        $estadoMP = $payment['status'];
+        $estadoLocal = $this->mapearEstadoMP($estadoMP);
+
+        // Actualizar estado
+        $this->donacionModel->actualizarEstado(
+            $donacion['id'], 
+            $estadoLocal, 
+            $paymentId, 
+            $payment
+        );
+
+        log_message('info', "Donación {$donacion['id']} actualizada a estado: $estadoLocal");
+
+        // ✅ ENVIAR EMAIL SI EL PAGO FUE APROBADO
+        if ($estadoLocal === 'aprobado') {
+            try {
+                $emailService = new \App\Services\EmailService();
+                $emailService->enviarConfirmacionDonacion(
+                    $payment['payer']['email'] ?? 'donante@ejemplo.com',
+                    'Donante',
+                    $donacion['monto_ars'],
+                    $donacion['external_reference']
+                );
+                log_message('info', "Email de confirmación enviado para donación {$donacion['id']}");
+            } catch (\Exception $e) {
+                log_message('error', "Error enviando email: " . $e->getMessage());
+                // No fallar el webhook si hay error en el email
+            }
+        }
+
+        return $this->response->setStatusCode(200, 'OK');
+
+    } catch (\Exception $e) {
+        log_message('error', 'Error en webhook: ' . $e->getMessage());
+        return $this->response->setStatusCode(500, 'Error interno');
     }
+}
 
     /**
      * Página de éxito después del pago
