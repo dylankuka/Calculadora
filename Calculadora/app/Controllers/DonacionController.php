@@ -271,21 +271,7 @@ public function checkout($monto)
         return redirect()->to('/donacion')
             ->with('error', '❌ Error de MercadoPago: ' . $e->getMessage() . '. Verifica tus credenciales.');
             
-    } catch (\Exception $e) {
-        log_message('error', 'Error general en checkout: ' . $e->getMessage());
-        log_message('error', 'Trace: ' . $e->getTraceAsString());
-        
-        if (isset($donacionId)) {
-            $this->donacionModel->update($donacionId, [
-                'estado' => 'cancelado',
-                'datos_mp_json' => json_encode(['error' => $e->getMessage()])
-            ]);
-        }
-        
-        return redirect()->to('/donacion')
-            ->with('error', '❌ ' . $e->getMessage());
-    
-
+            
         } catch (\Exception $e) {
             log_message('error', 'Error en checkout directo: ' . $e->getMessage());
             
@@ -445,21 +431,20 @@ public function checkout($monto)
         log_message('info', "Donación {$donacion['id']} actualizada a estado: $estadoLocal");
 
         // ✅ ENVIAR EMAIL SI EL PAGO FUE APROBADO
-        if ($estadoLocal === 'aprobado') {
-            try {
-                $emailService = new \App\Services\EmailService();
-                $emailService->enviarConfirmacionDonacion(
-                    $payment['payer']['email'] ?? 'donante@ejemplo.com',
-                    'Donante',
-                    $donacion['monto_ars'],
-                    $donacion['external_reference']
-                );
-                log_message('info', "Email de confirmación enviado para donación {$donacion['id']}");
-            } catch (\Exception $e) {
-                log_message('error', "Error enviando email: " . $e->getMessage());
-                // No fallar el webhook si hay error en el email
-            }
-        }
+if ($estadoLocal === 'aprobado') {
+    try {
+        $emailService = new \App\Services\EmailService();
+        $emailService->enviarConfirmacionDonacion(
+            $donacion['usuario_email'],      // ✅ Cambiar esto
+            $donacion['usuario_nombre'],     // ✅ Y esto
+            $donacion['monto_ars'],
+            $donacion['external_reference']
+        );
+        log_message('info', "Email de confirmación enviado para donación {$donacion['id']}");
+    } catch (\Exception $e) {
+        log_message('error', "Error enviando email: " . $e->getMessage());
+    }
+}
 
         return $this->response->setStatusCode(200, 'OK');
 
