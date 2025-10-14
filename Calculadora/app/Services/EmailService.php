@@ -10,20 +10,20 @@ class EmailService
     public function __construct()
 {
     $this->email = new Email();
-    $fromEmail = getenv('MAIL_FROM_EMAIL') ?: env('MAIL_FROM_EMAIL');
-    $fromName = getenv('MAIL_FROM_NAME') ?: env('MAIL_FROM_NAME', 'TaxImporter');
     
-    $this->email->setFrom($fromEmail, $fromName);
     $this->email->initialize([
-        'protocol'  => getenv('MAIL_PROTOCOL') ?: env('MAIL_PROTOCOL', 'smtp'),
-        'SMTPHost'  => getenv('MAIL_HOST') ?: env('MAIL_HOST'),
-        'SMTPPort'  => getenv('MAIL_PORT') ?: env('MAIL_PORT'),
-        'SMTPUser'  => getenv('MAIL_USERNAME') ?: env('MAIL_USERNAME'),
-        'SMTPPass'  => getenv('MAIL_PASSWORD') ?: env('MAIL_PASSWORD'),
+        'protocol'  => 'smtp',
+        'SMTPHost'  => 'smtp.gmail.com',
+        'SMTPPort'  => 587,
+        'SMTPUser'  => 'dylankiyama1@gmail.com',
+        'SMTPPass'  => 'urek pabb wiot uwvs',
+        'SMTPCrypto' => 'tls',  // ✅ AGREGAR ESTO
         'mailType'  => 'html',
         'charset'   => 'UTF-8',
         'newline'   => "\r\n"
     ]);
+    
+    $this->email->setFrom('dylankiyama1@gmail.com', 'TaxImporter');
 }
 
     /**

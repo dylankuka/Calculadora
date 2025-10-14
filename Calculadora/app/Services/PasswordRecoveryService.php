@@ -10,20 +10,22 @@ class PasswordRecoveryService
     public function __construct()
     {
         $this->email = new Email();
-        $fromEmail = getenv('MAIL_FROM_EMAIL') ?: env('MAIL_FROM_EMAIL');
-        $fromName = getenv('MAIL_FROM_NAME') ?: env('MAIL_FROM_NAME', 'TaxImporter');
         
-        $this->email->setFrom($fromEmail, $fromName);
+        // Configurar PRIMERO
         $this->email->initialize([
-            'protocol'  => getenv('MAIL_PROTOCOL') ?: env('MAIL_PROTOCOL', 'smtp'),
-            'SMTPHost'  => getenv('MAIL_HOST') ?: env('MAIL_HOST'),
-            'SMTPPort'  => getenv('MAIL_PORT') ?: env('MAIL_PORT'),
-            'SMTPUser'  => getenv('MAIL_USERNAME') ?: env('MAIL_USERNAME'),
-            'SMTPPass'  => getenv('MAIL_PASSWORD') ?: env('MAIL_PASSWORD'),
+            'protocol'  => 'smtp',
+            'SMTPHost'  => 'smtp.gmail.com',
+            'SMTPPort'  => 587,
+            'SMTPUser'  => 'dylankiyama1@gmail.com',
+            'SMTPPass'  => 'urek pabb wiot uwvs',
+            'SMTPCrypto' => 'tls',  // ✅ AGREGAR ESTO
             'mailType'  => 'html',
             'charset'   => 'UTF-8',
             'newline'   => "\r\n"
         ]);
+        
+        // setFrom() DESPUÉS de initialize()
+        $this->email->setFrom('dylankiyama1@gmail.com', 'TaxImporter');
     }
 
     /**
@@ -51,6 +53,11 @@ class PasswordRecoveryService
         try {
             $urlRecuperacion = base_url('usuario/resetear/' . $token);
             
+            // Debug: Verificar credenciales
+            $fromEmail = getenv('MAIL_FROM_EMAIL') ?: env('MAIL_FROM_EMAIL');
+            log_message('debug', "FROM EMAIL: " . $fromEmail);
+            log_message('debug', "TO EMAIL: " . $email);
+            
             $this->email->setTo($email);
             $this->email->setSubject('🔐 Recupera tu contraseña - TaxImporter');
             $this->email->setMessage($this->generarCuerpo($nombreUsuario, $urlRecuperacion));
@@ -60,10 +67,12 @@ class PasswordRecoveryService
                 return true;
             } else {
                 log_message('error', 'Error enviando email: ' . $this->email->printDebugger());
+                log_message('error', 'Debug full: ' . json_encode($this->email));
                 return false;
             }
         } catch (\Exception $e) {
             log_message('error', 'Error en recuperación: ' . $e->getMessage());
+            log_message('error', 'Trace: ' . $e->getTraceAsString());
             return false;
         }
     }
@@ -71,22 +80,16 @@ class PasswordRecoveryService
     /**
      * Validar token
      */
-public function validarToken($token)
-{
-    $db = \Config\Database::connect();
-
-    /** @var \CodeIgniter\Database\BaseBuilder $builder */
-    $builder = $db->table('usuarios');
-
-    $usuario = $builder
-        ->where('reset_token', $token)
-        ->where('reset_expiracion >', date('Y-m-d H:i:s'))
-        ->get()
-        ->getRow();
-
-    return $usuario;
-}
-
+    public function validarToken($token)
+    {
+        $db = \Config\Database::connect();
+        $usuario = $db->table('usuarios')
+            ->where('reset_token', $token)
+            ->where('reset_expiracion >', date('Y-m-d H:i:s'))
+            ->first();
+        
+        return $usuario;
+    }
 
     /**
      * Resetear contraseña
