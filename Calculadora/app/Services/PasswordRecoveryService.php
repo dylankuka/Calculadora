@@ -18,7 +18,7 @@ class PasswordRecoveryService
             'SMTPPort'  => 587,
             'SMTPUser'  => 'dylankiyama1@gmail.com',
             'SMTPPass'  => 'urek pabb wiot uwvs',
-            'SMTPCrypto' => 'tls',  // ✅ AGREGAR ESTO
+            'SMTPCrypto' => 'tls',
             'mailType'  => 'html',
             'charset'   => 'UTF-8',
             'newline'   => "\r\n"
@@ -78,7 +78,7 @@ class PasswordRecoveryService
     }
 
     /**
-     * Validar token
+     * Validar token - ✅ CORREGIDO
      */
     public function validarToken($token)
     {
@@ -86,7 +86,8 @@ class PasswordRecoveryService
         $usuario = $db->table('usuarios')
             ->where('reset_token', $token)
             ->where('reset_expiracion >', date('Y-m-d H:i:s'))
-            ->first();
+            ->get()
+            ->getFirstRow('array');
         
         return $usuario;
     }
