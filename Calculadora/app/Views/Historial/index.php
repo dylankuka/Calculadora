@@ -169,56 +169,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- Agregar esta sección después de la sección "¿Cómo funciona?" y antes de "Información adicional" -->
-
-<div class="card bg-dark border-warning mb-4" style="border-width: 2px;">
-    <div class="card-body text-center">
-        <h5 class="card-title text-warning mb-3">
-            <i class="bi bi-emoji-laughing"></i> Chiste del Día
-        </h5>
-        <div id="joke-container" style="min-height: 80px; display: flex; align-items: center; justify-content: center;">
-            <div class="spinner-border text-warning" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-        </div>
-        <button onclick="cargarChiste()" class="btn btn-warning btn-sm mt-3">
-            <i class="bi bi-arrow-clockwise"></i> Otro chiste
-        </button>
-    </div>
-</div>
-
-<script>
-async function cargarChiste() {
-    const container = document.getElementById('joke-container');
-    container.innerHTML = '<div class="spinner-border text-warning" role="status"><span class="visually-hidden">Cargando...</span></div>';
-    
-    try {
-        const response = await fetch('https://v2.jokeapi.dev/joke/Any?format=json&type=single&lang=es');
-        const data = await response.json();
-        
-        if (data.error) {
-            container.innerHTML = '<p class="text-light">😅 No se pudo cargar el chiste. ¡Inténtalo de nuevo!</p>';
-            return;
-        }
-        
-        // Mostrar el chiste con estilo
-        container.innerHTML = `
-            <div class="text-light" style="font-size: 1.1rem; line-height: 1.6; padding: 20px;">
-                <p class="mb-0" style="font-style: italic;">
-                    "${data.joke}"
-                </p>
-            </div>
-        `;
-    } catch (error) {
-        console.error('Error cargando chiste:', error);
-        container.innerHTML = '<p class="text-light">⚠️ Error cargando el chiste. Revisa tu conexión.</p>';
-    }
-}
-
-// Cargar un chiste automáticamente cuando carga la página
-document.addEventListener('DOMContentLoaded', function() {
-    cargarChiste();
-});
+                
 </script>
                 <!-- Información adicional -->
                 <div class="row">
@@ -532,6 +483,57 @@ document.addEventListener('DOMContentLoaded', function() {
             bsAlert.close();
         }, 10000);
     });
+});
+</script>
+<!-- Agregar esta sección después de la sección "¿Cómo funciona?" y antes de "Información adicional" -->
+
+<div class="card bg-dark border-warning mb-4" style="border-width: 2px;">
+    <div class="card-body text-center">
+        <h5 class="card-title text-warning mb-3">
+            <i class="bi bi-emoji-laughing"></i> Chiste del Día
+        </h5>
+        <div id="joke-container" style="min-height: 80px; display: flex; align-items: center; justify-content: center;">
+            <div class="spinner-border text-warning" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+        <button onclick="cargarChiste()" class="btn btn-warning btn-sm mt-3">
+            <i class="bi bi-arrow-clockwise"></i> Otro chiste
+        </button>
+    </div>
+</div>
+
+<script>
+async function cargarChiste() {
+    const container = document.getElementById('joke-container');
+    container.innerHTML = '<div class="spinner-border text-warning" role="status"><span class="visually-hidden">Cargando...</span></div>';
+    
+    try {
+        const response = await fetch('https://v2.jokeapi.dev/joke/Any?format=json&type=single&lang=es');
+        const data = await response.json();
+        
+        if (data.error) {
+            container.innerHTML = '<p class="text-light">😅 No se pudo cargar el chiste. ¡Inténtalo de nuevo!</p>';
+            return;
+        }
+        
+        // Mostrar el chiste con estilo
+        container.innerHTML = `
+            <div class="text-light" style="font-size: 1.1rem; line-height: 1.6; padding: 20px;">
+                <p class="mb-0" style="font-style: italic;">
+                    "${data.joke}"
+                </p>
+            </div>
+        `;
+    } catch (error) {
+        console.error('Error cargando chiste:', error);
+        container.innerHTML = '<p class="text-light">⚠️ Error cargando el chiste. Revisa tu conexión.</p>';
+    }
+}
+
+// Cargar un chiste automáticamente cuando carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    cargarChiste();
 });
 </script>
 
