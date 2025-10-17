@@ -451,7 +451,6 @@
                         <th><i class="bi bi-calendar"></i> Fecha</th>
                         <th><i class="bi bi-currency-dollar"></i> Monto</th>
                         <th><i class="bi bi-check-circle"></i> Estado</th>
-                        <th><i class="bi bi-gear"></i> Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -483,12 +482,6 @@
                                 <i class="bi bi-<?= $icon ?>"></i>
                                 <?= ucfirst($donacion['estado']) ?>
                             </span>
-                        </td>
-                        <td>
-                            <a href="<?= base_url('donacion/ver/' . $donacion['id']) ?>" 
-                               class="btn btn-sm btn-outline-info">
-                                <i class="bi bi-eye"></i> Ver Detalles
-                            </a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
