@@ -485,21 +485,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-<!-- Agregar esta sección después de la sección "¿Cómo funciona?" y antes de "Información adicional" -->
+<!-- Agregar después de "Información adicional" y antes del cierre del contenedor de bienvenida -->
 
-<div class="card bg-dark border-warning mb-4" style="border-width: 2px;">
-    <div class="card-body text-center">
-        <h5 class="card-title text-warning mb-3">
-            <i class="bi bi-emoji-laughing"></i> Chiste del Día
-        </h5>
-        <div id="joke-container" style="min-height: 80px; display: flex; align-items: center; justify-content: center;">
-            <div class="spinner-border text-warning" role="status">
-                <span class="visually-hidden">Cargando...</span>
+<div class="row mt-4">
+    <div class="col-lg-8 mx-auto">
+        <div class="card bg-dark border-warning mb-4" style="border-width: 2px;">
+            <div class="card-body text-center">
+                <h5 class="card-title text-warning mb-3">
+                    <i class="bi bi-emoji-laughing"></i> Chiste del Día
+                </h5>
+                <div id="joke-container" style="min-height: 80px; display: flex; align-items: center; justify-content: center;">
+                    <div class="spinner-border text-warning" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+                <button onclick="cargarChiste()" class="btn btn-warning btn-sm mt-3">
+                    <i class="bi bi-arrow-clockwise"></i> Otro chiste
+                </button>
             </div>
         </div>
-        <button onclick="cargarChiste()" class="btn btn-warning btn-sm mt-3">
-            <i class="bi bi-arrow-clockwise"></i> Otro chiste
-        </button>
     </div>
 </div>
 
@@ -517,7 +521,6 @@ async function cargarChiste() {
             return;
         }
         
-        // Mostrar el chiste con estilo
         container.innerHTML = `
             <div class="text-light" style="font-size: 1.1rem; line-height: 1.6; padding: 20px;">
                 <p class="mb-0" style="font-style: italic;">
@@ -531,7 +534,7 @@ async function cargarChiste() {
     }
 }
 
-// Cargar un chiste automáticamente cuando carga la página
+// Cargar chiste al iniciar
 document.addEventListener('DOMContentLoaded', function() {
     cargarChiste();
 });
