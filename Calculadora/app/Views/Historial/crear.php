@@ -519,107 +519,246 @@
 const cotizacionesActuales = <?= json_encode($cotizaciones ?? ['tarjeta' => 1683.5, 'MEP' => 1650.0]) ?>;
 let calculoActual = null;
 
-// ✅ FUNCIONES DE INICIALIZACIÓN
+// ✅ INICIALIZACIÓN
 document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar cotización
     actualizarCotizacion();
-    
-    // Si hay datos previos en el formulario, mostrar info de categoría
     const categoriaSelect = document.getElementById('categoria_id');
     if (categoriaSelect.value) {
         mostrarInfoCategoria();
     }
-    
-    // Simular cálculo si hay datos completos
     if (validarFormularioCompleto()) {
         simularCalculoEnTiempoReal();
     }
 });
 
-// ✅ OBTENER DATOS DEL PRODUCTO DESDE AMAZON
+// ✅ OBTENER DATOS DEL PRODUCTO DESDE AMAZON PA-API
 async function obtenerProductoAmazon() {
     const url = document.getElementById('amazon_url').value;
     
     if (!url.trim()) {
-        alert('Por favor ingresa una URL de Amazon válida');
+        mostrarAlerta('Por favor ingresa una URL de Amazon válida', 'warning');
         return;
     }
     
-    if (!validarUrlAmazon(url)) {
-        alert('La URL debe ser de un dominio de Amazon válido (amazon.com, amazon.es, etc.)');
-        return;
-    }
-    
-    // Cambiar estado del botón
-    const btn = event.target;
+    const btn = event.target.closest('button');
     const icon = document.getElementById('btn-obtener-icon');
     const text = document.getElementById('btn-obtener-text');
     
     btn.disabled = true;
-    icon.className = 'loading-spinner';
-    text.textContent = 'Obteniendo...';
+    icon.className = 'spinner-border spinner-border-sm';
+    text.textContent = 'Obteniendo datos...';
     
     try {
-        // Simulación de API de Amazon (reemplazar con tu implementación real)
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Validar URL
+        const validacionResponse = await fetch('<?= base_url("amazon/validar") ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ url: url })
+        });
         
-        // Datos simulados (implementar AmazonService real)
-        const productoData = {
-            success: true,
-            nombre: "Producto ejemplo de Amazon",
-            precio: "129.99",
-            imagen: "https://via.placeholder.com/100x100?text=Producto",
-            disponibilidad: "En stock",
-            vendedor: "Amazon",
-            descripcion: "Descripción del producto obtenida automáticamente"
-        };
+        const validacion = await validacionResponse.json();
         
-        if (productoData.success) {
-            // Llenar campos automáticamente
-            document.getElementById('nombre_producto').value = productoData.nombre;
-            document.getElementById('precio_usd').value = productoData.precio;
-            
-            // Mostrar información del producto
-            document.getElementById('producto-nombre').textContent = productoData.nombre;
-            document.getElementById('producto-precio').textContent = productoData.precio;
-            document.getElementById('producto-imagen').src = productoData.imagen;
-            document.getElementById('producto-disponibilidad').textContent = productoData.disponibilidad;
-            document.getElementById('producto-vendedor').textContent = productoData.vendedor;
-            document.getElementById('producto-info').style.display = 'block';
-            
-            // Simular cálculo automáticamente
-            if (validarFormularioCompleto()) {
-                simularCalculoEnTiempoReal();
-            }
-        } else {
-            alert('No se pudieron obtener los datos del producto. Completa los campos manualmente.');
+        if (!validacion.valid) {
+            throw new Error(validacion.message || 'URL no válida');
+        }
+        
+        // Obtener información del producto
+        const response = await fetch('<?= base_url("amazon/obtener") ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ url: url })
+        });
+        
+        const resultado = await response.json();
+        
+        if (!resultado.success) {
+            throw new Error(resultado.message || 'Error obteniendo datos del producto');
+        }
+        
+        const producto = resultado.data;
+        
+        // Llenar campos
+        document.getElementById('nombre_producto').value = producto.nombre;
+        let precioUSD = parseFloat(producto.precio);
+        document.getElementById('precio_usd').value = precioUSD.toFixed(2);
+        
+        // Mostrar detalles
+        mostrarDetallesProducto(producto);
+        
+        // Sugerir categoría
+        if (producto.categoria || producto.nombre) {
+            sugerirCategoria(producto);
+        }
+        
+        // Mensaje de éxito
+        let mensaje = '✅ Datos obtenidos exitosamente desde Amazon PA-API';
+        if (producto.precio_original && producto.precio_original > producto.precio) {
+            const ahorro = producto.precio_original - producto.precio;
+            const porcentaje = ((ahorro / producto.precio_original) * 100).toFixed(1);
+            mensaje += `<br>💰 ¡Descuento detectado! Ahorro: $${ahorro.toFixed(2)} (${porcentaje}%)`;
+        }
+        if (producto.rating) {
+            mensaje += `<br>⭐ Rating: ${producto.rating}/5`;
+        }
+        
+        mostrarAlerta(mensaje, 'success');
+        
+        if (validarFormularioCompleto()) {
+            simularCalculoEnTiempoReal();
         }
         
     } catch (error) {
         console.error('Error obteniendo producto:', error);
-        alert('Error de conexión. Completa los datos manualmente.');
+        mostrarAlerta('❌ ' + error.message, 'danger');
     } finally {
-        // Restaurar botón
         btn.disabled = false;
         icon.className = 'bi bi-search';
         text.textContent = 'Obtener Datos';
     }
 }
 
-// ✅ VALIDAR URL DE AMAZON
-function validarUrlAmazon(url) {
-    const dominiosValidos = ['amazon.com', 'amazon.es', 'amazon.co.uk', 'amazon.com.ar', 
-                           'amazon.com.mx', 'amazon.de', 'amazon.fr', 'amazon.ca', 'amazon.it'];
+// ✅ MOSTRAR DETALLES DEL PRODUCTO
+function mostrarDetallesProducto(producto) {
+    let detallesHTML = `
+        <div class="card bg-dark text-light border-success mt-3">
+            <div class="card-header bg-success text-dark">
+                <i class="bi bi-check-circle"></i> Datos obtenidos de Amazon PA-API
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        ${producto.imagen ? `<img src="${producto.imagen}" alt="${producto.nombre}" class="img-fluid rounded">` : ''}
+                    </div>
+                    <div class="col-md-9">
+                        <h5 class="text-warning">${producto.nombre}</h5>
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <p class="mb-1"><strong>ASIN:</strong> ${producto.asin || 'N/A'}</p>
+                                <p class="mb-1"><strong>Precio:</strong> $${producto.precio} ${producto.moneda || 'USD'}</p>
+                                ${producto.precio_original ? `<p class="mb-1"><small class="text-muted"><del>$${producto.precio_original}</del></small></p>` : ''}
+                            </div>
+                            <div class="col-6">
+                                ${producto.marca ? `<p class="mb-1"><strong>Marca:</strong> ${producto.marca}</p>` : ''}
+                                ${producto.categoria ? `<p class="mb-1"><strong>Categoría:</strong> ${producto.categoria}</p>` : ''}
+                                <p class="mb-1"><strong>Disponibilidad:</strong> <span class="badge bg-success">${producto.disponibilidad}</span></p>
+                            </div>
+                        </div>
+                        ${producto.caracteristicas && producto.caracteristicas.length > 0 ? `
+                            <div class="mt-3">
+                                <strong>Características principales:</strong>
+                                <ul class="small mt-2">
+                                    ${producto.caracteristicas.slice(0, 3).map(f => `<li>${f}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
     
-    try {
-        const urlObj = new URL(url);
-        return dominiosValidos.some(dominio => urlObj.hostname.includes(dominio));
-    } catch {
-        return false;
+    const infoContainer = document.getElementById('producto-info');
+    if (infoContainer) {
+        infoContainer.innerHTML = detallesHTML;
+        infoContainer.style.display = 'block';
     }
 }
 
-// ✅ MOSTRAR INFORMACIÓN DE LA CATEGORÍA SELECCIONADA
+// ✅ SUGERIR CATEGORÍA
+function sugerirCategoria(productoData) {
+    const categoriaAmazon = (productoData.categoria || '').toLowerCase();
+    const nombre = (productoData.nombre || '').toLowerCase();
+    
+    const mapeo = {
+        'electronics': 'electronica',
+        'computers': 'electronica',
+        'cell phones': 'electronica',
+        'video games': 'videojuegos',
+        'books': 'libros',
+        'clothing': 'ropa',
+        'shoes': 'calzado',
+        'home': 'hogar',
+        'kitchen': 'hogar',
+        'toys': 'juguetes',
+        'sports': 'deportes'
+    };
+    
+    for (const [amazonCat, sistemaCat] of Object.entries(mapeo)) {
+        if (categoriaAmazon.includes(amazonCat) || nombre.includes(amazonCat)) {
+            const select = document.getElementById('categoria_id');
+            for (let option of select.options) {
+                if (option.text.toLowerCase().includes(sistemaCat)) {
+                    select.value = option.value;
+                    mostrarInfoCategoria();
+                    mostrarAlerta(`✨ Categoría "${option.text}" seleccionada automáticamente`, 'info');
+                    break;
+                }
+            }
+            break;
+        }
+    }
+}
+
+// ✅ MOSTRAR ALERTA
+function mostrarAlerta(mensaje, tipo = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+    alertDiv.innerHTML = `${mensaje}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => alertDiv.remove(), 5000);
+}
+
+// ✅ VALIDACIÓN EN TIEMPO REAL DE URL
+document.getElementById('amazon_url').addEventListener('blur', async function(e) {
+    const url = e.target.value.trim();
+    if (!url) return;
+    
+    try {
+        const response = await fetch('<?= base_url("amazon/validar") ?>', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: url })
+        });
+        
+        const resultado = await response.json();
+        const input = e.target;
+        
+        if (resultado.valid) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        } else {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+        }
+    } catch (error) {
+        console.error('Error validando URL:', error);
+    }
+});
+
+document.getElementById('amazon_url').addEventListener('input', function(e) {
+    e.target.classList.remove('is-valid', 'is-invalid');
+});
+
+// ✅ AUTO-OBTENER AL PEGAR URL
+document.getElementById('amazon_url').addEventListener('paste', function(e) {
+    setTimeout(async () => {
+        const url = e.target.value.trim();
+        if (url && url.includes('amazon.') && confirm('¿Deseas obtener los datos del producto automáticamente?')) {
+            document.querySelector('[onclick="obtenerProductoAmazon()"]').click();
+        }
+    }, 100);
+});
+
+// ✅ MOSTRAR INFORMACIÓN DE CATEGORÍA
 function mostrarInfoCategoria() {
     const select = document.getElementById('categoria_id');
     const selectedOption = select.options[select.selectedIndex];
@@ -634,7 +773,6 @@ function mostrarInfoCategoria() {
         document.getElementById('categoria-descripcion').textContent = descripcion;
         document.getElementById('categoria-info').style.display = 'block';
         
-        // Simular cálculo si los datos están completos
         if (validarFormularioCompleto()) {
             simularCalculoEnTiempoReal();
         }
@@ -643,7 +781,7 @@ function mostrarInfoCategoria() {
     }
 }
 
-// ✅ ACTUALIZAR COTIZACIÓN SEGÚN MÉTODO DE PAGO
+// ✅ ACTUALIZAR COTIZACIÓN
 function actualizarCotizacion() {
     const metodoPago = document.querySelector('input[name="metodo_pago"]:checked')?.value || 'tarjeta';
     const cotizacion = cotizacionesActuales[metodoPago] || 0;
@@ -653,13 +791,12 @@ function actualizarCotizacion() {
         maximumFractionDigits: 2
     });
     
-    // Simular cálculo si los datos están completos
     if (validarFormularioCompleto()) {
         simularCalculoEnTiempoReal();
     }
 }
 
-// ✅ VALIDAR SI EL FORMULARIO ESTÁ COMPLETO
+// ✅ VALIDAR FORMULARIO COMPLETO
 function validarFormularioCompleto() {
     const precio = parseFloat(document.getElementById('precio_usd').value) || 0;
     const envio = parseFloat(document.getElementById('envio_usd').value) || 0;
@@ -700,36 +837,21 @@ async function simularCalculoEnTiempoReal() {
             mostrarResultadoCalculo(resultado.data);
             calculoActual = resultado.data;
             document.getElementById('btn-guardar').disabled = false;
-        } else {
-            console.error('Error en simulación:', resultado.message);
         }
-        
     } catch (error) {
-        // Si falla la API, hacer cálculo básico local
-        console.error('Error conectando con API:', error);
+        console.error('Error:', error);
         calcularLocalmente(datos);
     }
 }
 
-// ✅ MOSTRAR RESULTADO DEL CÁLCULO
+// ✅ MOSTRAR RESULTADO
 function mostrarResultadoCalculo(calculo) {
-    // Datos base
-    document.getElementById('resumen-precio-usd').textContent = formatNumber(calculo.datos_base.precio_usd);
-    document.getElementById('resumen-envio-usd').textContent = formatNumber(calculo.datos_base.envio_usd);
-    document.getElementById('resumen-cif-usd').textContent = formatNumber(calculo.datos_base.valor_cif_usd);
-    document.getElementById('resumen-excedente-usd').textContent = formatNumber(calculo.datos_base.excedente_400_usd);
-    
-    // Aranceles USD
-    document.getElementById('resumen-aranceles-usd').textContent = formatNumber(calculo.impuestos_usd.aranceles_usd || 0);
-    
-    // Valores ARS
     const baseARS = calculo.datos_base.valor_cif_usd * calculo.datos_base.cotizacion;
-    document.getElementById('resumen-base-ars').textContent = formatNumber(baseARS);
+    
     document.getElementById('resumen-aranceles-ars').textContent = formatNumber(calculo.impuestos_ars.aranceles_ars || 0);
     document.getElementById('resumen-tasa-estadistica-ars').textContent = formatNumber(calculo.impuestos_ars.tasa_estadistica_ars || 0);
     document.getElementById('resumen-iva-ars').textContent = formatNumber(calculo.impuestos_ars.iva_ars || 0);
     
-    // Percepciones (solo si aplican)
     const percepcionARS = calculo.impuestos_ars.percepcion_ganancias_ars || 0;
     if (percepcionARS > 0) {
         document.getElementById('resumen-percepcion-ars').textContent = formatNumber(percepcionARS);
@@ -738,36 +860,29 @@ function mostrarResultadoCalculo(calculo) {
         document.getElementById('percepcion-row').style.display = 'none';
     }
     
-    // Totales
     document.getElementById('resumen-total-ars').textContent = formatNumber(calculo.totales.total_ars);
     document.getElementById('solo-impuestos-ars').textContent = formatNumber(calculo.totales.total_impuestos_ars);
-    
-    // Información adicional
     document.getElementById('tipo-cambio-usado').textContent = calculo.datos_base.metodo_pago.toUpperCase();
     document.getElementById('cotizacion-usada').textContent = formatNumber(calculo.datos_base.cotizacion);
     document.getElementById('categoria-usada').textContent = calculo.datos_base.categoria;
     
-    // Estado de franquicia
     const bajoFranquicia = calculo.datos_base.valor_cif_usd <= 400;
     document.getElementById('estado-franquicia').textContent = bajoFranquicia ? 
         '✅ Bajo Franquicia (≤$400)' : '⚠️ Sobre Franquicia (>$400)';
     
-    // Mostrar resultado
     document.getElementById('resultado-calculo').style.display = 'block';
 }
 
-// ✅ CÁLCULO LOCAL BÁSICO (FALLBACK)
+// ✅ CÁLCULO LOCAL (FALLBACK)
 function calcularLocalmente(datos) {
     const cotizacion = cotizacionesActuales[datos.metodo_pago];
     const cif = datos.precio_usd + datos.envio_usd;
     const excedente = Math.max(0, cif - 400);
     
-    // Obtener arancel de la categoría
     const select = document.getElementById('categoria_id');
     const arancel = parseFloat(select.options[select.selectedIndex].dataset.arancel) || 0;
     const exentoIVA = select.options[select.selectedIndex].dataset.exento === '1';
     
-    // Cálculo básico
     const arancelesUSD = excedente * (arancel / 100);
     const tasaEstadisticaUSD = cif > 400 ? cif * 0.03 : 0;
     const baseARS = cif * cotizacion;
@@ -776,24 +891,15 @@ function calcularLocalmente(datos) {
     const ivaARS = exentoIVA ? 0 : ((cif + arancelesUSD) * cotizacion * 0.21);
     
     let totalARS = baseARS + arancelesARS + tasaEstadisticaARS + ivaARS;
-    
-    // Percepciones si es tarjeta
     const percepcionARS = datos.metodo_pago === 'tarjeta' ? totalARS * 0.30 : 0;
     totalARS += percepcionARS;
     
-    // Crear objeto similar al que devuelve la API
     const calculoLocal = {
         datos_base: {
-            precio_usd: datos.precio_usd,
-            envio_usd: datos.envio_usd,
             valor_cif_usd: cif,
-            excedente_400_usd: excedente,
             categoria: select.options[select.selectedIndex].text,
             metodo_pago: datos.metodo_pago,
             cotizacion: cotizacion
-        },
-        impuestos_usd: {
-            aranceles_usd: arancelesUSD
         },
         impuestos_ars: {
             aranceles_ars: arancelesARS,
@@ -820,16 +926,6 @@ function formatNumber(num) {
     });
 }
 
-// ✅ SIMULAR CÁLCULO COMPLETO (BOTÓN)
-function simularCalculoCompleto() {
-    if (!validarFormularioCompleto()) {
-        alert('Por favor completa todos los campos requeridos antes de simular');
-        return;
-    }
-    
-    simularCalculoEnTiempoReal();
-}
-
 // ✅ ACTUALIZAR COTIZACIONES MANUALMENTE
 async function actualizarCotizaciones() {
     try {
@@ -837,37 +933,33 @@ async function actualizarCotizaciones() {
         const resultado = await response.json();
         
         if (resultado.success) {
-            // Actualizar cotizaciones globales
             Object.assign(cotizacionesActuales, resultado.data);
-            
-            // Actualizar display
             actualizarCotizacion();
-            
-            // Recalcular si hay datos
-            if (validarFormularioCompleto()) {
-                simularCalculoEnTiempoReal();
-            }
-            
-            // Actualizar timestamp
+            if (validarFormularioCompleto()) simularCalculoEnTiempoReal();
             document.getElementById('fecha-cotizacion').textContent = resultado.timestamp;
-            
             alert('✅ Cotizaciones actualizadas exitosamente');
-        } else {
-            alert('❌ Error actualizando cotizaciones: ' + resultado.message);
         }
     } catch (error) {
-        console.error('Error actualizando cotizaciones:', error);
+        console.error('Error:', error);
         alert('❌ Error de conexión al actualizar cotizaciones');
     }
 }
 
-// ✅ EVENTOS DE CAMBIO EN TIEMPO REAL
+// ✅ EVENTOS
 document.getElementById('precio_usd').addEventListener('input', simularCalculoEnTiempoReal);
 document.getElementById('envio_usd').addEventListener('input', simularCalculoEnTiempoReal);
 document.getElementById('categoria_id').addEventListener('change', simularCalculoEnTiempoReal);
 document.querySelectorAll('input[name="metodo_pago"]').forEach(radio => {
     radio.addEventListener('change', simularCalculoEnTiempoReal);
 });
+
+function simularCalculoCompleto() {
+    if (!validarFormularioCompleto()) {
+        alert('Por favor completa todos los campos requeridos antes de simular');
+        return;
+    }
+    simularCalculoEnTiempoReal();
+}
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

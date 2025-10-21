@@ -7,7 +7,7 @@ use App\Services\AmazonService;
 class Amazon extends BaseController
 {
     /**
-     * Obtiene datos del producto desde Amazon
+     * Obtiene datos del producto desde Amazon PA-API
      */
     public function obtener()
     {
@@ -32,6 +32,7 @@ class Amazon extends BaseController
             ]);
             
         } catch (\Exception $e) {
+            log_message('error', 'Error en Amazon controller: ' . $e->getMessage());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error: ' . $e->getMessage()
@@ -45,7 +46,8 @@ class Amazon extends BaseController
     public function validar()
     {
         try {
-            $url = $this->request->getPost('url');
+            $json = $this->request->getJSON();
+            $url = $json->url ?? $this->request->getPost('url') ?? '';
             
             if (empty($url)) {
                 return $this->response->setJSON([
@@ -54,48 +56,78 @@ class Amazon extends BaseController
                 ]);
             }
             
-            // Validar formato básico
-            if (!filter_var($url, FILTER_VALIDATE_URL)) {
-                return $this->response->setJSON([
-                    'valid' => false,
-                    'message' => 'URL no válida'
-                ]);
-            }
+            $amazonService = new AmazonService();
+            $resultado = $amazonService->validar($url);
             
-            // Validar que sea de Amazon
-            $dominiosValidos = [
-                'amazon.com', 'amazon.es', 'amazon.co.uk', 
-                'amazon.com.ar', 'amazon.com.mx', 'amazon.de',
-                'amazon.fr', 'amazon.ca', 'amazon.it'
-            ];
-            
-            $host = parse_url($url, PHP_URL_HOST);
-            $esAmazon = false;
-            
-            foreach ($dominiosValidos as $dominio) {
-                if (strpos($host, $dominio) !== false) {
-                    $esAmazon = true;
-                    break;
-                }
-            }
-            
-            if (!$esAmazon) {
-                return $this->response->setJSON([
-                    'valid' => false,
-                    'message' => 'Debe ser una URL de Amazon válida'
-                ]);
-            }
-            
-            return $this->response->setJSON([
-                'valid' => true,
-                'message' => 'URL válida',
-                'domain' => $host
-            ]);
+            return $this->response->setJSON($resultado);
             
         } catch (\Exception $e) {
             return $this->response->setJSON([
                 'valid' => false,
                 'message' => 'Error validando URL: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
+    /**
+     * Buscar productos por palabra clave
+     */
+    public function buscar()
+    {
+        try {
+            $json = $this->request->getJSON();
+            $keywords = $json->keywords ?? '';
+            $categoria = $json->categoria ?? null;
+            $limite = $json->limite ?? 10;
+            
+            if (empty($keywords)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Palabra clave requerida'
+                ]);
+            }
+            
+            $amazonService = new AmazonService();
+            $productos = $amazonService->buscarProductos($keywords, $categoria, $limite);
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $productos,
+                'count' => count($productos)
+            ]);
+            
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error en búsqueda: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
+    /**
+     * Test de conexión con Amazon PA-API
+     */
+    public function testConexion()
+    {
+        try {
+            $amazonService = new AmazonService();
+            
+            // Probar con un ASIN conocido (ejemplo: Kindle)
+            $testUrl = 'https://www.amazon.com/dp/B09SWW583J';
+            
+            $resultado = $amazonService->obtenerProducto($testUrl);
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Conexión exitosa con Amazon PA-API',
+                'test_product' => $resultado
+            ]);
+            
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error de conexión: ' . $e->getMessage(),
+                'help' => 'Verifica tus credenciales en el archivo .env'
             ]);
         }
     }

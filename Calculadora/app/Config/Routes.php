@@ -94,3 +94,11 @@ $routes->get('usuario/olvide-password', 'Usuario::olvidePassword');
 $routes->post('usuario/enviar-recuperacion', 'Usuario::enviarRecuperacion');
 $routes->get('usuario/resetear/(:any)', 'Usuario::resetear/$1');
 $routes->post('usuario/guardar-password', 'Usuario::guardarPassword');
+
+// ... (rutas existentes)
+
+// ✅ RUTAS PARA AMAZON PA-API (ACTUALIZADAS)
+$routes->post('amazon/obtener', 'Amazon::obtener');
+$routes->post('amazon/validar', 'Amazon::validar');
+$routes->post('amazon/buscar', 'Amazon::buscar');
+$routes->get('amazon/test', 'Amazon::testConexion'); // Para probar la conexión
