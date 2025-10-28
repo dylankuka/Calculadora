@@ -24,9 +24,8 @@
             margin-top: 10px;
         }
         .calculo-resultado {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            background: #11998e;
             color: white;
-            border-radius: 10px;
             padding: 20px;
         }
         .franquicia-badge {
@@ -361,7 +360,7 @@
                         <!-- Total final -->
                         <div class="d-flex justify-content-between align-items-center">
                             <h4 class="mb-0">TOTAL FINAL:</h4>
-                            <h3 class="mb-0 text-warning">$<span id="resumen-total-ars">0.00</span></h3>
+                       <h3 class="mb-0 text-warning">$<span id="resumen-total-ars">0.00</span></h3>
                         </div>
 
                         <!-- Información adicional -->
