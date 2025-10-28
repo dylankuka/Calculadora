@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Nuevo Cálculo de Impuestos - TaxImporter</title>
+    <title>Nueva Calculadora de Impuestos - TaxImporter</title>
     <link rel="stylesheet" href="<?= base_url('css/ind.css') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
@@ -35,18 +35,6 @@
             padding: 8px 16px;
             border-radius: 20px;
             font-weight: bold;
-        }
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -98,6 +86,13 @@
                 </ol>
             </nav>
 
+            <!-- Alerta informativa -->
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <h5 class="alert-heading"><i class="bi bi-info-circle"></i> Modo de Entrada Manual</h5>
+                <p class="mb-0">Ingresa manualmente los datos del producto de Amazon. Los cálculos de impuestos son 100% reales según la normativa vigente de AFIP.</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
             <!-- Mensajes de Error/Validación -->
             <?php if (isset($error)): ?>
                 <div class="alert alert-danger">
@@ -120,58 +115,14 @@
             <form id="calculoForm" action="<?= base_url('historial/calcular') ?>" method="post" novalidate>
                 <?= csrf_field() ?>
 
-                <!-- PASO 1: Producto de Amazon -->
-                <div class="card mb-4">
+                <!-- PASO 1: Datos del Producto -->
+                <div class="card mb-4 shadow card-custom2">
                     <div class="card-header card-custom textcolor">
-                        <h5><i class="bi bi-1-circle-fill text-warning"></i> Producto de Amazon</h5>
+                        <h5><i class="bi bi-1-circle-fill text-warning"></i> Datos del Producto</h5>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-12 mb-3">
-                                <label for="amazon_url" class="form-label">
-                                    <i class="bi bi-link-45deg"></i> URL del Producto *
-                                </label>
-                                <div class="input-group">
-                                    <input type="url" 
-                                           class="form-control" 
-                                           id="amazon_url" 
-                                           name="amazon_url" 
-                                           placeholder="https://www.amazon.com/dp/..."
-                                           value="<?= set_value('amazon_url', $old_input['amazon_url'] ?? '') ?>" 
-                                           required>
-                                    <button type="button" class="btn card-custom" onclick="obtenerProductoAmazon()">
-                                        <i class="bi bi-search" id="btn-obtener-icon"></i> 
-                                        <span id="btn-obtener-text">Obtener Datos</span>
-                                    </button>
-                                </div>
-                                <div class="form-text">
-                                    Pega la URL completa del producto desde Amazon.com, Amazon.es, etc.
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Información del producto (oculto inicialmente) -->
-                        <div id="producto-info" class="mt-3" style="display: none;">
-                            <div class="card bg-dark text-light border-warning">
-                                <div class="card-body">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-2">
-                                            <img id="producto-imagen" src="" alt="Producto" class="img-fluid rounded" style="max-height: 100px;">
-                                        </div>
-                                        <div class="col-md-10">
-                                            <h6 class="card-title text-warning" id="producto-nombre">Nombre del producto</h6>
-                                            <p class="mb-1"><strong>Precio detectado:</strong> $<span id="producto-precio">0.00</span> USD</p>
-                                            <p class="mb-1"><strong>Estado:</strong> <span id="producto-disponibilidad" class="text-success">-</span></p>
-                                            <p class="mb-0"><strong>Vendedor:</strong> <span id="producto-vendedor">-</span></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Datos manuales del producto -->
-                        <div class="row mt-3">
-                            <div class="col-md-8">
                                 <label for="nombre_producto" class="form-label">
                                     <i class="bi bi-tag"></i> Nombre del Producto *
                                 </label>
@@ -182,10 +133,16 @@
                                        placeholder="Ej: iPhone 15 Pro Max 256GB"
                                        value="<?= set_value('nombre_producto', $old_input['nombre_producto'] ?? '') ?>" 
                                        required>
+                                <div class="form-text">
+                                    Describe el producto que deseas importar desde Amazon
+                                </div>
                             </div>
-                            <div class="col-md-2">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
                                 <label for="precio_usd" class="form-label">
-                                    <i class="bi bi-currency-dollar"></i> Precio *
+                                    <i class="bi bi-currency-dollar"></i> Precio del Producto *
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
@@ -196,16 +153,19 @@
                                            placeholder="999.99"
                                            step="0.01" 
                                            min="0.01" 
-                                           max="49999.99"
+                                           max="50000"
                                            value="<?= set_value('precio_usd', $old_input['precio_usd'] ?? '') ?>" 
                                            required
                                            onchange="simularCalculoEnTiempoReal()">
                                     <span class="input-group-text">USD</span>
                                 </div>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i> Precio en dólares según Amazon
+                                </div>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-6 mb-3">
                                 <label for="envio_usd" class="form-label">
-                                    <i class="bi bi-truck"></i> Envío *
+                                    <i class="bi bi-truck"></i> Costo de Envío *
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
@@ -216,11 +176,14 @@
                                            placeholder="25.00"
                                            step="0.01" 
                                            min="0" 
-                                           max="999.99"
+                                           max="1000"
                                            value="<?= set_value('envio_usd', $old_input['envio_usd'] ?? '25.00') ?>" 
                                            required
                                            onchange="simularCalculoEnTiempoReal()">
                                     <span class="input-group-text">USD</span>
+                                </div>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i> Promedio: $25 USD
                                 </div>
                             </div>
                         </div>
@@ -253,13 +216,13 @@
                                     <?php endif; ?>
                                 </select>
                                 <div class="form-text">
-                                    Selecciona la categoría que mejor describa tu producto para aplicar el arancel correcto.
+                                    Selecciona la categoría que mejor describa tu producto
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <!-- Info de la categoría seleccionada -->
                                 <div id="categoria-info" class="categoria-info" style="display: none;">
-                                    <h6><i class="bi bi-info-circle"></i> Información de Categoría</h6>
+                                    <h6><i class="bi bi-info-circle"></i> Información</h6>
                                     <div class="row text-center">
                                         <div class="col-6">
                                             <div class="border-end border-light">
@@ -268,12 +231,12 @@
                                             </div>
                                         </div>
                                         <div class="col-6">
-                                            <h4 class="mb-1" id="categoria-iva">21.00%</h4>
+                                            <h4 class="mb-1" id="categoria-iva">21%</h4>
                                             <small>IVA</small>
                                         </div>
                                     </div>
                                     <div class="mt-2">
-                                        <small id="categoria-descripcion">Descripción de la categoría</small>
+                                        <small id="categoria-descripcion">-</small>
                                     </div>
                                 </div>
                             </div>
@@ -289,7 +252,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="metodo_pago" class="form-label">
+                                <label class="form-label">
                                     <i class="bi bi-credit-card"></i> Forma de Pago *
                                 </label>
                                 <div class="form-check mb-2">
@@ -298,7 +261,7 @@
                                            onchange="actualizarCotizacion()" required>
                                     <label class="form-check-label" for="tarjeta">
                                         <strong>💳 Tarjeta Argentina</strong>
-                                        <small class="d-block text-muted">Incluye percepciones de Ganancias/BBPP (30%)</small>
+                                        <small class="d-block text-muted">Incluye percepciones AFIP (30%)</small>
                                     </label>
                                 </div>
                                 <div class="form-check">
@@ -350,38 +313,62 @@
                         </div>
 
                         <div class="row">
-                            <!-- Columna izquierda: Valores en USD -->
+                            <!-- Columna izquierda: Valores base -->
                             <div class="col-md-6">
-                                <h6 class="border-bottom border-light pb-2 mb-3">💵 Valores en USD</h6>
+                                <h6 class="border-bottom border-light pb-2 mb-3">💵 Valores Base</h6>
                                 <div class="mb-2 d-flex justify-content-between">
-                                    <span>Derechos de importación:</span>
+                                    <span>Precio producto:</span>
+                                    <strong>$<span id="resumen-precio-usd">0.00</span> USD</strong>
+                                </div>
+                                <div class="mb-2 d-flex justify-content-between">
+                                    <span>Envío:</span>
+                                    <strong>$<span id="resumen-envio-usd">0.00</span> USD</strong>
+                                </div>
+                                <div class="mb-2 d-flex justify-content-between">
+                                    <span>Valor CIF:</span>
+                                    <strong>$<span id="resumen-cif-usd">0.00</span> USD</strong>
+                                </div>
+                                <div class="mb-2 d-flex justify-content-between">
+                                    <span>Base en ARS:</span>
+                                    <strong>$<span id="resumen-base-ars">0.00</span></strong>
+                                </div>
+                            </div>
+
+                            <!-- Columna derecha: Impuestos -->
+                            <div class="col-md-6">
+                                <h6 class="border-bottom border-light pb-2 mb-3">🇦🇷 Impuestos</h6>
+                                <div class="mb-2 d-flex justify-content-between">
+                                    <span>Aranceles:</span>
                                     <strong>$<span id="resumen-aranceles-ars">0.00</span></strong>
                                 </div>
                                 <div class="mb-2 d-flex justify-content-between">
-                                    <span>Tasa estadística (3%):</span>
+                                    <span>Tasa estadística:</span>
                                     <strong>$<span id="resumen-tasa-estadistica-ars">0.00</span></strong>
                                 </div>
                                 <div class="mb-2 d-flex justify-content-between">
-                                    <span>IVA (21.00%):</span>
+                                    <span>IVA (21%):</span>
                                     <strong>$<span id="resumen-iva-ars">0.00</span></strong>
                                 </div>
                                 <div class="mb-2 d-flex justify-content-between" id="percepcion-row" style="display: none;">
-                                    <span>Percepción AFIP (30%):</span>
+                                    <span>Percepción AFIP:</span>
                                     <strong>$<span id="resumen-percepcion-ars">0.00</span></strong>
                                 </div>
-                                <hr class="border-light">
-                                <div class="d-flex justify-content-between">
-                                    <h4 class="mb-0">TOTAL FINAL:</h4>
-                                    <h4 class="mb-0 text-warning">$<span id="resumen-total-ars">0.00</span></h4>
-                                </div>
                             </div>
+                        </div>
+
+                        <hr class="border-light my-3">
+
+                        <!-- Total final -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">TOTAL FINAL:</h4>
+                            <h3 class="mb-0 text-warning">$<span id="resumen-total-ars">0.00</span></h3>
                         </div>
 
                         <!-- Información adicional -->
                         <div class="mt-3 pt-3 border-top border-light">
                             <div class="row text-center">
                                 <div class="col-md-4">
-                                    <small>💱 Tipo de cambio</small><br>
+                                    <small>💱 Cotización</small><br>
                                     <strong><span id="tipo-cambio-usado">-</span>: $<span id="cotizacion-usada">0.00</span></strong>
                                 </div>
                                 <div class="col-md-4">
@@ -407,7 +394,7 @@
                             
                             <div class="d-grid gap-2 d-md-flex">
                                 <button type="button" class="btn btn-warning" onclick="simularCalculoCompleto()">
-                                    <i class="bi bi-calculator"></i> Simular Cálculo
+                                    <i class="bi bi-calculator"></i> Calcular Impuestos
                                 </button>
                                 <button type="submit" class="btn btn-success" id="btn-guardar" disabled>
                                     <i class="bi bi-save"></i> Guardar Cálculo
@@ -418,8 +405,8 @@
                         <div class="mt-3">
                             <small class="text-muted">
                                 <i class="bi bi-info-circle"></i> 
-                                <strong>Información importante:</strong> Los cálculos se basan en la normativa vigente de la AFIP y pueden variar según cambios regulatorios. 
-                                Para productos con valor CIF ≤ $400 USD solo se aplica IVA (franquicia). 
+                                <strong>Información importante:</strong> Los cálculos se basan en la normativa vigente de la AFIP. 
+                                Productos con valor CIF ≤ $400 USD solo pagan IVA (franquicia). 
                                 Para valores superiores se aplican aranceles sobre el excedente + tasa estadística sobre el total.
                             </small>
                         </div>
@@ -435,7 +422,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content bg-dark text-light">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-question-circle"></i> Ayuda sobre Impuestos de Importación</h5>
+                <h5 class="modal-title"><i class="bi bi-question-circle"></i> Ayuda sobre Impuestos</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -450,15 +437,15 @@
                             <div class="accordion-body">
                                 <p><strong>Para compras ≤ $400 USD:</strong></p>
                                 <ul>
-                                    <li>Solo se aplica IVA del 21.00% (excepto libros que están exentos)</li>
+                                    <li>Solo se aplica IVA del 21% (excepto libros exentos)</li>
                                     <li>NO se cobran derechos de importación</li>
                                     <li>NO se cobra tasa estadística</li>
                                 </ul>
                                 <p><strong>Para compras > $400 USD:</strong></p>
                                 <ul>
-                                    <li>Derechos de importación se aplican solo sobre el excedente</li>
+                                    <li>Aranceles solo sobre el excedente de $400</li>
                                     <li>Tasa estadística del 3% sobre el valor total CIF</li>
-                                    <li>IVA del 21.00% sobre (CIF + derechos)</li>
+                                    <li>IVA del 21% sobre (CIF + aranceles)</li>
                                 </ul>
                             </div>
                         </div>
@@ -469,19 +456,19 @@
                             <button class="accordion-button collapsed bg-dark text-light" type="button" data-bs-toggle="collapse" data-bs-target="#percepciones">
                                 💳 Percepciones AFIP
                             </button>
-                        </h2>
+                        </h2>   
                         <div id="percepciones" class="accordion-collapse collapse">
                             <div class="accordion-body">
                                 <p><strong>Pago con Tarjeta Argentina:</strong></p>
                                 <ul>
-                                    <li>Percepción a cuenta de Ganancias y Bienes Personales: 30%</li>
-                                    <li>Se aplica sobre el total en pesos argentinos</li>
-                                    <li>Es deducible en la declaración anual</li>
+                                    <li>Percepción a cuenta de Ganancias/BBPP: 30%</li>
+                                    <li>Se aplica sobre el total en pesos</li>
+                                    <li>Es deducible en declaración anual</li>
                                 </ul>
                                 <p><strong>Pago con Dólar MEP:</strong></p>
                                 <ul>
                                     <li>No aplican percepciones adicionales</li>
-                                    <li>Cotización generalmente más baja que dólar tarjeta</li>
+                                    <li>Cotización más baja que dólar tarjeta</li>
                                 </ul>
                             </div>
                         </div>
@@ -497,14 +484,13 @@
                             <div class="accordion-body">
                                 <p><strong>Aranceles por categoría:</strong></p>
                                 <ul>
-                                    <li><strong>Electrónica (celulares):</strong> 16% (puede cambiar a 8% o 0% según normativa)</li>
-                                    <li><strong>Consolas y videojuegos:</strong> 20%</li>
+                                    <li><strong>Electrónica:</strong> 16%</li>
+                                    <li><strong>Consolas/videojuegos:</strong> 20%</li>
                                     <li><strong>Ropa y calzado:</strong> 20%</li>
                                     <li><strong>Electrodomésticos:</strong> 20%</li>
-                                    <li><strong>Libros:</strong> 0% (exentos de IVA y aranceles)</li>
+                                    <li><strong>Libros:</strong> 0% (exentos de IVA)</li>
                                     <li><strong>Herramientas:</strong> 12.6%</li>
                                 </ul>
-                                <p><small class="text-warning">Los aranceles pueden cambiar según disposiciones de la AFIP.</small></p>
                             </div>
                         </div>
                     </div>
@@ -516,7 +502,7 @@
 
 <script>
 // ✅ DATOS GLOBALES
-const cotizacionesActuales = <?= json_encode($cotizaciones ?? ['tarjeta' => 1683.5, 'MEP' => 1650.0]) ?>;
+const cotizacionesActuales = <?= json_encode($cotizaciones ?? ['tarjeta' => 1943.50, 'MEP' => 1485.70]) ?>;
 let calculoActual = null;
 
 // ✅ INICIALIZACIÓN
@@ -526,236 +512,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (categoriaSelect.value) {
         mostrarInfoCategoria();
     }
-    if (validarFormularioCompleto()) {
-        simularCalculoEnTiempoReal();
-    }
-});
-
-// ✅ OBTENER DATOS DEL PRODUCTO DESDE AMAZON PA-API
-async function obtenerProductoAmazon() {
-    const url = document.getElementById('amazon_url').value;
-    
-    if (!url.trim()) {
-        mostrarAlerta('Por favor ingresa una URL de Amazon válida', 'warning');
-        return;
-    }
-    
-    const btn = event.target.closest('button');
-    const icon = document.getElementById('btn-obtener-icon');
-    const text = document.getElementById('btn-obtener-text');
-    
-    btn.disabled = true;
-    icon.className = 'spinner-border spinner-border-sm';
-    text.textContent = 'Obteniendo datos...';
-    
-    try {
-        // Validar URL
-        const validacionResponse = await fetch('<?= base_url("amazon/validar") ?>', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ url: url })
-        });
-        
-        const validacion = await validacionResponse.json();
-        
-        if (!validacion.valid) {
-            throw new Error(validacion.message || 'URL no válida');
-        }
-        
-        // Obtener información del producto
-        const response = await fetch('<?= base_url("amazon/obtener") ?>', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ url: url })
-        });
-        
-        const resultado = await response.json();
-        
-        if (!resultado.success) {
-            throw new Error(resultado.message || 'Error obteniendo datos del producto');
-        }
-        
-        const producto = resultado.data;
-        
-        // Llenar campos
-        document.getElementById('nombre_producto').value = producto.nombre;
-        let precioUSD = parseFloat(producto.precio);
-        document.getElementById('precio_usd').value = precioUSD.toFixed(2);
-        
-        // Mostrar detalles
-        mostrarDetallesProducto(producto);
-        
-        // Sugerir categoría
-        if (producto.categoria || producto.nombre) {
-            sugerirCategoria(producto);
-        }
-        
-        // Mensaje de éxito
-        let mensaje = '✅ Datos obtenidos exitosamente desde Amazon PA-API';
-        if (producto.precio_original && producto.precio_original > producto.precio) {
-            const ahorro = producto.precio_original - producto.precio;
-            const porcentaje = ((ahorro / producto.precio_original) * 100).toFixed(1);
-            mensaje += `<br>💰 ¡Descuento detectado! Ahorro: $${ahorro.toFixed(2)} (${porcentaje}%)`;
-        }
-        if (producto.rating) {
-            mensaje += `<br>⭐ Rating: ${producto.rating}/5`;
-        }
-        
-        mostrarAlerta(mensaje, 'success');
-        
-        if (validarFormularioCompleto()) {
-            simularCalculoEnTiempoReal();
-        }
-        
-    } catch (error) {
-        console.error('Error obteniendo producto:', error);
-        mostrarAlerta('❌ ' + error.message, 'danger');
-    } finally {
-        btn.disabled = false;
-        icon.className = 'bi bi-search';
-        text.textContent = 'Obtener Datos';
-    }
-}
-
-// ✅ MOSTRAR DETALLES DEL PRODUCTO
-function mostrarDetallesProducto(producto) {
-    let detallesHTML = `
-        <div class="card bg-dark text-light border-success mt-3">
-            <div class="card-header bg-success text-dark">
-                <i class="bi bi-check-circle"></i> Datos obtenidos de Amazon PA-API
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        ${producto.imagen ? `<img src="${producto.imagen}" alt="${producto.nombre}" class="img-fluid rounded">` : ''}
-                    </div>
-                    <div class="col-md-9">
-                        <h5 class="text-warning">${producto.nombre}</h5>
-                        <div class="row mt-3">
-                            <div class="col-6">
-                                <p class="mb-1"><strong>ASIN:</strong> ${producto.asin || 'N/A'}</p>
-                                <p class="mb-1"><strong>Precio:</strong> $${producto.precio} ${producto.moneda || 'USD'}</p>
-                                ${producto.precio_original ? `<p class="mb-1"><small class="text-muted"><del>$${producto.precio_original}</del></small></p>` : ''}
-                            </div>
-                            <div class="col-6">
-                                ${producto.marca ? `<p class="mb-1"><strong>Marca:</strong> ${producto.marca}</p>` : ''}
-                                ${producto.categoria ? `<p class="mb-1"><strong>Categoría:</strong> ${producto.categoria}</p>` : ''}
-                                <p class="mb-1"><strong>Disponibilidad:</strong> <span class="badge bg-success">${producto.disponibilidad}</span></p>
-                            </div>
-                        </div>
-                        ${producto.caracteristicas && producto.caracteristicas.length > 0 ? `
-                            <div class="mt-3">
-                                <strong>Características principales:</strong>
-                                <ul class="small mt-2">
-                                    ${producto.caracteristicas.slice(0, 3).map(f => `<li>${f}</li>`).join('')}
-                                </ul>
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    const infoContainer = document.getElementById('producto-info');
-    if (infoContainer) {
-        infoContainer.innerHTML = detallesHTML;
-        infoContainer.style.display = 'block';
-    }
-}
-
-// ✅ SUGERIR CATEGORÍA
-function sugerirCategoria(productoData) {
-    const categoriaAmazon = (productoData.categoria || '').toLowerCase();
-    const nombre = (productoData.nombre || '').toLowerCase();
-    
-    const mapeo = {
-        'electronics': 'electronica',
-        'computers': 'electronica',
-        'cell phones': 'electronica',
-        'video games': 'videojuegos',
-        'books': 'libros',
-        'clothing': 'ropa',
-        'shoes': 'calzado',
-        'home': 'hogar',
-        'kitchen': 'hogar',
-        'toys': 'juguetes',
-        'sports': 'deportes'
-    };
-    
-    for (const [amazonCat, sistemaCat] of Object.entries(mapeo)) {
-        if (categoriaAmazon.includes(amazonCat) || nombre.includes(amazonCat)) {
-            const select = document.getElementById('categoria_id');
-            for (let option of select.options) {
-                if (option.text.toLowerCase().includes(sistemaCat)) {
-                    select.value = option.value;
-                    mostrarInfoCategoria();
-                    mostrarAlerta(`✨ Categoría "${option.text}" seleccionada automáticamente`, 'info');
-                    break;
-                }
-            }
-            break;
-        }
-    }
-}
-
-// ✅ MOSTRAR ALERTA
-function mostrarAlerta(mensaje, tipo = 'info') {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
-    alertDiv.innerHTML = `${mensaje}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-    
-    const container = document.querySelector('.container');
-    container.insertBefore(alertDiv, container.firstChild);
-    
-    setTimeout(() => alertDiv.remove(), 5000);
-}
-
-// ✅ VALIDACIÓN EN TIEMPO REAL DE URL
-document.getElementById('amazon_url').addEventListener('blur', async function(e) {
-    const url = e.target.value.trim();
-    if (!url) return;
-    
-    try {
-        const response = await fetch('<?= base_url("amazon/validar") ?>', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: url })
-        });
-        
-        const resultado = await response.json();
-        const input = e.target;
-        
-        if (resultado.valid) {
-            input.classList.remove('is-invalid');
-            input.classList.add('is-valid');
-        } else {
-            input.classList.remove('is-valid');
-            input.classList.add('is-invalid');
-        }
-    } catch (error) {
-        console.error('Error validando URL:', error);
-    }
-});
-
-document.getElementById('amazon_url').addEventListener('input', function(e) {
-    e.target.classList.remove('is-valid', 'is-invalid');
-});
-
-// ✅ AUTO-OBTENER AL PEGAR URL
-document.getElementById('amazon_url').addEventListener('paste', function(e) {
-    setTimeout(async () => {
-        const url = e.target.value.trim();
-        if (url && url.includes('amazon.') && confirm('¿Deseas obtener los datos del producto automáticamente?')) {
-            document.querySelector('[onclick="obtenerProductoAmazon()"]').click();
-        }
-    }, 100);
 });
 
 // ✅ MOSTRAR INFORMACIÓN DE CATEGORÍA
@@ -769,7 +525,7 @@ function mostrarInfoCategoria() {
         const descripcion = selectedOption.dataset.descripcion;
         
         document.getElementById('categoria-arancel').textContent = arancel + '%';
-        document.getElementById('categoria-iva').textContent = exento ? 'EXENTO' : '21.00%';
+        document.getElementById('categoria-iva').textContent = exento ? 'EXENTO' : '21%';
         document.getElementById('categoria-descripcion').textContent = descripcion;
         document.getElementById('categoria-info').style.display = 'block';
         
@@ -802,8 +558,9 @@ function validarFormularioCompleto() {
     const envio = parseFloat(document.getElementById('envio_usd').value) || 0;
     const categoria = document.getElementById('categoria_id').value;
     const metodoPago = document.querySelector('input[name="metodo_pago"]:checked');
+    const nombre = document.getElementById('nombre_producto').value.trim();
     
-    return precio > 0 && envio >= 0 && categoria && metodoPago;
+    return precio > 0 && envio >= 0 && categoria && metodoPago && nombre.length > 0;
 }
 
 // ✅ SIMULAR CÁLCULO EN TIEMPO REAL
@@ -837,10 +594,12 @@ async function simularCalculoEnTiempoReal() {
             mostrarResultadoCalculo(resultado.data);
             calculoActual = resultado.data;
             document.getElementById('btn-guardar').disabled = false;
+        } else {
+            throw new Error(resultado.message || 'Error en el cálculo');
         }
     } catch (error) {
         console.error('Error:', error);
-        calcularLocalmente(datos);
+        mostrarAlerta('Error al calcular: ' + error.message, 'danger');
     }
 }
 
@@ -848,6 +607,13 @@ async function simularCalculoEnTiempoReal() {
 function mostrarResultadoCalculo(calculo) {
     const baseARS = calculo.datos_base.valor_cif_usd * calculo.datos_base.cotizacion;
     
+    // Valores base
+    document.getElementById('resumen-precio-usd').textContent = formatNumber(calculo.datos_base.precio_usd);
+    document.getElementById('resumen-envio-usd').textContent = formatNumber(calculo.datos_base.envio_usd || 0);
+    document.getElementById('resumen-cif-usd').textContent = formatNumber(calculo.datos_base.valor_cif_usd);
+    document.getElementById('resumen-base-ars').textContent = formatNumber(baseARS);
+    
+    // Impuestos
     document.getElementById('resumen-aranceles-ars').textContent = formatNumber(calculo.impuestos_ars.aranceles_ars || 0);
     document.getElementById('resumen-tasa-estadistica-ars').textContent = formatNumber(calculo.impuestos_ars.tasa_estadistica_ars || 0);
     document.getElementById('resumen-iva-ars').textContent = formatNumber(calculo.impuestos_ars.iva_ars || 0);
@@ -860,62 +626,22 @@ function mostrarResultadoCalculo(calculo) {
         document.getElementById('percepcion-row').style.display = 'none';
     }
     
+    // Totales
     document.getElementById('resumen-total-ars').textContent = formatNumber(calculo.totales.total_ars);
     document.getElementById('solo-impuestos-ars').textContent = formatNumber(calculo.totales.total_impuestos_ars);
     document.getElementById('tipo-cambio-usado').textContent = calculo.datos_base.metodo_pago.toUpperCase();
     document.getElementById('cotizacion-usada').textContent = formatNumber(calculo.datos_base.cotizacion);
     document.getElementById('categoria-usada').textContent = calculo.datos_base.categoria;
     
+    // Estado de franquicia
     const bajoFranquicia = calculo.datos_base.valor_cif_usd <= 400;
     document.getElementById('estado-franquicia').textContent = bajoFranquicia ? 
         '✅ Bajo Franquicia (≤$400)' : '⚠️ Sobre Franquicia (>$400)';
     
     document.getElementById('resultado-calculo').style.display = 'block';
-}
-
-// ✅ CÁLCULO LOCAL (FALLBACK)
-function calcularLocalmente(datos) {
-    const cotizacion = cotizacionesActuales[datos.metodo_pago];
-    const cif = datos.precio_usd + datos.envio_usd;
-    const excedente = Math.max(0, cif - 400);
     
-    const select = document.getElementById('categoria_id');
-    const arancel = parseFloat(select.options[select.selectedIndex].dataset.arancel) || 0;
-    const exentoIVA = select.options[select.selectedIndex].dataset.exento === '1';
-    
-    const arancelesUSD = excedente * (arancel / 100);
-    const tasaEstadisticaUSD = cif > 400 ? cif * 0.03 : 0;
-    const baseARS = cif * cotizacion;
-    const arancelesARS = arancelesUSD * cotizacion;
-    const tasaEstadisticaARS = tasaEstadisticaUSD * cotizacion;
-    const ivaARS = exentoIVA ? 0 : ((cif + arancelesUSD) * cotizacion * 0.21);
-    
-    let totalARS = baseARS + arancelesARS + tasaEstadisticaARS + ivaARS;
-    const percepcionARS = datos.metodo_pago === 'tarjeta' ? totalARS * 0.30 : 0;
-    totalARS += percepcionARS;
-    
-    const calculoLocal = {
-        datos_base: {
-            valor_cif_usd: cif,
-            categoria: select.options[select.selectedIndex].text,
-            metodo_pago: datos.metodo_pago,
-            cotizacion: cotizacion
-        },
-        impuestos_ars: {
-            aranceles_ars: arancelesARS,
-            tasa_estadistica_ars: tasaEstadisticaARS,
-            iva_ars: ivaARS,
-            percepcion_ganancias_ars: percepcionARS
-        },
-        totales: {
-            total_ars: totalARS,
-            total_impuestos_ars: totalARS - baseARS
-        }
-    };
-    
-    mostrarResultadoCalculo(calculoLocal);
-    calculoActual = calculoLocal;
-    document.getElementById('btn-guardar').disabled = false;
+    // Scroll suave al resultado
+    document.getElementById('resultado-calculo').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ✅ FORMATEAR NÚMEROS
@@ -926,8 +652,26 @@ function formatNumber(num) {
     });
 }
 
+// ✅ MOSTRAR ALERTA
+function mostrarAlerta(mensaje, tipo = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+    alertDiv.innerHTML = `${mensaje}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => alertDiv.remove(), 5000);
+}
+
 // ✅ ACTUALIZAR COTIZACIONES MANUALMENTE
 async function actualizarCotizaciones() {
+    const btn = event.target;
+    const originalHTML = btn.innerHTML;
+    
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    btn.disabled = true;
+    
     try {
         const response = await fetch('<?= base_url("dolar/actualizar") ?>');
         const resultado = await response.json();
@@ -937,29 +681,61 @@ async function actualizarCotizaciones() {
             actualizarCotizacion();
             if (validarFormularioCompleto()) simularCalculoEnTiempoReal();
             document.getElementById('fecha-cotizacion').textContent = resultado.timestamp;
-            alert('✅ Cotizaciones actualizadas exitosamente');
+            mostrarAlerta('✅ Cotizaciones actualizadas exitosamente', 'success');
+        } else {
+            throw new Error(resultado.message);
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('❌ Error de conexión al actualizar cotizaciones');
+        mostrarAlerta('❌ Error al actualizar cotizaciones', 'danger');
+    } finally {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
     }
 }
 
-// ✅ EVENTOS
+// ✅ EVENTOS EN INPUTS
 document.getElementById('precio_usd').addEventListener('input', simularCalculoEnTiempoReal);
 document.getElementById('envio_usd').addEventListener('input', simularCalculoEnTiempoReal);
 document.getElementById('categoria_id').addEventListener('change', simularCalculoEnTiempoReal);
-document.querySelectorAll('input[name="metodo_pago"]').forEach(radio => {
-    radio.addEventListener('change', simularCalculoEnTiempoReal);
+document.getElementById('nombre_producto').addEventListener('input', function() {
+    if (validarFormularioCompleto()) {
+        simularCalculoEnTiempoReal();
+    }
 });
 
+document.querySelectorAll('input[name="metodo_pago"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        actualizarCotizacion();
+        simularCalculoEnTiempoReal();
+    });
+});
+
+// ✅ FUNCIÓN PARA BOTÓN "CALCULAR IMPUESTOS"
 function simularCalculoCompleto() {
     if (!validarFormularioCompleto()) {
-        alert('Por favor completa todos los campos requeridos antes de simular');
+        mostrarAlerta('⚠️ Por favor completa todos los campos requeridos', 'warning');
         return;
     }
     simularCalculoEnTiempoReal();
 }
+
+// ✅ VALIDACIÓN ANTES DE GUARDAR
+document.getElementById('calculoForm').addEventListener('submit', function(e) {
+    if (!validarFormularioCompleto()) {
+        e.preventDefault();
+        mostrarAlerta('⚠️ Por favor completa todos los campos antes de guardar', 'warning');
+        return false;
+    }
+    
+    if (!calculoActual) {
+        e.preventDefault();
+        mostrarAlerta('⚠️ Por favor calcula los impuestos antes de guardar', 'warning');
+        return false;
+    }
+    
+    return true;
+});
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -972,33 +748,4 @@ function simularCalculoCompleto() {
 </div>
 
 </body>
-</html>d-flex justify-content-between">
-                                    <span>Precio del producto:</span>
-                                    <strong>$<span id="resumen-precio-usd">0.00</span></strong>
-                                </div>
-                                <div class="mb-2 d-flex justify-content-between">
-                                    <span>Costo de envío:</span>
-                                    <strong>$<span id="resumen-envio-usd">0.00</span></strong>
-                                </div>
-                                <div class="mb-2 d-flex justify-content-between">
-                                    <span>Valor CIF total:</span>
-                                    <strong>$<span id="resumen-cif-usd">0.00</span></strong>
-                                </div>
-                                <div class="mb-2 d-flex justify-content-between">
-                                    <span>Excedente sobre $400:</span>
-                                    <strong>$<span id="resumen-excedente-usd">0.00</span></strong>
-                                </div>
-                                <hr class="border-light">
-                                <div class="d-flex justify-content-between">
-                                    <span>Aranceles aplicados:</span>
-                                    <strong>$<span id="resumen-aranceles-usd">0.00</span></strong>
-                                </div>
-                            </div>
-
-                            <!-- Columna derecha: Valores en ARS -->
-                            <div class="col-md-6">
-                                <h6 class="border-bottom border-light pb-2 mb-3">🇦🇷 Total en Pesos Argentinos</h6>
-                                <div class="mb-2 d-flex justify-content-between">
-                                    <span>Base (CIF):</span>
-                                    <strong>$<span id="resumen-base-ars">0.00</span></strong>
-                                </div>
+</html>

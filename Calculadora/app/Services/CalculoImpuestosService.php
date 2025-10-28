@@ -14,7 +14,7 @@ class CalculoImpuestosService
     private const UMBRAL_FRANQUICIA = 400.00; // USD
     private const IVA_PORCENTAJE = 21.00;
     private const TASA_ESTADISTICA = 3.00;
-    private const PERCEPCION_GANANCIAS = 30.00; // Solo para pagos con tarjeta argentina
+    private const PERCEPCION_AFIP = 30.00; // Se aplica sobre TODO el total
     
     public function __construct()
     {
@@ -62,22 +62,67 @@ class CalculoImpuestosService
                 'totales' => []
             ];
             
-            // ✅ REGLA DE FRANQUICIA DE USD 400
-            if ($valorCIF <= self::UMBRAL_FRANQUICIA) {
-                // Bajo franquicia: solo IVA (excepto libros)
-                $calculo = $this->calcularBajoFranquicia($calculo);
+            // ✅ PASO 1: Convertir CIF a ARS
+            $cifARS = $valorCIF * $cotizacion;
+            
+            // ✅ PASO 2: Calcular ARANCELES (solo si supera $400 USD)
+            $arancelesARS = 0;
+            if ($valorCIF > self::UMBRAL_FRANQUICIA) {
+                // Aranceles se aplican sobre el excedente de $400
+                $arancelesUSD = $excedente400 * ($categoria['arancel_porcentaje'] / 100);
+                $arancelesARS = $arancelesUSD * $cotizacion;
+                
+                $calculo['impuestos_usd']['aranceles_usd'] = round($arancelesUSD, 2);
+                $calculo['impuestos_ars']['aranceles_ars'] = round($arancelesARS, 2);
+                
+                // También aplicar tasa estadística (3% sobre TODO el CIF)
+                $tasaEstadisticaUSD = $valorCIF * (self::TASA_ESTADISTICA / 100);
+                $tasaEstadisticaARS = $tasaEstadisticaUSD * $cotizacion;
+                
+                $calculo['impuestos_usd']['tasa_estadistica_usd'] = round($tasaEstadisticaUSD, 2);
+                $calculo['impuestos_ars']['tasa_estadistica_ars'] = round($tasaEstadisticaARS, 2);
             } else {
-                // Sobre franquicia: aranceles + tasa estadística + IVA
-                $calculo = $this->calcularSobreFranquicia($calculo);
+                // Bajo franquicia: sin aranceles ni tasa estadística
+                $calculo['impuestos_ars']['aranceles_ars'] = 0;
+                $calculo['impuestos_ars']['tasa_estadistica_ars'] = 0;
             }
             
-            // ✅ PERCEPCIONES (solo si paga con tarjeta argentina)
+            // ✅ PASO 3: Calcular IVA (sobre CIF + aranceles, a menos que esté exento)
+            $ivaARS = 0;
+            if (!$categoria['exento_iva']) {
+                // Base imponible del IVA: (Producto + Envío + Aranceles) en ARS
+                $baseIVA_ARS = $cifARS + $arancelesARS;
+                $ivaARS = $baseIVA_ARS * (self::IVA_PORCENTAJE / 100);
+                
+                $calculo['impuestos_ars']['iva_ars'] = round($ivaARS, 2);
+            } else {
+                $calculo['impuestos_ars']['iva_ars'] = 0;
+            }
+            
+            // ✅ PASO 4: Calcular SUBTOTAL antes de percepción
+            $subtotalARS = $cifARS + $arancelesARS + ($calculo['impuestos_ars']['tasa_estadistica_ars'] ?? 0) + $ivaARS;
+            
+            // ✅ PASO 5: Calcular PERCEPCIÓN AFIP (30% sobre TODO si paga con tarjeta)
+            $percepcionARS = 0;
             if ($metodoPago === 'tarjeta') {
-                $calculo = $this->calcularPercepciones($calculo);
+                // La percepción se aplica sobre: Producto + Envío + Aranceles + Tasa estadística + IVA
+                $percepcionARS = $subtotalARS * (self::PERCEPCION_AFIP / 100);
+                $calculo['impuestos_ars']['percepcion_ganancias_ars'] = round($percepcionARS, 2);
+            } else {
+                $calculo['impuestos_ars']['percepcion_ganancias_ars'] = 0;
             }
             
-            // ✅ TOTALES FINALES
-            $calculo = $this->calcularTotales($calculo);
+            // ✅ PASO 6: Calcular TOTALES FINALES
+            $totalARS = $subtotalARS + $percepcionARS;
+            $totalImpuestosARS = $totalARS - $cifARS; // Todo menos el CIF base
+            
+            $calculo['totales'] = [
+                'total_usd' => round($valorCIF, 2),
+                'total_ars' => round($totalARS, 2),
+                'total_impuestos_ars' => round($totalImpuestosARS, 2),
+                'subtotal_antes_percepcion' => round($subtotalARS, 2),
+                'ahorro_franquicia' => $valorCIF <= self::UMBRAL_FRANQUICIA ? 'Sí' : 'No'
+            ];
             
             return $calculo;
             
@@ -85,114 +130,6 @@ class CalculoImpuestosService
             log_message('error', 'Error calculando impuestos: ' . $e->getMessage());
             throw $e;
         }
-    }
-    
-    /**
-     * Cálculo para productos bajo franquicia (≤ $400 USD)
-     */
-    private function calcularBajoFranquicia($calculo)
-    {
-        $datos = $calculo['datos_base'];
-        
-        // Solo aplicar IVA si no está exento
-        if (!$datos['exento_iva']) {
-            $baseIVA_ARS = $datos['valor_cif_usd'] * $datos['cotizacion'];
-            $iva_ARS = $baseIVA_ARS * (self::IVA_PORCENTAJE / 100);
-            
-            $calculo['impuestos_usd']['iva_base_usd'] = $datos['valor_cif_usd'];
-            $calculo['impuestos_ars']['iva_ars'] = round($iva_ARS, 2);
-        }
-        
-        // No hay aranceles ni tasa estadística bajo franquicia
-        $calculo['impuestos_usd']['aranceles_usd'] = 0;
-        $calculo['impuestos_ars']['aranceles_ars'] = 0;
-        $calculo['impuestos_ars']['tasa_estadistica_ars'] = 0;
-        
-        return $calculo;
-    }
-    
-    /**
-     * Cálculo para productos sobre franquicia (> $400 USD)
-     */
-    private function calcularSobreFranquicia($calculo)
-    {
-        $datos = $calculo['datos_base'];
-        
-        // ✅ ARANCELES: aplicar sobre el excedente de $400
-        $aranceles_USD = $datos['excedente_400_usd'] * ($datos['arancel_categoria'] / 100);
-        $aranceles_ARS = $aranceles_USD * $datos['cotizacion'];
-        
-        $calculo['impuestos_usd']['aranceles_usd'] = round($aranceles_USD, 2);
-        $calculo['impuestos_ars']['aranceles_ars'] = round($aranceles_ARS, 2);
-        
-        // ✅ TASA ESTADÍSTICA: 3% sobre todo el CIF
-        $tasaEstadistica_USD = $datos['valor_cif_usd'] * (self::TASA_ESTADISTICA / 100);
-        $tasaEstadistica_ARS = $tasaEstadistica_USD * $datos['cotizacion'];
-        
-        $calculo['impuestos_usd']['tasa_estadistica_usd'] = round($tasaEstadistica_USD, 2);
-        $calculo['impuestos_ars']['tasa_estadistica_ars'] = round($tasaEstadistica_ARS, 2);
-        
-        // ✅ IVA: sobre (CIF + aranceles) si no está exento
-        if (!$datos['exento_iva']) {
-            $baseIVA_USD = $datos['valor_cif_usd'] + $aranceles_USD;
-            $baseIVA_ARS = $baseIVA_USD * $datos['cotizacion'];
-            $iva_ARS = $baseIVA_ARS * (self::IVA_PORCENTAJE / 100);
-            
-            $calculo['impuestos_usd']['iva_base_usd'] = round($baseIVA_USD, 2);
-            $calculo['impuestos_ars']['iva_ars'] = round($iva_ARS, 2);
-        } else {
-            $calculo['impuestos_ars']['iva_ars'] = 0;
-        }
-        
-        return $calculo;
-    }
-    
-    /**
-     * Calcular percepciones (solo tarjeta argentina)
-     */
-    private function calcularPercepciones($calculo)
-    {
-        // Sumar todo lo calculado hasta ahora en ARS
-        $subtotal_ARS = 0;
-        $subtotal_ARS += $calculo['datos_base']['valor_cif_usd'] * $calculo['datos_base']['cotizacion'];
-        $subtotal_ARS += $calculo['impuestos_ars']['aranceles_ars'] ?? 0;
-        $subtotal_ARS += $calculo['impuestos_ars']['tasa_estadistica_ars'] ?? 0;
-        $subtotal_ARS += $calculo['impuestos_ars']['iva_ars'] ?? 0;
-        
-        // Percepción de Ganancias/Bienes Personales: 30%
-        $percepcion_ARS = $subtotal_ARS * (self::PERCEPCION_GANANCIAS / 100);
-        
-        $calculo['impuestos_ars']['percepcion_ganancias_ars'] = round($percepcion_ARS, 2);
-        
-        return $calculo;
-    }
-    
-    /**
-     * Calcular totales finales
-     */
-    private function calcularTotales($calculo)
-    {
-        $datos = $calculo['datos_base'];
-        
-        // Total en USD (solo CIF + aranceles si los hay)
-        $totalUSD = $datos['valor_cif_usd'] + ($calculo['impuestos_usd']['aranceles_usd'] ?? 0);
-        
-        // Total en ARS (todo)
-        $totalARS = 0;
-        $totalARS += $datos['valor_cif_usd'] * $datos['cotizacion']; // Producto + envío en ARS
-        $totalARS += $calculo['impuestos_ars']['aranceles_ars'] ?? 0;
-        $totalARS += $calculo['impuestos_ars']['tasa_estadistica_ars'] ?? 0;
-        $totalARS += $calculo['impuestos_ars']['iva_ars'] ?? 0;
-        $totalARS += $calculo['impuestos_ars']['percepcion_ganancias_ars'] ?? 0;
-        
-        $calculo['totales'] = [
-            'total_usd' => round($totalUSD, 2),
-            'total_ars' => round($totalARS, 2),
-            'total_impuestos_ars' => round($totalARS - ($datos['valor_cif_usd'] * $datos['cotizacion']), 2),
-            'ahorro_franquicia' => $datos['valor_cif_usd'] <= self::UMBRAL_FRANQUICIA ? 'Sí' : 'No'
-        ];
-        
-        return $calculo;
     }
     
     /**

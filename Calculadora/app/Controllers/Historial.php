@@ -1,43 +1,43 @@
 <?php
+
 namespace App\Controllers;
 
 use App\Models\HistorialModel;
+use App\Models\CategoriaProductoModel;
+use App\Services\CalculoImpuestosService;
+use App\Services\DolarService;
 
 class Historial extends BaseController
 {
-    private $historialModel;
+    protected $historialModel;
+    protected $categoriaModel;
+    protected $calculoService;
+    protected $dolarService;
 
     public function __construct()
     {
         $this->historialModel = new HistorialModel();
+        $this->categoriaModel = new CategoriaProductoModel();
+        $this->calculoService = new CalculoImpuestosService();
+        $this->dolarService = new DolarService();
     }
 
-    // ✅ VALIDACIÓN DE SESIÓN MEJORADA
-    private function validarSesion()
-    {
-        if (!session()->get('logueado')) {
-            return redirect()->to('/usuario/login')
-                ->with('error', '❌ Debes iniciar sesión para acceder al historial.');
-        }
-        return null;
-    }
-
-    // ✅ INDEX PRINCIPAL - REDIRIGE SI NO ESTÁ AUTENTICADO
+    /**
+     * Vista principal del historial
+     */
     public function index()
     {
-        // ✅ PERMITIR ACCESO SIN SESIÓN
         if (!session()->get('logueado')) {
-            // Usuario no logueado - mostrar página sin datos
-            return view('historial/index', [
+            $data = [
+                'usuario_logueado' => false,
                 'historial' => [],
-                'resumen' => ['total_calculado' => 0, 'total_consultas' => 0],
+                'resumen' => [],
                 'busqueda' => null,
-                'mensaje' => null,
-                'usuario_logueado' => false
-            ]);
+                'mensaje' => null
+            ];
+            return view('Historial/index', $data);
         }
 
-        // Usuario logueado - mostrar historial normal
         $usuarioId = session()->get('usuario_id');
         $busqueda = $this->request->getGet('buscar');
 
@@ -45,449 +45,367 @@ class Historial extends BaseController
             $historial = $this->historialModel->buscarPorProducto($usuarioId, $busqueda);
             $mensaje = "Resultados para: " . esc($busqueda);
         } else {
-            $historial = $this->historialModel->obtenerPorUsuario($usuarioId);
+            $historial = $this->historialModel->obtenerPorUsuario($usuarioId, 20);
             $mensaje = null;
         }
 
         $resumen = $this->historialModel->obtenerResumenUsuario($usuarioId);
 
-        return view('historial/index', [
+        $data = [
+            'usuario_logueado' => true,
             'historial' => $historial,
             'resumen' => $resumen,
             'busqueda' => $busqueda,
-            'mensaje' => $mensaje,
-            'usuario_logueado' => true
-        ]);
-    }
-
-    // ✅ CREATE - MOSTRAR FORMULARIO (CORREGIDO)
-    public function crear()
-    {
-        $redirect = $this->validarSesion();
-        if ($redirect) return $redirect;
-
-        // ✅ CARGAR EL MODELO DE CATEGORÍAS
-        $categoriaModel = new \App\Models\CategoriaProductoModel();
-        
-        // ✅ OBTENER COTIZACIONES
-        $dolarService = new \App\Services\DolarService();
-        
-        if ($dolarService->necesitaActualizacion('tarjeta')) {
-            $dolarService->obtenerCotizaciones();
-        }
-        
-        $cotizaciones = [
-            'tarjeta' => $dolarService->obtenerCotizacion('tarjeta'),
-            'MEP' => $dolarService->obtenerCotizacion('MEP')
+            'mensaje' => $mensaje
         ];
 
-        // ✅ PASAR CATEGORÍAS Y COTIZACIONES A LA VISTA
-        return view('historial/crear', [
-            'categorias' => $categoriaModel->obtenerTodasOrdenadas(),
-            'cotizaciones' => $cotizaciones,
-            'old_input' => []
-        ]);
+        return view('Historial/index', $data);
     }
 
-    // ✅ CREATE - GUARDAR NUEVO REGISTRO CON COTIZACIONES DINÁMICAS
-    public function guardar()
+    /**
+     * Formulario para crear nuevo cálculo (SIN API de Amazon)
+     */
+    public function crear()
     {
-        $redirect = $this->validarSesion();
-        if ($redirect) return $redirect;
+        if (!session()->get('logueado')) {
+            return redirect()->to('/usuario/login')
+                ->with('error', 'Debes iniciar sesión para usar la calculadora');
+        }
 
-        // ✅ VALIDACIONES BACKEND ESTRICTAS (sin cambios)
+        // Obtener cotizaciones actuales
+        try {
+            $cotizaciones = [
+                'tarjeta' => $this->dolarService->obtenerCotizacion('tarjeta'),
+                'MEP' => $this->dolarService->obtenerCotizacion('MEP')
+            ];
+        } catch (\Exception $e) {
+            $cotizaciones = [
+                'tarjeta' => 1943.50,
+                'MEP' => 1485.70
+            ];
+        }
+
+        $data = [
+            'categorias' => $this->categoriaModel->obtenerTodasOrdenadas(),
+            'cotizaciones' => $cotizaciones,
+            'validation' => session()->getFlashdata('validation') ?? null,
+            'error' => session()->getFlashdata('error') ?? null,
+            'old_input' => session()->getFlashdata('old_input') ?? []
+        ];
+
+        return view('Historial/crear', $data);
+    }
+
+    /**
+     * Simular cálculo en tiempo real (AJAX)
+     */
+    public function simularCalculo()
+    {
+        try {
+            $json = $this->request->getJSON();
+
+            // Validar datos recibidos
+            if (!$json || !isset($json->precio_usd, $json->envio_usd, $json->categoria_id, $json->metodo_pago)) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Faltan datos requeridos'
+                ]);
+            }
+
+            $precioUSD = floatval($json->precio_usd);
+            $envioUSD = floatval($json->envio_usd);
+            $categoriaId = intval($json->categoria_id);
+            $metodoPago = $json->metodo_pago;
+
+            // Validaciones básicas
+            if ($precioUSD <= 0 || $precioUSD > 50000) {
+                throw new \Exception('El precio debe estar entre $0.01 y $50,000 USD');
+            }
+
+            if ($envioUSD < 0 || $envioUSD > 1000) {
+                throw new \Exception('El envío debe estar entre $0 y $1,000 USD');
+            }
+
+            if (!in_array($metodoPago, ['tarjeta', 'MEP'])) {
+                throw new \Exception('Método de pago inválido');
+            }
+
+            // Realizar cálculo
+            $calculo = $this->calculoService->calcularImpuestos(
+                $precioUSD,
+                $envioUSD,
+                $categoriaId,
+                $metodoPago
+            );
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $calculo,
+                'message' => 'Cálculo realizado exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en simulación: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Guardar cálculo en la base de datos
+     */
+    public function calcular()
+    {
+        if (!session()->get('logueado')) {
+            return redirect()->to('/usuario/login')
+                ->with('error', 'Debes iniciar sesión');
+        }
+
+        // Validación de datos
         $rules = [
-            'amazon_url' => [
-                'rules' => 'required|valid_url|max_length[500]',
-                'errors' => [
-                    'required' => 'La URL de Amazon es obligatoria.',
-                    'valid_url' => 'Debe ser una URL válida.',
-                    'max_length' => 'La URL no puede exceder 500 caracteres.'
-                ]
-            ],
-            'nombre_producto' => [
-                'rules' => 'required|min_length[3]|max_length[200]',
-                'errors' => [
-                    'required' => 'El nombre del producto es obligatorio.',
-                    'min_length' => 'El nombre debe tener al menos 3 caracteres.',
-                    'max_length' => 'El nombre no puede exceder 200 caracteres.'
-                ]
-            ],
-            'precio_usd' => [
-                'rules' => 'required|decimal|greater_than[0]|less_than[99999]',
-                'errors' => [
-                    'required' => 'El precio en USD es obligatorio.',
-                    'decimal' => 'El precio debe ser un número válido.',
-                    'greater_than' => 'El precio debe ser mayor a $0.',
-                    'less_than' => 'El precio no puede exceder $99,999.'
-                ]
-            ]
+            'nombre_producto' => 'required|max_length[200]',
+            'precio_usd' => 'required|decimal|greater_than[0]|less_than_equal_to[50000]',
+            'envio_usd' => 'required|decimal|greater_than_equal_to[0]|less_than_equal_to[1000]',
+            'categoria_id' => 'required|integer|is_not_unique[categorias_productos.id]',
+            'metodo_pago' => 'required|in_list[tarjeta,MEP]'
         ];
 
         if (!$this->validate($rules)) {
-            return view('historial/crear', [
-                'validation' => $this->validator,
-                'old_input' => $this->request->getPost()
-            ]);
+            return redirect()->back()
+                ->withInput()
+                ->with('validation', $this->validator);
         }
-
-        // ✅ VALIDACIÓN ADICIONAL: URL DE AMAZON
-        $amazonUrl = $this->request->getPost('amazon_url');
-        if (!$this->esUrlAmazon($amazonUrl)) {
-            return view('historial/crear', [
-                'error' => '❌ La URL debe ser de Amazon (amazon.com, amazon.es, etc.)',
-                'old_input' => $this->request->getPost()
-            ]);
-        }
-
-        // ✅ OBTENER COTIZACIONES DINÁMICAS
-        $dolarService = new \App\Services\DolarService();
-        
-        // Verificar si necesita actualización
-        if ($dolarService->necesitaActualizacion('tarjeta')) {
-            $dolarService->obtenerCotizaciones();
-        }
-        
-        $dolarTarjeta = $dolarService->obtenerCotizacion('tarjeta');
-        $dolarMEP = $dolarService->obtenerCotizacion('MEP');
-        
-        // ✅ CÁLCULOS CON VALORES DINÁMICOS
-        $precioUSD = (float)$this->request->getPost('precio_usd');
-        $envioUSD = 25; // Costo fijo de envío
-        
-        // Cálculo de impuestos
-        $iva = $precioUSD * 0.21;
-        $derechosImportacion = max(0, ($precioUSD - 50) * 0.5);
-        
-        // Total en ARS usando dólar tarjeta
-        $totalProductoARS = $precioUSD * $dolarTarjeta;
-        $totalImpuestosARS = ($iva + $derechosImportacion) * $dolarTarjeta;
-        $totalEnvioARS = $envioUSD * $dolarTarjeta;
-        $totalFinalARS = $totalProductoARS + $totalImpuestosARS + $totalEnvioARS;
-
-        $datos = [
-            'usuario_id' => session()->get('usuario_id'),
-            'amazon_url' => trim($amazonUrl),
-            'nombre_producto' => trim($this->request->getPost('nombre_producto')),
-            'precio_usd' => $precioUSD,
-            'total_ars' => round($totalFinalARS, 2),
-            'desglose_json' => json_encode([
-                'precio_usd' => $precioUSD,
-                'envio_usd' => $envioUSD,
-                'iva_usd' => $iva,
-                'derechos_usd' => $derechosImportacion,
-                'dolar_tarjeta' => $dolarTarjeta,
-                'dolar_mep' => $dolarMEP,
-                'total_producto_ars' => round($totalProductoARS, 2),
-                'total_impuestos_ars' => round($totalImpuestosARS, 2),
-                'total_envio_ars' => round($totalEnvioARS, 2),
-                'fecha_cotizacion' => date('Y-m-d H:i:s')
-            ]),
-            'fecha_calculo' => date('Y-m-d H:i:s')
-        ];
 
         try {
-            $this->historialModel->insert($datos);
-            return redirect()->to('/historial')
-                ->with('success', "✅ Cálculo guardado exitosamente. Dólar tarjeta: $$dolarTarjeta ARS");
+            $usuarioId = session()->get('usuario_id');
+            $nombreProducto = $this->request->getPost('nombre_producto');
+            $precioUSD = floatval($this->request->getPost('precio_usd'));
+            $envioUSD = floatval($this->request->getPost('envio_usd'));
+            $categoriaId = intval($this->request->getPost('categoria_id'));
+            $metodoPago = $this->request->getPost('metodo_pago');
+
+            // URL ficticia para mantener compatibilidad con la BD
+            $amazonUrl = 'https://www.amazon.com/manual-entry-' . time();
+
+            // Realizar cálculo completo
+            $calculo = $this->calculoService->calcularImpuestos(
+                $precioUSD,
+                $envioUSD,
+                $categoriaId,
+                $metodoPago
+            );
+
+            // Guardar en base de datos
+            $datos = [
+                'usuario_id' => $usuarioId,
+                'amazon_url' => $amazonUrl,
+                'nombre_producto' => $nombreProducto,
+                'precio_usd' => $precioUSD,
+                'total_ars' => $calculo['totales']['total_ars'],
+                'desglose_json' => json_encode($calculo),
+                'categoria_id' => $categoriaId,
+                'metodo_pago' => $metodoPago,
+                'valor_cif_usd' => $calculo['datos_base']['valor_cif_usd'],
+                'excedente_400_usd' => $calculo['datos_base']['excedente_400_usd']
+            ];
+
+            $idCalculo = $this->historialModel->insert($datos);
+
+            if (!$idCalculo) {
+                throw new \Exception('Error al guardar el cálculo en la base de datos');
+            }
+
+            return redirect()->to('/historial/ver/' . $idCalculo)
+                ->with('success', '✅ Cálculo guardado exitosamente');
+
         } catch (\Exception $e) {
             log_message('error', 'Error guardando cálculo: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->with('error', '❌ Error al guardar. Intenta nuevamente.');
+                ->with('error', 'Error al guardar: ' . $e->getMessage());
         }
     }
 
-    // ✅ READ - MOSTRAR UN REGISTRO
+    /**
+     * Ver detalles de un cálculo
+     */
     public function ver($id)
     {
-        $redirect = $this->validarSesion();
-        if ($redirect) return $redirect;
+        if (!session()->get('logueado')) {
+            return redirect()->to('/usuario/login');
+        }
 
         $usuarioId = session()->get('usuario_id');
-        $calculo = $this->historialModel->where('id', $id)
-                                       ->where('usuario_id', $usuarioId)
-                                       ->first();
+        $calculo = $this->historialModel
+            ->where('usuario_id', $usuarioId)
+            ->find($id);
 
         if (!$calculo) {
             return redirect()->to('/historial')
-                ->with('error', '❌ Cálculo no encontrado.');
+                ->with('error', 'Cálculo no encontrado');
         }
 
-        return view('historial/ver', [
-            'calculo' => $calculo
-        ]);
+        $data = ['calculo' => $calculo];
+        return view('Historial/ver', $data);
     }
 
-    // ✅ UPDATE - MOSTRAR FORMULARIO DE EDICIÓN
+    /**
+     * Editar un cálculo existente
+     */
     public function editar($id)
     {
-        $redirect = $this->validarSesion();
-        if ($redirect) return $redirect;
+        if (!session()->get('logueado')) {
+            return redirect()->to('/usuario/login');
+        }
 
         $usuarioId = session()->get('usuario_id');
-        $calculo = $this->historialModel->where('id', $id)
-                                       ->where('usuario_id', $usuarioId)
-                                       ->first();
+        $calculo = $this->historialModel
+            ->where('usuario_id', $usuarioId)
+            ->find($id);
 
         if (!$calculo) {
             return redirect()->to('/historial')
-                ->with('error', '❌ Cálculo no encontrado.');
+                ->with('error', 'Cálculo no encontrado');
         }
 
-        return view('historial/editar', [
-            'calculo' => $calculo
-        ]);
+        $data = [
+            'calculo' => $calculo,
+            'categorias' => $this->categoriaModel->obtenerTodasOrdenadas(),
+            'validation' => session()->getFlashdata('validation') ?? null,
+            'old_input' => session()->getFlashdata('old_input') ?? []
+        ];
+
+        return view('Historial/editar', $data);
     }
 
-    // ✅ UPDATE - ACTUALIZAR REGISTRO
+    /**
+     * Actualizar un cálculo
+     */
     public function actualizar($id)
     {
-        $redirect = $this->validarSesion();
-        if ($redirect) return $redirect;
+        if (!session()->get('logueado')) {
+            return redirect()->to('/usuario/login');
+        }
 
         $usuarioId = session()->get('usuario_id');
-        $calculo = $this->historialModel->where('id', $id)
-                                       ->where('usuario_id', $usuarioId)
-                                       ->first();
+        $calculo = $this->historialModel
+            ->where('usuario_id', $usuarioId)
+            ->find($id);
 
         if (!$calculo) {
             return redirect()->to('/historial')
-                ->with('error', '❌ Cálculo no encontrado.');
+                ->with('error', 'Cálculo no encontrado');
         }
 
-        // Mismas validaciones que en guardar()
         $rules = [
-            'nombre_producto' => [
-                'rules' => 'required|min_length[3]|max_length[200]',
-                'errors' => [
-                    'required' => 'El nombre del producto es obligatorio.',
-                    'min_length' => 'El nombre debe tener al menos 3 caracteres.',
-                    'max_length' => 'El nombre no puede exceder 200 caracteres.'
-                ]
-            ],
-            'precio_usd' => [
-                'rules' => 'required|decimal|greater_than[0]|less_than[99999]',
-                'errors' => [
-                    'required' => 'El precio en USD es obligatorio.',
-                    'decimal' => 'El precio debe ser un número válido.',
-                    'greater_than' => 'El precio debe ser mayor a $0.',
-                    'less_than' => 'El precio no puede exceder $99,999.'
-                ]
-            ]
+            'nombre_producto' => 'required|max_length[200]',
+            'precio_usd' => 'required|decimal|greater_than[0]|less_than_equal_to[50000]'
         ];
 
         if (!$this->validate($rules)) {
-            return view('historial/editar', [
-                'calculo' => $calculo,
-                'validation' => $this->validator,
-                'old_input' => $this->request->getPost()
-            ]);
-        }
-
-        $datosActualizar = [
-            'nombre_producto' => trim($this->request->getPost('nombre_producto')),
-            'precio_usd' => (float)$this->request->getPost('precio_usd'),
-            'total_ars' => (float)$this->request->getPost('precio_usd') * 1683.5 * 1.71 // Cálculo básico
-        ];
-
-        try {
-            $this->historialModel->update($id, $datosActualizar);
-            return redirect()->to('/historial')
-                ->with('success', '✅ Cálculo actualizado exitosamente.');
-        } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', '❌ Error al actualizar. Intenta nuevamente.');
+                ->with('validation', $this->validator);
+        }
+
+        try {
+            $nombreProducto = $this->request->getPost('nombre_producto');
+            $precioUSD = floatval($this->request->getPost('precio_usd'));
+
+            // Recalcular con los nuevos valores
+            $desglose = json_decode($calculo['desglose_json'], true);
+            $envioUSD = $desglose['datos_base']['envio_usd'] ?? 25;
+            $categoriaId = $calculo['categoria_id'];
+            $metodoPago = $calculo['metodo_pago'];
+
+            $nuevoCalculo = $this->calculoService->calcularImpuestos(
+                $precioUSD,
+                $envioUSD,
+                $categoriaId,
+                $metodoPago
+            );
+
+            $datos = [
+                'nombre_producto' => $nombreProducto,
+                'precio_usd' => $precioUSD,
+                'total_ars' => $nuevoCalculo['totales']['total_ars'],
+                'desglose_json' => json_encode($nuevoCalculo),
+                'valor_cif_usd' => $nuevoCalculo['datos_base']['valor_cif_usd'],
+                'excedente_400_usd' => $nuevoCalculo['datos_base']['excedente_400_usd']
+            ];
+
+            $this->historialModel->update($id, $datos);
+
+            return redirect()->to('/historial/ver/' . $id)
+                ->with('success', '✅ Cálculo actualizado exitosamente');
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error actualizando: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al actualizar: ' . $e->getMessage());
         }
     }
 
-    // ✅ DELETE - ELIMINAR REGISTRO
+    /**
+     * Eliminar un cálculo
+     */
     public function eliminar($id)
     {
-        $redirect = $this->validarSesion();
-        if ($redirect) return $redirect;
+        if (!session()->get('logueado')) {
+            return redirect()->to('/usuario/login');
+        }
 
         $usuarioId = session()->get('usuario_id');
-        $calculo = $this->historialModel->where('id', $id)
-                                       ->where('usuario_id', $usuarioId)
-                                       ->first();
+        $calculo = $this->historialModel
+            ->where('usuario_id', $usuarioId)
+            ->find($id);
 
         if (!$calculo) {
             return redirect()->to('/historial')
-                ->with('error', '❌ Cálculo no encontrado.');
+                ->with('error', 'Cálculo no encontrado');
         }
 
         try {
             $this->historialModel->delete($id);
-            return redirect()->to('/historial')
-                ->with('success', '✅ Cálculo eliminado exitosamente.');
-        } catch (\Exception $e) {
-            return redirect()->to('/historial')
-                ->with('error', '❌ Error al eliminar. Intenta nuevamente.');
-        }
-    }
-
-    // ✅ MÉTODO AUXILIAR PARA VALIDAR URLs DE AMAZON
-    private function esUrlAmazon($url)
-    {
-        $dominiosValidos = [
-            'amazon.com', 
-            'amazon.es', 
-            'amazon.co.uk', 
-            'amazon.com.ar',
-            'amazon.com.mx',
-            'amazon.de',
-            'amazon.fr'
-        ];
-        
-        $host = parse_url($url, PHP_URL_HOST);
-        
-        foreach ($dominiosValidos as $dominio) {
-            if (strpos($host, $dominio) !== false) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // ✅ MÉTODO CALCULAR COMPLETAMENTE REESCRITO CON NUEVAS FUNCIONALIDADES
-    public function calcular()
-    {
-        $redirect = $this->validarSesion();
-        if ($redirect) return $redirect;
-
-        // ✅ VALIDACIONES BACKEND ESTRICTAS
-        $rules = [
-            'amazon_url' => [
-                'rules' => 'required|valid_url|max_length[500]',
-                'errors' => [
-                    'required' => 'La URL de Amazon es obligatoria.',
-                    'valid_url' => 'Debe ser una URL válida.',
-                    'max_length' => 'La URL no puede exceder 500 caracteres.'
-                ]
-            ],
-            'nombre_producto' => [
-                'rules' => 'required|min_length[3]|max_length[200]',
-                'errors' => [
-                    'required' => 'El nombre del producto es obligatorio.',
-                    'min_length' => 'El nombre debe tener al menos 3 caracteres.',
-                    'max_length' => 'El nombre no puede exceder 200 caracteres.'
-                ]
-            ],
-            'precio_usd' => [
-                'rules' => 'required|decimal|greater_than[0]|less_than[50000]',
-                'errors' => [
-                    'required' => 'El precio en USD es obligatorio.',
-                    'decimal' => 'El precio debe ser un número válido.',
-                    'greater_than' => 'El precio debe ser mayor a $0.',
-                    'less_than' => 'El precio no puede exceder $50,000.'
-                ]
-            ],
-            'envio_usd' => [
-                'rules' => 'required|decimal|greater_than_equal_to[0]|less_than[1000]',
-                'errors' => [
-                    'required' => 'El costo de envío es obligatorio.',
-                    'decimal' => 'El envío debe ser un número válido.',
-                    'greater_than_equal_to' => 'El envío no puede ser negativo.',
-                    'less_than' => 'El envío no puede exceder $1,000.'
-                ]
-            ],
-            'categoria_id' => [
-                'rules' => 'required|integer|greater_than[0]',
-                'errors' => [
-                    'required' => 'Debes seleccionar una categoría.',
-                    'integer' => 'Categoría inválida.',
-                    'greater_than' => 'Categoría inválida.'
-                ]
-            ],
-            'metodo_pago' => [
-                'rules' => 'required|in_list[tarjeta,MEP]',
-                'errors' => [
-                    'required' => 'Debes seleccionar un método de pago.',
-                    'in_list' => 'Método de pago inválido.'
-                ]
-            ]
-        ];
-
-        // Obtener categorías para recargar el formulario si hay errores
-        $categoriaModel = new \App\Models\CategoriaProductoModel();
-        $categorias = $categoriaModel->obtenerTodasOrdenadas();
-        
-        $dolarService = new \App\Services\DolarService();
-        $cotizaciones = [
-            'tarjeta' => $dolarService->obtenerCotizacion('tarjeta'),
-            'MEP' => $dolarService->obtenerCotizacion('MEP')
-        ];
-
-        if (!$this->validate($rules)) {
-            return view('historial/crear', [
-                'validation' => $this->validator,
-                'old_input' => $this->request->getPost(),
-                'categorias' => $categorias,
-                'cotizaciones' => $cotizaciones
-            ]);
-        }
-
-        // ✅ VALIDACIÓN ADICIONAL: URL DE AMAZON
-        $amazonUrl = $this->request->getPost('amazon_url');
-        if (!$this->esUrlAmazon($amazonUrl)) {
-            return view('historial/crear', [
-                'error' => '❌ La URL debe ser de Amazon (amazon.com, amazon.es, etc.)',
-                'old_input' => $this->request->getPost(),
-                'categorias' => $categorias,
-                'cotizaciones' => $cotizaciones
-            ]);
-        }
-
-        // ✅ OBTENER DATOS DEL FORMULARIO
-        $nombreProducto = trim($this->request->getPost('nombre_producto'));
-        $precioUSD = (float)$this->request->getPost('precio_usd');
-        $envioUSD = (float)$this->request->getPost('envio_usd');
-        $categoriaId = (int)$this->request->getPost('categoria_id');
-        $metodoPago = $this->request->getPost('metodo_pago');
-
-        try {
-            // ✅ CALCULAR IMPUESTOS USANDO EL NUEVO SERVICIO
-            $calculoService = new \App\Services\CalculoImpuestosService();
-            $resultadoCalculo = $calculoService->calcularImpuestos($precioUSD, $envioUSD, $categoriaId, $metodoPago);
-            
-            // ✅ PREPARAR DATOS PARA GUARDAR EN BD
-            $datos = [
-                'usuario_id' => session()->get('usuario_id'),
-                'amazon_url' => trim($amazonUrl),
-                'nombre_producto' => $nombreProducto,
-                'precio_usd' => $precioUSD,
-                'total_ars' => $resultadoCalculo['totales']['total_ars'],
-                'categoria_id' => $categoriaId,
-                'metodo_pago' => $metodoPago,
-                'valor_cif_usd' => $resultadoCalculo['datos_base']['valor_cif_usd'],
-                'excedente_400_usd' => $resultadoCalculo['datos_base']['excedente_400_usd'],
-                'desglose_json' => json_encode($resultadoCalculo, JSON_UNESCAPED_UNICODE),
-                'fecha_calculo' => date('Y-m-d H:i:s')
-            ];
-
-            // ✅ GUARDAR EN BASE DE DATOS
-            $this->historialModel->insert($datos);
-            
-            // ✅ PREPARAR MENSAJE DE ÉXITO CON RESUMEN
-            $resumen = $calculoService->obtenerResumenCalculo($resultadoCalculo);
-            $bajoFranquicia = $resumen['bajo_franquicia'] ? 'Bajo franquicia (≤$400)' : 'Sobre franquicia (>$400)';
-            
-            $mensaje = "✅ Cálculo guardado exitosamente<br>";
-            $mensaje .= "💰 Total: $" . number_format($resumen['total_final_ars'], 2) . " ARS<br>";
-            $mensaje .= "📦 Categoría: {$resumen['categoria']}<br>";
-            $mensaje .= "💳 {$resumen['metodo_pago']}: $" . number_format($resumen['cotizacion'], 2) . " ARS<br>";
-            $mensaje .= "📋 Estado: {$bajoFranquicia}";
             
             return redirect()->to('/historial')
-                ->with('success', $mensaje);
+                ->with('success', '🗑️ Cálculo eliminado exitosamente');
                 
         } catch (\Exception $e) {
-            log_message('error', 'Error en calcular(): ' . $e->getMessage());
-            return redirect()->back()
-                ->withInput()
-                ->with('error', '❌ Error al calcular. Intenta nuevamente.');
+            log_message('error', 'Error eliminando: ' . $e->getMessage());
+            return redirect()->to('/historial')
+                ->with('error', 'Error al eliminar el cálculo');
+        }
+    }
+
+    /**
+     * Obtener información de una categoría (AJAX)
+     */
+    public function obtenerCategoria($id)
+    {
+        try {
+            $categoria = $this->categoriaModel->find($id);
+            
+            if (!$categoria) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Categoría no encontrada'
+                ]);
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'data' => $categoria
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
         }
     }
 }
