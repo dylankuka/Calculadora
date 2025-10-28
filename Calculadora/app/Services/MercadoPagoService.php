@@ -1,6 +1,8 @@
 <?php
 namespace App\Services;
 
+require_once APPPATH . '../vendor/autoload.php';
+
 // Importar el SDK de MercadoPago
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Client\Preference\PreferenceClient;
