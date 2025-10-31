@@ -1,38 +1,29 @@
 <?php
-// ✅ Configura tu clave de Rainforest API
-$apiKey = "TU_API_KEY_AQUI"; // ← reemplazá con tu API key real
+$apiKey = "39A47B8978654C59A203E41D988AD2F0";
+$asin = "B073JYC4XM"; // producto de ejemplo
 
-// ✅ Producto de ejemplo (ASIN de Amazon)
-$asin = "B08N5WRWNW"; // Podés cambiarlo por otro
-
-// ✅ URL del endpoint de Rainforest API
 $url = "https://api.rainforestapi.com/request?api_key={$apiKey}&type=product&amazon_domain=amazon.com&asin={$asin}";
 
-// ✅ Ejecutar la solicitud con cURL
+// Inicializar cURL
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
+// Ejecutar solicitud
 $response = curl_exec($ch);
-
-if (curl_errno($ch)) {
-    echo "❌ Error en la conexión: " . curl_error($ch);
-    exit;
-}
-
 curl_close($ch);
 
-// ✅ Decodificar respuesta JSON
+// Decodificar JSON
 $data = json_decode($response, true);
 
-// ✅ Mostrar resultado
+// Mostrar resultado
 if (isset($data['product'])) {
-    echo "<h2>✅ Conexión exitosa con Rainforest API</h2>";
-    echo "<strong>Título:</strong> " . htmlspecialchars($data['product']['title']) . "<br>";
-    echo "<strong>Precio:</strong> " . htmlspecialchars($data['product']['buybox_winner']['price']['value'] ?? 'No disponible') . " ";
-    echo htmlspecialchars($data['product']['buybox_winner']['price']['currency'] ?? '') . "<br>";
+    echo "✅ Conexión exitosa<br>";
+    echo "Título: " . htmlspecialchars($data['product']['title']) . "<br>";
+    echo "Precio: " . htmlspecialchars($data['product']['buybox_winner']['price']['raw']) . "<br>";
 } else {
-    echo "<h3>❌ Error o sin datos recibidos:</h3>";
-    echo "<pre>" . print_r($data, true) . "</pre>";
+    echo "❌ Error o sin datos recibidos:<br><pre>";
+    print_r($data);
+    echo "</pre>";
 }
 ?>
