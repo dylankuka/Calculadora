@@ -165,6 +165,7 @@ class Historial extends BaseController
 
         // Validación de datos
         $rules = [
+            'amazon_url' => 'required|valid_url|max_length[500]',
             'nombre_producto' => 'required|max_length[200]',
             'precio_usd' => 'required|decimal|greater_than[0]|less_than_equal_to[50000]',
             'envio_usd' => 'required|decimal|greater_than_equal_to[0]|less_than_equal_to[1000]',

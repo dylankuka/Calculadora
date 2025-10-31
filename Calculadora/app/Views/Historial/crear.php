@@ -24,8 +24,9 @@
             margin-top: 10px;
         }
         .calculo-resultado {
-            background: #11998e;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
             color: white;
+            border-radius: 10px;
             padding: 20px;
         }
         .franquicia-badge {
@@ -86,9 +87,9 @@
             </nav>
 
             <!-- Alerta informativa -->
-            <div class="alert alert-info alert-dismissible fade show" role="alert">
-                <h5 class="alert-heading"><i class="bi bi-info-circle"></i> Modo de Entrada Manual</h5>
-                <p class="mb-0">Ingresa manualmente los datos del producto de Amazon. Los cálculos de impuestos son 100% reales según la normativa vigente de AFIP.</p>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <h5 class="alert-heading"><i class="bi bi-check-circle"></i> Obtención Automática desde Amazon</h5>
+                <p class="mb-0">Pega la URL de Amazon y obtendremos automáticamente todos los datos del producto usando Rainforest API. Los cálculos de impuestos son 100% reales según la normativa vigente de AFIP.</p>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
 
@@ -360,7 +361,7 @@
                         <!-- Total final -->
                         <div class="d-flex justify-content-between align-items-center">
                             <h4 class="mb-0">TOTAL FINAL:</h4>
-                       <h3 class="mb-0 text-warning">$<span id="resumen-total-ars">0.00</span></h3>
+                            <h3 class="mb-0 text-warning">$<span id="resumen-total-ars">0.00</span></h3>
                         </div>
 
                         <!-- Información adicional -->
@@ -455,7 +456,7 @@
                             <button class="accordion-button collapsed bg-dark text-light" type="button" data-bs-toggle="collapse" data-bs-target="#percepciones">
                                 💳 Percepciones AFIP
                             </button>
-                        </h2>   
+                        </h2>
                         <div id="percepciones" class="accordion-collapse collapse">
                             <div class="accordion-body">
                                 <p><strong>Pago con Tarjeta Argentina:</strong></p>
@@ -604,7 +605,9 @@ async function simularCalculoEnTiempoReal() {
 
 // ✅ MOSTRAR RESULTADO
 function mostrarResultadoCalculo(calculo) {
-    const baseARS = calculo.datos_base.valor_cif_usd * calculo.datos_base.cotizacion;
+    console.log('Calculando resultado:', calculo); // Debug
+    
+    const baseARS = calculo.impuestos_ars.valor_cif_ars || (calculo.datos_base.valor_cif_usd * calculo.datos_base.cotizacion);
     
     // Valores base
     document.getElementById('resumen-precio-usd').textContent = formatNumber(calculo.datos_base.precio_usd);
@@ -613,11 +616,16 @@ function mostrarResultadoCalculo(calculo) {
     document.getElementById('resumen-base-ars').textContent = formatNumber(baseARS);
     
     // Impuestos
-    document.getElementById('resumen-aranceles-ars').textContent = formatNumber(calculo.impuestos_ars.aranceles_ars || 0);
-    document.getElementById('resumen-tasa-estadistica-ars').textContent = formatNumber(calculo.impuestos_ars.tasa_estadistica_ars || 0);
-    document.getElementById('resumen-iva-ars').textContent = formatNumber(calculo.impuestos_ars.iva_ars || 0);
-    
+    const arancelesARS = calculo.impuestos_ars.aranceles_ars || 0;
+    const tasaARS = calculo.impuestos_ars.tasa_estadistica_ars || 0;
+    const ivaARS = calculo.impuestos_ars.iva_ars || 0;
     const percepcionARS = calculo.impuestos_ars.percepcion_ganancias_ars || 0;
+    
+    document.getElementById('resumen-aranceles-ars').textContent = formatNumber(arancelesARS);
+    document.getElementById('resumen-tasa-estadistica-ars').textContent = formatNumber(tasaARS);
+    document.getElementById('resumen-iva-ars').textContent = formatNumber(ivaARS);
+    
+    // Mostrar percepción solo si es > 0
     if (percepcionARS > 0) {
         document.getElementById('resumen-percepcion-ars').textContent = formatNumber(percepcionARS);
         document.getElementById('percepcion-row').style.display = 'flex';
@@ -625,7 +633,22 @@ function mostrarResultadoCalculo(calculo) {
         document.getElementById('percepcion-row').style.display = 'none';
     }
     
-    // Totales
+    // Verificar que el total incluya la percepción
+    const subtotalCalculado = baseARS + arancelesARS + tasaARS + ivaARS;
+    const totalConPercepcion = subtotalCalculado + percepcionARS;
+    
+    console.log('Desglose:', {
+        base: baseARS,
+        aranceles: arancelesARS,
+        tasa: tasaARS,
+        iva: ivaARS,
+        subtotal: subtotalCalculado,
+        percepcion: percepcionARS,
+        total_calculado: totalConPercepcion,
+        total_desde_backend: calculo.totales.total_ars
+    });
+    
+    // Totales (usar el total del backend que incluye percepción)
     document.getElementById('resumen-total-ars').textContent = formatNumber(calculo.totales.total_ars);
     document.getElementById('solo-impuestos-ars').textContent = formatNumber(calculo.totales.total_impuestos_ars);
     document.getElementById('tipo-cambio-usado').textContent = calculo.datos_base.metodo_pago.toUpperCase();
@@ -633,7 +656,7 @@ function mostrarResultadoCalculo(calculo) {
     document.getElementById('categoria-usada').textContent = calculo.datos_base.categoria;
     
     // Estado de franquicia
-    const bajoFranquicia = calculo.datos_base.valor_cif_usd <= 400;
+    const bajoFranquicia = calculo.datos_base.bajo_franquicia || calculo.datos_base.valor_cif_usd <= 400;
     document.getElementById('estado-franquicia').textContent = bajoFranquicia ? 
         '✅ Bajo Franquicia (≤$400)' : '⚠️ Sobre Franquicia (>$400)';
     
