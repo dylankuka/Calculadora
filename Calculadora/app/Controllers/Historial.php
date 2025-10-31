@@ -156,78 +156,76 @@ class Historial extends BaseController
     /**
      * Guardar cálculo en la base de datos
      */
-    public function calcular()
-    {
-        if (!session()->get('logueado')) {
-            return redirect()->to('/usuario/login')
-                ->with('error', 'Debes iniciar sesión');
-        }
+   // Agregar este método al controlador Historial.php
 
-        // Validación de datos
-        $rules = [
-            'amazon_url' => 'required|valid_url|max_length[500]',
-            'nombre_producto' => 'required|max_length[200]',
-            'precio_usd' => 'required|decimal|greater_than[0]|less_than_equal_to[50000]',
-            'envio_usd' => 'required|decimal|greater_than_equal_to[0]|less_than_equal_to[1000]',
-            'categoria_id' => 'required|integer|is_not_unique[categorias_productos.id]',
-            'metodo_pago' => 'required|in_list[tarjeta,MEP]'
+public function calcular()
+{
+    if (!session()->get('logueado')) {
+        return redirect()->to('/usuario/login');
+    }
+
+    // Validaciones
+    $validacion = \Config\Services::validation();
+    $validacion->setRules([
+        'nombre_producto' => 'required|max_length[200]',
+        'precio_usd' => 'required|decimal|greater_than[0]',
+        'envio_usd' => 'required|decimal|greater_than_equal_to[0]',
+        'categoria_id' => 'required|integer',
+        'metodo_pago' => 'required|in_list[tarjeta,MEP]',
+        'amazon_url' => 'permit_empty|valid_url|max_length[500]' // Permitir URL vacía
+    ]);
+
+    if (!$validacion->withRequest($this->request)->run()) {
+        return redirect()->back()->withInput()->with('validation', $validacion);
+    }
+
+    try {
+        // Obtener datos del formulario
+        $nombreProducto = $this->request->getPost('nombre_producto');
+        $precioUSD = floatval($this->request->getPost('precio_usd'));
+        $envioUSD = floatval($this->request->getPost('envio_usd'));
+        $categoriaId = intval($this->request->getPost('categoria_id'));
+        $metodoPago = $this->request->getPost('metodo_pago');
+        $amazonUrl = $this->request->getPost('amazon_url') ?: 'https://www.amazon.com/producto-manual';
+
+        // Realizar cálculo de impuestos
+        $calculoService = new \App\Services\CalculoImpuestosService();
+        $resultado = $calculoService->calcularImpuestos($precioUSD, $envioUSD, $categoriaId, $metodoPago);
+
+        // Preparar datos para guardar
+        $datosHistorial = [
+            'usuario_id' => session()->get('usuario_id'),
+            'amazon_url' => $amazonUrl,
+            'nombre_producto' => $nombreProducto,
+            'precio_usd' => $precioUSD,
+            'total_ars' => $resultado['totales']['total_ars'],
+            'desglose_json' => json_encode($resultado),
+            'fecha_calculo' => date('Y-m-d H:i:s'),
+            'categoria_id' => $categoriaId,
+            'metodo_pago' => $metodoPago,
+            'valor_cif_usd' => $resultado['datos_base']['valor_cif_usd'],
+            'excedente_400_usd' => $resultado['datos_base']['excedente_400_usd']
         ];
 
-        if (!$this->validate($rules)) {
-            return redirect()->back()
-                ->withInput()
-                ->with('validation', $this->validator);
+        // Guardar en base de datos
+        $historialModel = new \App\Models\HistorialModel();
+        
+        if ($historialModel->insert($datosHistorial)) {
+            $calculoId = $historialModel->getInsertID();
+            
+            return redirect()->to('/historial/ver/' . $calculoId)
+                           ->with('success', '✅ Cálculo guardado exitosamente');
+        } else {
+            throw new \Exception('Error al guardar en la base de datos');
         }
 
-        try {
-            $usuarioId = session()->get('usuario_id');
-            $nombreProducto = $this->request->getPost('nombre_producto');
-            $precioUSD = floatval($this->request->getPost('precio_usd'));
-            $envioUSD = floatval($this->request->getPost('envio_usd'));
-            $categoriaId = intval($this->request->getPost('categoria_id'));
-            $metodoPago = $this->request->getPost('metodo_pago');
-
-            // URL ficticia para mantener compatibilidad con la BD
-            $amazonUrl = 'https://www.amazon.com/manual-entry-' . time();
-
-            // Realizar cálculo completo
-            $calculo = $this->calculoService->calcularImpuestos(
-                $precioUSD,
-                $envioUSD,
-                $categoriaId,
-                $metodoPago
-            );
-
-            // Guardar en base de datos
-            $datos = [
-                'usuario_id' => $usuarioId,
-                'amazon_url' => $amazonUrl,
-                'nombre_producto' => $nombreProducto,
-                'precio_usd' => $precioUSD,
-                'total_ars' => $calculo['totales']['total_ars'],
-                'desglose_json' => json_encode($calculo),
-                'categoria_id' => $categoriaId,
-                'metodo_pago' => $metodoPago,
-                'valor_cif_usd' => $calculo['datos_base']['valor_cif_usd'],
-                'excedente_400_usd' => $calculo['datos_base']['excedente_400_usd']
-            ];
-
-            $idCalculo = $this->historialModel->insert($datos);
-
-            if (!$idCalculo) {
-                throw new \Exception('Error al guardar el cálculo en la base de datos');
-            }
-
-            return redirect()->to('/historial/ver/' . $idCalculo)
-                ->with('success', '✅ Cálculo guardado exitosamente');
-
-        } catch (\Exception $e) {
-            log_message('error', 'Error guardando cálculo: ' . $e->getMessage());
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error al guardar: ' . $e->getMessage());
-        }
+    } catch (\Exception $e) {
+        log_message('error', 'Error en cálculo: ' . $e->getMessage());
+        return redirect()->back()
+                       ->withInput()
+                       ->with('error', 'Error al realizar el cálculo: ' . $e->getMessage());
     }
+}
 
     /**
      * Ver detalles de un cálculo
