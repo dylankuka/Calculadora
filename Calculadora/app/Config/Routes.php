@@ -15,6 +15,10 @@ $routes->post('usuario/registrar', 'Usuario::registrar');
 $routes->get('usuario/login', 'Usuario::login');
 $routes->post('usuario/iniciarSesion', 'Usuario::iniciarSesion');
 $routes->get('usuario/logout', 'Usuario::logout');
+$routes->get('usuario/olvide-password', 'Usuario::olvidePassword');
+$routes->post('usuario/enviar-recuperacion', 'Usuario::enviarRecuperacion');
+$routes->get('usuario/resetear/(:any)', 'Usuario::resetear/$1');
+$routes->post('usuario/guardar-password', 'Usuario::guardarPassword');
 
 // ✅ RUTAS DEL HISTORIAL
 $routes->get('historial', 'Historial::index');
@@ -37,9 +41,16 @@ $routes->get('formulario', 'Calculadora::formulario');
 $routes->get('dolar/actualizar', 'Dolar::actualizar');
 $routes->get('dolar/obtener', 'Dolar::obtener');
 
-// ✅ RUTAS PARA AMAZON API
+// ✅ RUTAS PARA RAINFOREST API (AMAZON)
 $routes->post('amazon/obtener', 'Amazon::obtener');
 $routes->post('amazon/validar', 'Amazon::validar');
+$routes->post('amazon/buscar', 'Amazon::buscar');
+$routes->get('amazon/testConexion', 'Amazon::testConexion');
+$routes->get('amazon/verificarCuenta', 'Amazon::verificarCuenta');
+
+// ✅ RUTA PARA TEST DE RAINFOREST API
+$routes->get('test-rainforest', 'TestRainforest::index');
+$routes->get('test/rainforest', 'TestRainforest::index'); // Alias
 
 // 🧡 RUTAS PARA DONACIONES CON MERCADOPAGO
 $routes->group('donacion', function($routes) {
@@ -60,12 +71,6 @@ $routes->group('donacion', function($routes) {
 $routes->get('donar', 'DonacionController::index');
 $routes->get('apoyo', 'DonacionController::index');
 $routes->get('contribuir', 'DonacionController::index');
-
-// 🧡 DEBUG DONACIONES
-$routes->get('test-donacion', function() {
-    return 'La ruta funciona';
-});
-$routes->get('donacion/test', 'DonacionController::testCredenciales');
 
 // ✅ RUTAS DE ADMINISTRACIÓN (UNIFICADAS)
 $routes->group('admin', function($routes) {
@@ -89,16 +94,3 @@ $routes->group('admin', function($routes) {
     $routes->get('categorias', 'Admin::categorias');
     $routes->get('estadisticas', 'Admin::estadisticas');
 });
-
-$routes->get('usuario/olvide-password', 'Usuario::olvidePassword');
-$routes->post('usuario/enviar-recuperacion', 'Usuario::enviarRecuperacion');
-$routes->get('usuario/resetear/(:any)', 'Usuario::resetear/$1');
-$routes->post('usuario/guardar-password', 'Usuario::guardarPassword');
-
-// ... (rutas existentes)
-
-// ✅ RUTAS PARA AMAZON PA-API (ACTUALIZADAS)
-$routes->post('amazon/obtener', 'Amazon::obtener');
-$routes->post('amazon/validar', 'Amazon::validar');
-$routes->post('amazon/buscar', 'Amazon::buscar');
-$routes->get('amazon/test', 'Amazon::testConexion'); // Para probar la conexión
