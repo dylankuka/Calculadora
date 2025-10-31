@@ -4,31 +4,22 @@ namespace App\Services;
 
 class AmazonService
 {
-    private $accessKey;
-    private $secretKey;
-    private $partnerTag;
-    private $region;
-    private $host;
-    private $marketplace;
+    private $apiKey;
+    private $baseUrl = 'https://api.rainforestapi.com/request';
     
     public function __construct()
     {
-        // Cargar credenciales desde .env
-        $this->accessKey = getenv('AMAZON_ACCESS_KEY');
-        $this->secretKey = getenv('AMAZON_SECRET_KEY');
-        $this->partnerTag = getenv('AMAZON_PARTNER_TAG');
-        $this->region = getenv('AMAZON_REGION') ?: 'us-east-1';
-        $this->host = getenv('AMAZON_HOST') ?: 'webservices.amazon.com';
-        $this->marketplace = getenv('AMAZON_MARKETPLACE') ?: 'www.amazon.com';
+        // Cargar API key desde .env
+        $this->apiKey = getenv('RAINFOREST_API_KEY');
         
-        // Validar credenciales
-        if (empty($this->accessKey) || empty($this->secretKey) || empty($this->partnerTag)) {
-            log_message('error', 'Amazon PA-API credentials not configured');
+        if (empty($this->apiKey)) {
+            log_message('error', 'Rainforest API key not configured in .env');
+            throw new \Exception('API key de Rainforest no configurada');
         }
     }
     
     /**
-     * Obtiene información del producto usando PA-API
+     * Obtiene información del producto usando Rainforest API
      */
     public function obtenerProducto($url)
     {
@@ -45,8 +36,11 @@ class AmazonService
                 throw new \Exception('No se pudo extraer el ASIN de la URL');
             }
             
-            // Obtener datos del producto desde PA-API
-            $productoData = $this->getItemInfo($asin);
+            // Detectar dominio de Amazon
+            $domain = $this->detectarDominioAmazon($url);
+            
+            // Obtener datos del producto desde Rainforest API
+            $productoData = $this->getItemInfo($asin, $domain);
             
             return [
                 'success' => true,
@@ -68,63 +62,38 @@ class AmazonService
             ];
             
         } catch (\Exception $e) {
-            log_message('error', 'Error Amazon PA-API: ' . $e->getMessage());
+            log_message('error', 'Error Rainforest API: ' . $e->getMessage());
             throw $e;
         }
     }
     
     /**
-     * Llama a Amazon PA-API para obtener información del item
+     * Llama a Rainforest API para obtener información del producto
      */
-    private function getItemInfo($asin)
+    private function getItemInfo($asin, $domain = 'amazon.com')
     {
-        $timestamp = gmdate('Ymd\THis\Z');
-        $datestamp = gmdate('Ymd');
-        
-        // Payload de la petición
-        $payload = json_encode([
-            'ItemIds' => [$asin],
-            'Resources' => [
-                'Images.Primary.Large',
-                'Images.Variants.Large',
-                'ItemInfo.Title',
-                'ItemInfo.Features',
-                'ItemInfo.ContentInfo',
-                'ItemInfo.TechnicalInfo',
-                'ItemInfo.ManufactureInfo',
-                'Offers.Listings.Price',
-                'Offers.Listings.Availability.Message',
-                'Offers.Listings.Condition',
-                'Offers.Listings.MerchantInfo',
-                'BrowseNodeInfo.BrowseNodes'
-            ],
-            'PartnerTag' => $this->partnerTag,
-            'PartnerType' => 'Associates',
-            'Marketplace' => $this->marketplace
-        ]);
-        
-        // Endpoint
-        $endpoint = '/paapi5/getitems';
-        $url = 'https://' . $this->host . $endpoint;
-        
-        // Headers
-        $headers = [
-            'Content-Type: application/json; charset=utf-8',
-            'Content-Encoding: amz-1.0',
-            'X-Amz-Target: com.amazon.paapi5.v1.ProductAdvertisingAPIv1.GetItems',
-            'X-Amz-Date: ' . $timestamp,
-            'Authorization: ' . $this->generarAutorizacion($payload, $timestamp, $datestamp, $endpoint)
+        // Construir URL de la API
+        $params = [
+            'api_key' => $this->apiKey,
+            'type' => 'product',
+            'amazon_domain' => $domain,
+            'asin' => $asin,
+            'output' => 'json'
         ];
         
-        // Realizar petición
+        $url = $this->baseUrl . '?' . http_build_query($params);
+        
+        // Realizar petición con cURL
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $payload,
-            CURLOPT_TIMEOUT => 15,
-            CURLOPT_SSL_VERIFYPEER => true
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTPHEADER => [
+                'Accept: application/json',
+                'User-Agent: TaxImporter/1.0'
+            ]
         ]);
         
         $response = curl_exec($ch);
@@ -133,123 +102,90 @@ class AmazonService
         curl_close($ch);
         
         if ($curlError) {
-            throw new \Exception('Error de conexión con Amazon: ' . $curlError);
+            throw new \Exception('Error de conexión con Rainforest API: ' . $curlError);
         }
         
         if ($httpCode !== 200) {
-            log_message('error', "Amazon PA-API HTTP {$httpCode}: {$response}");
-            throw new \Exception("Error de Amazon PA-API: HTTP {$httpCode}");
+            log_message('error', "Rainforest API HTTP {$httpCode}: {$response}");
+            throw new \Exception("Error de Rainforest API: HTTP {$httpCode}");
         }
         
         $data = json_decode($response, true);
         
-        if (!isset($data['ItemsResult']['Items'][0])) {
-            throw new \Exception('Producto no encontrado en Amazon PA-API');
+        if (!isset($data['product'])) {
+            throw new \Exception('Producto no encontrado en Rainforest API');
         }
         
-        return $this->parsearRespuestaAPI($data['ItemsResult']['Items'][0]);
+        return $this->parsearRespuestaAPI($data);
     }
     
     /**
-     * Genera la firma de autorización AWS Signature Version 4
+     * Parsea la respuesta de Rainforest API
      */
-    private function generarAutorizacion($payload, $timestamp, $datestamp, $endpoint)
+    private function parsearRespuestaAPI($data)
     {
-        $algorithm = 'AWS4-HMAC-SHA256';
-        $credentialScope = "{$datestamp}/{$this->region}/ProductAdvertisingAPI/aws4_request";
-        
-        // Crear canonical request
-        $canonicalHeaders = "content-encoding:amz-1.0\n";
-        $canonicalHeaders .= "content-type:application/json; charset=utf-8\n";
-        $canonicalHeaders .= "host:{$this->host}\n";
-        $canonicalHeaders .= "x-amz-date:{$timestamp}\n";
-        $canonicalHeaders .= "x-amz-target:com.amazon.paapi5.v1.ProductAdvertisingAPIv1.GetItems\n";
-        
-        $signedHeaders = 'content-encoding;content-type;host;x-amz-date;x-amz-target';
-        
-        $payloadHash = hash('sha256', $payload);
-        
-        $canonicalRequest = "POST\n";
-        $canonicalRequest .= "{$endpoint}\n";
-        $canonicalRequest .= "\n"; // Query string vacío
-        $canonicalRequest .= $canonicalHeaders . "\n";
-        $canonicalRequest .= $signedHeaders . "\n";
-        $canonicalRequest .= $payloadHash;
-        
-        // Crear string to sign
-        $stringToSign = "{$algorithm}\n";
-        $stringToSign .= "{$timestamp}\n";
-        $stringToSign .= "{$credentialScope}\n";
-        $stringToSign .= hash('sha256', $canonicalRequest);
-        
-        // Calcular firma
-        $kDate = hash_hmac('sha256', $datestamp, 'AWS4' . $this->secretKey, true);
-        $kRegion = hash_hmac('sha256', $this->region, $kDate, true);
-        $kService = hash_hmac('sha256', 'ProductAdvertisingAPI', $kRegion, true);
-        $kSigning = hash_hmac('sha256', 'aws4_request', $kService, true);
-        
-        $signature = hash_hmac('sha256', $stringToSign, $kSigning);
-        
-        // Construir header de autorización
-        $authorization = "{$algorithm} ";
-        $authorization .= "Credential={$this->accessKey}/{$credentialScope}, ";
-        $authorization .= "SignedHeaders={$signedHeaders}, ";
-        $authorization .= "Signature={$signature}";
-        
-        return $authorization;
-    }
-    
-    /**
-     * Parsea la respuesta de Amazon PA-API
-     */
-    private function parsearRespuestaAPI($item)
-    {
+        $producto = $data['product'] ?? [];
         $resultado = [];
         
         // Título
-        $resultado['title'] = $item['ItemInfo']['Title']['DisplayValue'] ?? null;
+        $resultado['title'] = $producto['title'] ?? null;
         
-        // Precio
-        if (isset($item['Offers']['Listings'][0]['Price']['Amount'])) {
-            $resultado['price'] = $item['Offers']['Listings'][0]['Price']['Amount'];
-            $resultado['currency'] = $item['Offers']['Listings'][0]['Price']['Currency'] ?? 'USD';
+        // Precio actual
+        if (isset($producto['buybox_winner']['price']['value'])) {
+            $resultado['price'] = $producto['buybox_winner']['price']['value'];
+            $resultado['currency'] = $producto['buybox_winner']['price']['currency'] ?? 'USD';
+        } elseif (isset($producto['price']['value'])) {
+            $resultado['price'] = $producto['price']['value'];
+            $resultado['currency'] = $producto['price']['currency'] ?? 'USD';
         }
         
-        // Precio de lista (precio original antes de descuentos)
-        if (isset($item['Offers']['Listings'][0]['SavingBasis']['Amount'])) {
-            $resultado['list_price'] = $item['Offers']['Listings'][0]['SavingBasis']['Amount'];
+        // Precio de lista (antes de descuentos)
+        if (isset($producto['buybox_winner']['rrp']['value'])) {
+            $resultado['list_price'] = $producto['buybox_winner']['rrp']['value'];
         }
         
         // Disponibilidad
-        $resultado['availability'] = $item['Offers']['Listings'][0]['Availability']['Message'] ?? 'Desconocido';
+        $resultado['availability'] = $producto['buybox_winner']['availability']['raw'] ?? 
+                                    $producto['availability']['raw'] ?? 
+                                    'Desconocido';
         
-        // Imágenes
-        if (isset($item['Images']['Primary']['Large']['URL'])) {
-            $resultado['image_url'] = $item['Images']['Primary']['Large']['URL'];
+        // Imagen principal
+        if (isset($producto['main_image']['link'])) {
+            $resultado['image_url'] = $producto['main_image']['link'];
         }
         
-        if (isset($item['Images']['Variants'])) {
+        // Imágenes adicionales
+        if (isset($producto['images'])) {
             $resultado['images'] = array_map(function($img) {
-                return $img['Large']['URL'] ?? null;
-            }, $item['Images']['Variants']);
+                return $img['link'] ?? null;
+            }, $producto['images']);
         }
         
-        // Características
-        if (isset($item['ItemInfo']['Features']['DisplayValues'])) {
-            $resultado['features'] = $item['ItemInfo']['Features']['DisplayValues'];
+        // Características/Features
+        if (isset($producto['feature_bullets'])) {
+            $resultado['features'] = $producto['feature_bullets'];
+        } elseif (isset($producto['features'])) {
+            $resultado['features'] = $producto['features'];
         }
+        
+        // Descripción
+        $resultado['description'] = $producto['description'] ?? null;
         
         // Marca
-        $resultado['brand'] = $item['ItemInfo']['ByLineInfo']['Brand']['DisplayValue'] ?? null;
+        $resultado['brand'] = $producto['brand'] ?? null;
         
-        // Categoría
-        if (isset($item['BrowseNodeInfo']['BrowseNodes'][0]['DisplayName'])) {
-            $resultado['category'] = $item['BrowseNodeInfo']['BrowseNodes'][0]['DisplayName'];
+        // Categoría principal
+        if (isset($producto['categories'][0]['name'])) {
+            $resultado['category'] = $producto['categories'][0]['name'];
         }
         
-        // Rating (si está disponible)
-        $resultado['rating'] = null;
-        $resultado['num_reviews'] = null;
+        // Rating y reviews
+        if (isset($producto['rating'])) {
+            $resultado['rating'] = $producto['rating'];
+        }
+        if (isset($producto['ratings_total'])) {
+            $resultado['num_reviews'] = $producto['ratings_total'];
+        }
         
         return $resultado;
     }
@@ -266,6 +202,7 @@ class AmazonService
             '/\/exec\/obidos\/ASIN\/([A-Z0-9]{10})/', // ASIN antiguo
             '/\/product-reviews\/([A-Z0-9]{10})/',    // Reviews
             '/[?&]asin=([A-Z0-9]{10})/',        // Query param
+            '/\/([A-Z0-9]{10})(?:\/|\?|$)/',    // ASIN al final de URL
         ];
         
         foreach ($patrones as $patron) {
@@ -275,6 +212,40 @@ class AmazonService
         }
         
         return null;
+    }
+    
+    /**
+     * Detectar dominio de Amazon desde la URL
+     */
+    private function detectarDominioAmazon($url)
+    {
+        $host = parse_url($url, PHP_URL_HOST);
+        
+        // Mapeo de dominios
+        $dominios = [
+            'amazon.com' => 'amazon.com',
+            'amazon.es' => 'amazon.es',
+            'amazon.co.uk' => 'amazon.co.uk',
+            'amazon.com.ar' => 'amazon.com',  // Argentina usa amazon.com
+            'amazon.com.mx' => 'amazon.com.mx',
+            'amazon.de' => 'amazon.de',
+            'amazon.fr' => 'amazon.fr',
+            'amazon.ca' => 'amazon.ca',
+            'amazon.it' => 'amazon.it',
+            'amazon.co.jp' => 'amazon.co.jp',
+            'amazon.com.br' => 'amazon.com.br',
+            'amazon.in' => 'amazon.in',
+            'amazon.com.au' => 'amazon.com.au'
+        ];
+        
+        foreach ($dominios as $dominio => $apiDominio) {
+            if (strpos($host, $dominio) !== false) {
+                return $apiDominio;
+            }
+        }
+        
+        // Por defecto usar amazon.com
+        return 'amazon.com';
     }
     
     /**
@@ -309,7 +280,7 @@ class AmazonService
             if (!$asin) {
                 return [
                     'valid' => false,
-                    'message' => 'No se pudo identificar el producto'
+                    'message' => 'No se pudo identificar el producto (ASIN no encontrado)'
                 ];
             }
             
@@ -339,10 +310,14 @@ class AmazonService
             'amazon.com', 'amazon.es', 'amazon.co.uk', 
             'amazon.com.ar', 'amazon.com.mx', 'amazon.de',
             'amazon.fr', 'amazon.ca', 'amazon.it',
-            'amazon.co.jp', 'amazon.com.br', 'amazon.in'
+            'amazon.co.jp', 'amazon.com.br', 'amazon.in',
+            'amazon.com.au', 'smile.amazon.com'
         ];
         
         $host = parse_url($url, PHP_URL_HOST);
+        
+        // Eliminar 'www.' si existe
+        $host = str_replace('www.', '', $host);
         
         foreach ($dominiosValidos as $dominio) {
             if (strpos($host, $dominio) !== false) {
@@ -354,45 +329,31 @@ class AmazonService
     }
     
     /**
-     * Buscar productos por palabra clave (requiere PA-API SearchItems)
+     * Buscar productos por palabra clave usando Rainforest API
      */
     public function buscarProductos($keywords, $categoria = null, $limite = 10)
     {
         try {
-            $timestamp = gmdate('Ymd\THis\Z');
-            $datestamp = gmdate('Ymd');
-            
-            $payload = json_encode([
-                'Keywords' => $keywords,
-                'Resources' => [
-                    'Images.Primary.Medium',
-                    'ItemInfo.Title',
-                    'Offers.Listings.Price'
-                ],
-                'PartnerTag' => $this->partnerTag,
-                'PartnerType' => 'Associates',
-                'Marketplace' => $this->marketplace,
-                'ItemCount' => min($limite, 10) // Máximo 10
-            ]);
-            
-            $endpoint = '/paapi5/searchitems';
-            $url = 'https://' . $this->host . $endpoint;
-            
-            $headers = [
-                'Content-Type: application/json; charset=utf-8',
-                'Content-Encoding: amz-1.0',
-                'X-Amz-Target: com.amazon.paapi5.v1.ProductAdvertisingAPIv1.SearchItems',
-                'X-Amz-Date: ' . $timestamp,
-                'Authorization: ' . $this->generarAutorizacionBusqueda($payload, $timestamp, $datestamp, $endpoint)
+            // Construir parámetros
+            $params = [
+                'api_key' => $this->apiKey,
+                'type' => 'search',
+                'amazon_domain' => 'amazon.com',
+                'search_term' => $keywords,
+                'output' => 'json'
             ];
+            
+            if ($categoria) {
+                $params['category_id'] = $categoria;
+            }
+            
+            $url = $this->baseUrl . '?' . http_build_query($params);
             
             $ch = curl_init($url);
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_HTTPHEADER => $headers,
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => $payload,
-                CURLOPT_TIMEOUT => 15
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_SSL_VERIFYPEER => true
             ]);
             
             $response = curl_exec($ch);
@@ -405,46 +366,86 @@ class AmazonService
             
             $data = json_decode($response, true);
             
-            if (!isset($data['SearchResult']['Items'])) {
+            if (!isset($data['search_results'])) {
                 return [];
             }
             
-            return array_map([$this, 'parsearRespuestaAPI'], $data['SearchResult']['Items']);
+            // Limitar resultados
+            $resultados = array_slice($data['search_results'], 0, $limite);
+            
+            // Parsear resultados
+            return array_map(function($item) {
+                return [
+                    'asin' => $item['asin'] ?? null,
+                    'title' => $item['title'] ?? null,
+                    'price' => $item['price']['value'] ?? null,
+                    'currency' => $item['price']['currency'] ?? 'USD',
+                    'image_url' => $item['image'] ?? null,
+                    'rating' => $item['rating'] ?? null,
+                    'num_reviews' => $item['ratings_total'] ?? null,
+                    'url' => $item['link'] ?? null
+                ];
+            }, $resultados);
             
         } catch (\Exception $e) {
-            log_message('error', 'Error Amazon Search: ' . $e->getMessage());
+            log_message('error', 'Error Rainforest Search: ' . $e->getMessage());
             return [];
         }
     }
     
     /**
-     * Generar autorización para búsqueda
+     * Verificar estado de la API (test de conexión)
      */
-    private function generarAutorizacionBusqueda($payload, $timestamp, $datestamp, $endpoint)
+    public function testConexion()
     {
-        $algorithm = 'AWS4-HMAC-SHA256';
-        $credentialScope = "{$datestamp}/{$this->region}/ProductAdvertisingAPI/aws4_request";
-        
-        $canonicalHeaders = "content-encoding:amz-1.0\n";
-        $canonicalHeaders .= "content-type:application/json; charset=utf-8\n";
-        $canonicalHeaders .= "host:{$this->host}\n";
-        $canonicalHeaders .= "x-amz-date:{$timestamp}\n";
-        $canonicalHeaders .= "x-amz-target:com.amazon.paapi5.v1.ProductAdvertisingAPIv1.SearchItems\n";
-        
-        $signedHeaders = 'content-encoding;content-type;host;x-amz-date;x-amz-target';
-        $payloadHash = hash('sha256', $payload);
-        
-        $canonicalRequest = "POST\n{$endpoint}\n\n{$canonicalHeaders}\n{$signedHeaders}\n{$payloadHash}";
-        
-        $stringToSign = "{$algorithm}\n{$timestamp}\n{$credentialScope}\n" . hash('sha256', $canonicalRequest);
-        
-        $kDate = hash_hmac('sha256', $datestamp, 'AWS4' . $this->secretKey, true);
-        $kRegion = hash_hmac('sha256', $this->region, $kDate, true);
-        $kService = hash_hmac('sha256', 'ProductAdvertisingAPI', $kRegion, true);
-        $kSigning = hash_hmac('sha256', 'aws4_request', $kService, true);
-        
-        $signature = hash_hmac('sha256', $stringToSign, $kSigning);
-        
-        return "{$algorithm} Credential={$this->accessKey}/{$credentialScope}, SignedHeaders={$signedHeaders}, Signature={$signature}";
+        try {
+            // Probar con un ASIN conocido (ejemplo: Kindle Paperwhite)
+            $testAsin = 'B08KTZ8249';
+            
+            $params = [
+                'api_key' => $this->apiKey,
+                'type' => 'product',
+                'amazon_domain' => 'amazon.com',
+                'asin' => $testAsin,
+                'output' => 'json'
+            ];
+            
+            $url = $this->baseUrl . '?' . http_build_query($params);
+            
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 15,
+                CURLOPT_SSL_VERIFYPEER => true
+            ]);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            
+            if ($httpCode !== 200) {
+                throw new \Exception("HTTP {$httpCode}");
+            }
+            
+            $data = json_decode($response, true);
+            
+            if (!isset($data['product'])) {
+                throw new \Exception('Respuesta inválida de la API');
+            }
+            
+            return [
+                'success' => true,
+                'message' => 'Conexión exitosa con Rainforest API',
+                'api_status' => 'OK',
+                'test_product' => $data['product']['title'] ?? 'Producto de prueba'
+            ];
+            
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Error de conexión: ' . $e->getMessage(),
+                'help' => 'Verifica tu RAINFOREST_API_KEY en el archivo .env'
+            ];
+        }
     }
 }

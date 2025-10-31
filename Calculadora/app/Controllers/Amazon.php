@@ -7,7 +7,7 @@ use App\Services\AmazonService;
 class Amazon extends BaseController
 {
     /**
-     * Obtiene datos del producto desde Amazon PA-API
+     * Obtiene datos del producto desde Rainforest API
      */
     public function obtener()
     {
@@ -28,7 +28,7 @@ class Amazon extends BaseController
             return $this->response->setJSON([
                 'success' => true,
                 'data' => $producto,
-                'message' => 'Producto obtenido exitosamente'
+                'message' => 'Producto obtenido exitosamente desde Rainforest API'
             ]);
             
         } catch (\Exception $e) {
@@ -93,7 +93,8 @@ class Amazon extends BaseController
             return $this->response->setJSON([
                 'success' => true,
                 'data' => $productos,
-                'count' => count($productos)
+                'count' => count($productos),
+                'source' => 'Rainforest API'
             ]);
             
         } catch (\Exception $e) {
@@ -105,29 +106,67 @@ class Amazon extends BaseController
     }
     
     /**
-     * Test de conexión con Amazon PA-API
+     * Test de conexión con Rainforest API
      */
     public function testConexion()
     {
         try {
             $amazonService = new AmazonService();
+            $resultado = $amazonService->testConexion();
             
-            // Probar con un ASIN conocido (ejemplo: Kindle)
-            $testUrl = 'https://www.amazon.com/dp/B09SWW583J';
-            
-            $resultado = $amazonService->obtenerProducto($testUrl);
-            
-            return $this->response->setJSON([
-                'success' => true,
-                'message' => 'Conexión exitosa con Amazon PA-API',
-                'test_product' => $resultado
-            ]);
+            return $this->response->setJSON($resultado);
             
         } catch (\Exception $e) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error de conexión: ' . $e->getMessage(),
-                'help' => 'Verifica tus credenciales en el archivo .env'
+                'help' => 'Verifica tu RAINFOREST_API_KEY en el archivo .env'
+            ]);
+        }
+    }
+    
+    /**
+     * Obtener información de tu cuenta de Rainforest
+     */
+    public function verificarCuenta()
+    {
+        try {
+            $apiKey = getenv('RAINFOREST_API_KEY');
+            
+            if (empty($apiKey)) {
+                throw new \Exception('API key no configurada');
+            }
+            
+            // Endpoint para verificar account info
+            $url = "https://api.rainforestapi.com/account?api_key=" . $apiKey;
+            
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_SSL_VERIFYPEER => true
+            ]);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            
+            if ($httpCode !== 200) {
+                throw new \Exception("HTTP {$httpCode}: Verifica tu API key");
+            }
+            
+            $data = json_decode($response, true);
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'account_info' => $data,
+                'message' => 'Cuenta verificada exitosamente'
+            ]);
+            
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error verificando cuenta: ' . $e->getMessage()
             ]);
         }
     }
