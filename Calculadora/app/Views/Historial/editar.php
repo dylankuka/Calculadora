@@ -228,7 +228,7 @@ function recalcular() {
     // Fórmula básica (mismo cálculo que en crear.php)
     const dolarTarjeta = 1683.5;
     const factorImpuestos = 1.71;
-    const envioUSD = 25;
+    const envioUSD = 10;
     
     const total = (precioUSD * dolarTarjeta * factorImpuestos) + (envioUSD * dolarTarjeta);
     
@@ -248,7 +248,7 @@ function mostrarComparacion() {
     
     const dolarTarjeta = 1683.5;
     const factorImpuestos = 1.71;
-    const envioUSD = 25;
+    const envioUSD = 10;
     const totalNuevo = (precioNuevo * dolarTarjeta * factorImpuestos) + (envioUSD * dolarTarjeta);
     
     const diferencia = totalNuevo - totalOriginal;

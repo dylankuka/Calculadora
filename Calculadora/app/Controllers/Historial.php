@@ -315,7 +315,7 @@ public function calcular()
 
             // Recalcular con los nuevos valores
             $desglose = json_decode($calculo['desglose_json'], true);
-            $envioUSD = $desglose['datos_base']['envio_usd'] ?? 25;
+            $envioUSD = $desglose['datos_base']['envio_usd'] ?? 10;
             $categoriaId = $calculo['categoria_id'];
             $metodoPago = $calculo['metodo_pago'];
 

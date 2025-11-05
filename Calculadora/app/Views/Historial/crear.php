@@ -148,10 +148,199 @@
                                 <label for="envio_usd" class="form-label"><i class="bi bi-truck"></i> Costo de Envío *</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" id="envio_usd" name="envio_usd" placeholder="25.00" step="0.01" min="0" max="1000" value="<?= set_value('envio_usd', $old_input['envio_usd'] ?? '25.00') ?>" required onchange="simularCalculoEnTiempoReal()">
+                                    <input type="number" class="form-control" id="envio_usd" name="envio_usd" placeholder="10.00" step="0.01" min="0" max="1000" value="<?= set_value('envio_usd', $old_input['envio_usd'] ?? '10.00') ?>" required onchange="simularCalculoEnTiempoReal()">
                                     <span class="input-group-text">USD</span>
                                 </div>
-                                <div class="form-text"><i class="bi bi-info-circle"></i> Promedio: $25 USD</div>
+                                <div class="form-text text-warning">
+                                    <i class="bi bi-exclamation-triangle"></i> 
+                                    <strong>Importante:</strong> Este es solo un promedio estimado ($10 USD). El costo de envío puede variar considerablemente según el vendedor, peso, tamaño y destino. <strong>Debes verificar el costo real en Amazon y ajustar este valor antes de calcular.</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Acordeón de ayuda: Ejemplos de categorías -->
+                        <div class="accordion mt-3" id="accordionCategorias">
+                            <div class="accordion-item bg-dark border-secondary">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-dark text-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCategorias">
+                                        <i class="bi bi-question-circle text-warning me-2"></i> ¿No sabes qué categoría usar? Ver ejemplos
+                                    </button>
+                                </h2>
+                                <div id="collapseCategorias" class="accordion-collapse collapse" data-bs-parent="#accordionCategorias">
+                                    <div class="accordion-body bg-dark text-light" style="max-height: 400px; overflow-y: auto;">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6 class="text-warning">📱 1 – Electrónica (Celulares)</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Teléfonos celulares (iPhone, Samsung, Xiaomi)</li>
+                                                    <li>Fundas, vidrios templados, cargadores</li>
+                                                    <li>Smartwatches y pulseras inteligentes</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">📲 2 – Electrónica (Tablets)</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Tablets (iPad, Samsung Galaxy Tab)</li>
+                                                    <li>Stylus, fundas, protectores</li>
+                                                    <li>Teclados Bluetooth para tablet</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">💻 3 – Electrónica (Computadoras)</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Laptops, notebooks, PC de escritorio</li>
+                                                    <li>Placas de video, motherboards, procesadores</li>
+                                                    <li>Teclados, ratones, monitores</li>
+                                                    <li>Memorias USB, hubs, adaptadores</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">🎮 4 – Consolas y Videojuegos</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Consolas: PlayStation 5, Xbox Series X, Nintendo Switch</li>
+                                                    <li>Mandos y controles</li>
+                                                    <li>Bases de carga, fundas, cables HDMI</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">🕹️ 5 – Videojuegos</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Juegos físicos (discos, cartuchos)</li>
+                                                    <li>Códigos digitales</li>
+                                                    <li>Tarjetas de regalo (PSN, Xbox Live, Nintendo eShop)</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">☕ 6 – Electrodomésticos Pequeños</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Cafeteras, licuadoras, procesadoras</li>
+                                                    <li>Microondas, tostadoras</li>
+                                                    <li>Planchas, aspiradoras, freidoras de aire</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">🧊 7 – Electrodomésticos Grandes</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Heladeras / Freezers</li>
+                                                    <li>Lavarropas, secarropas</li>
+                                                    <li>Cocinas, hornos, lavavajillas</li>
+                                                    <li>Aires acondicionados</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">👕 8 – Ropa</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Remeras, pantalones, camperas</li>
+                                                    <li>Ropa interior, medias</li>
+                                                    <li>Abrigos, trajes de baño</li>
+                                                    <li>Uniformes de trabajo</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">👟 9 – Calzado</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Zapatillas deportivas</li>
+                                                    <li>Botas, sandalias, mocasines</li>
+                                                    <li>Zapatos de vestir</li>
+                                                    <li>Calzado de seguridad / trabajo</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">🧵 10 – Telas</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Rollos de tela (algodón, lino, poliéster)</li>
+                                                    <li>Fieltros y encajes</li>
+                                                    <li>Retazos decorativos, vinilos textiles</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">🧶 11 – Hilados</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Hilos de lana, algodón o seda</li>
+                                                    <li>Agujas de tejer y crochet</li>
+                                                    <li>Ovillos, madejas, kits de bordado</li>
+                                                </ul>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <h6 class="text-warning">🔧 12 – Herramientas</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Taladros, sierras, lijadoras</li>
+                                                    <li>Multímetros, destornilladores eléctricos</li>
+                                                    <li>Kits de reparación automotriz</li>
+                                                    <li>Llaves, martillos, prensas</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">⚙️ 13 – Maquinarias</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Compresores, generadores eléctricos</li>
+                                                    <li>Soldadoras, cortadoras industriales</li>
+                                                    <li>Bombas de agua</li>
+                                                    <li>Equipos para taller o fábrica</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">📚 14 – Libros</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Libros físicos o ediciones Kindle</li>
+                                                    <li>Manuales técnicos o universitarios</li>
+                                                    <li>Cómics y novelas gráficas</li>
+                                                    <li>Revistas especializadas</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">🧸 15 – Juguetes</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Muñecos, figuras de acción</li>
+                                                    <li>Juegos de mesa, rompecabezas</li>
+                                                    <li>LEGO y sets de construcción</li>
+                                                    <li>Vehículos a control remoto</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">⚽ 16 – Deportes</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Pesas, bandas elásticas, esterillas de yoga</li>
+                                                    <li>Ropa deportiva y zapatillas de running</li>
+                                                    <li>Palos de golf, raquetas de tenis</li>
+                                                    <li>Cascos y protecciones de ciclismo</li>
+                                                    <li>Artículos de camping o senderismo</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">🏡 17 – Hogar y Jardín</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Muebles (sillas, mesas, estanterías)</li>
+                                                    <li>Decoración (cuadros, lámparas, alfombras)</li>
+                                                    <li>Artículos de jardinería (macetas, tijeras de podar)</li>
+                                                    <li>Organizadores, utensilios de cocina</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">💄 18 – Belleza y Cuidado</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Perfumes y colonias</li>
+                                                    <li>Cremas faciales y corporales</li>
+                                                    <li>Maquillaje (labiales, bases, máscaras)</li>
+                                                    <li>Secadores y planchas de cabello</li>
+                                                    <li>Afeitadoras eléctricas y depiladoras</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">🏎️ 19 – Automotriz</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Filtros de aceite / aire / combustible</li>
+                                                    <li>Baterías, bujías, correas</li>
+                                                    <li>Ceras, limpiadores y líquidos de freno</li>
+                                                    <li>Fundas de asiento, luces LED, GPS para autos</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">🎸 20 – Música e Instrumentos</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Guitarras, bajos, baterías</li>
+                                                    <li>Micrófonos, consolas de sonido</li>
+                                                    <li>Auriculares profesionales</li>
+                                                    <li>Partituras, accesorios musicales</li>
+                                                </ul>
+                                                
+                                                <h6 class="text-warning">📦 21 – Otros</h6>
+                                                <ul class="small mb-3">
+                                                    <li>Artículos difíciles de clasificar</li>
+                                                    <li>Souvenirs, merch, artículos de colección</li>
+                                                    <li>Productos multipropósito o kits variados</li>
+                                                    <li>Repuestos específicos sin categoría clara</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="alert alert-warning mt-3">
+                                            <i class="bi bi-lightbulb"></i> <strong>Tip:</strong> Si tu producto no encaja perfectamente en ninguna categoría, elige la más cercana. Los aranceles varían según la categoría, así que una buena elección es importante para un cálculo preciso.
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -357,24 +546,35 @@ function mostrarPreviewProducto(producto) {
 function usarDatosProducto() {
     if (!productoObtenido) return;
     
+    // 1. Llenar nombre del producto
     document.getElementById('nombre_producto').value = productoObtenido.nombre;
+    
+    // 2. Llenar precio
     document.getElementById('precio_usd').value = productoObtenido.precio || '';
+    
+    // 3. Guardar URL en campo hidden
     document.getElementById('amazon_url_hidden').value = document.getElementById('amazon_url_input').value;
     
-    // Mantener envío por defecto
-    if (!document.getElementById('envio_usd').value) {
-        document.getElementById('envio_usd').value = '25.00';
+    // 4. Configurar envío por defecto si está vacío
+    if (!document.getElementById('envio_usd').value || document.getElementById('envio_usd').value == '0') {
+        document.getElementById('envio_usd').value = '10.00';
     }
     
+    // 5. Aplicar sugerencia de categoría ANTES de limpiar preview
+    aplicarSugerenciaCategoria(productoObtenido);
+    
+    // 6. Limpiar preview
     limpiarPreview();
     
-    // Scroll al formulario
+    // 7. Scroll al formulario
     document.querySelector('.card-custom2').scrollIntoView({ behavior: 'smooth' });
     
-    // Validar y simular si está completo
-    if (validarFormularioCompleto()) {
-        simularCalculoEnTiempoReal();
-    }
+    // 8. Validar y simular si está completo
+    setTimeout(() => {
+        if (validarFormularioCompleto()) {
+            simularCalculoEnTiempoReal();
+        }
+    }, 300);
     
     mostrarAlerta('✅ Datos del producto cargados exitosamente', 'success');
 }
@@ -572,139 +772,6 @@ document.getElementById('amazon_url_input').addEventListener('keypress', functio
         obtenerDatosProducto();
     }
 });
-
-/**
- * Mapeo automático de categorías de Amazon a categorías locales
- * Esto sugiere una categoría basada en la categoría del producto de Amazon
- */
-function sugerirCategoria(categoriaAmazon) {
-    if (!categoriaAmazon) return null;
-    
-    const categoria = categoriaAmazon.toLowerCase();
-    
-    // Mapeo de categorías
-    const mapeo = {
-        // Electrónica (16%)
-        'electronics': 1,
-        'computers': 1,
-        'tablets': 1,
-        'smartphones': 1,
-        'laptops': 1,
-        'cameras': 1,
-        'headphones': 1,
-        'cell phones': 1,
-        'accessories': 1,
-        
-        // Consolas y Videojuegos (20%)
-        'video games': 2,
-        'gaming': 2,
-        'playstation': 2,
-        'xbox': 2,
-        'nintendo': 2,
-        'console': 2,
-        
-        // Ropa y Calzado (20%)
-        'clothing': 3,
-        'fashion': 3,
-        'shoes': 3,
-        'apparel': 3,
-        'footwear': 3,
-        
-        // Electrodomésticos (20%)
-        'appliances': 4,
-        'home': 4,
-        'kitchen': 4,
-        
-        // Juguetes (20%)
-        'toys': 5,
-        'games': 5,
-        'kids': 5,
-        
-        // Libros (0% - exento IVA)
-        'books': 6,
-        'kindle': 6,
-        'ebooks': 6,
-        
-        // Herramientas (12.6%)
-        'tools': 7,
-        'hardware': 7,
-        'automotive': 7,
-        
-        // Deportes (20%)
-        'sports': 8,
-        'outdoors': 8,
-        'fitness': 8,
-        
-        // Salud y Belleza (20%)
-        'beauty': 9,
-        'health': 9,
-        'personal care': 9,
-        
-        // Oficina (16%)
-        'office': 10,
-        'supplies': 10,
-        'stationery': 10
-    };
-    
-    // Buscar coincidencias
-    for (const [keyword, categoriaId] of Object.entries(mapeo)) {
-        if (categoria.includes(keyword)) {
-            return categoriaId;
-        }
-    }
-    
-    return null; // No se encontró mapeo
-}
-
-/**
- * Aplicar sugerencia de categoría cuando se obtiene un producto
- */
-function aplicarSugerenciaCategoria(producto) {
-    if (!producto.categoria) return;
-    
-    const categoriaIdSugerida = sugerirCategoria(producto.categoria);
-    
-    if (categoriaIdSugerida) {
-        const selectCategoria = document.getElementById('categoria_id');
-        
-        // Verificar si existe esa opción
-        const opcion = selectCategoria.querySelector(`option[value="${categoriaIdSugerida}"]`);
-        
-        if (opcion) {
-            selectCategoria.value = categoriaIdSugerida;
-            mostrarInfoCategoria();
-            
-            // Mostrar notificación
-            const categoriaNombre = opcion.textContent;
-            mostrarAlerta(`💡 Categoría sugerida: ${categoriaNombre}`, 'info');
-        }
-    }
-}
-
-// Modificar la función usarDatosProducto para incluir la sugerencia
-function usarDatosProductoConSugerencia() {
-    if (!productoObtenido) return;
-    
-    document.getElementById('nombre_producto').value = productoObtenido.nombre;
-    document.getElementById('precio_usd').value = productoObtenido.precio || '';
-    document.getElementById('amazon_url_hidden').value = document.getElementById('amazon_url_input').value;
-    
-    if (!document.getElementById('envio_usd').value) {
-        document.getElementById('envio_usd').value = '25.00';
-    }
-    
-    // Aplicar sugerencia de categoría
-    aplicarSugerenciaCategoria(productoObtenido);
-    
-    limpiarPreview();
-    document.querySelector('.card-custom2').scrollIntoView({ behavior: 'smooth' });
-    
-    if (validarFormularioCompleto()) {
-        simularCalculoEnTiempoReal();
-    }
-    
-    mostrarAlerta('✅ Datos del producto cargados exitosamente', 'success');
-}
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
