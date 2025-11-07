@@ -9,7 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         .url-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(to left, #FFD700, #FF8C00);
             color: white;
             border-radius: 10px;
             padding: 20px;
@@ -17,8 +17,8 @@
         }
         .step-card { border-left: 4px solid #ffc107; transition: all 0.3s ease; }
         .step-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-        .categoria-info { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; padding: 15px; margin-top: 10px; }
-        .calculo-resultado { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; border-radius: 10px; padding: 20px; }
+        .categoria-info { background: linear-gradient(to left, #FFD700, #FF8C00); color: white; border-radius: 10px; padding: 15px; margin-top: 10px; }
+        .calculo-resultado { background: linear-gradient(135deg, #003e79ff 0%, #146eb4 100%); color: white; border-radius: 10px; padding: 20px; }
         .franquicia-badge { background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: bold; }
         .producto-preview { background: white; border-radius: 10px; padding: 15px; margin-top: 15px; display: none; }
         .loading-spinner { display: none; }
@@ -59,8 +59,8 @@
             </nav>
 
             <!-- SECCIÓN NUEVA: Obtener datos desde URL -->
-            <div class="url-section">
-                <h5><i class="bi bi-link-45deg"></i> Obtener Datos Automáticamente</h5>
+            <div class="text-dark url-section">
+                <h5><i class="bi text-dark bi-link-45deg"></i> Obtener Datos Automáticamente</h5>
                 <p class="mb-3">Pega la URL de Amazon y obtendremos automáticamente los datos del producto</p>
                 <div class="input-group mb-3">
                     <input type="text" class="form-control form-control-lg" id="amazon_url_input" placeholder="https://www.amazon.com/dp/B073JYC4XM">
@@ -156,10 +156,51 @@
                                     <strong>Importante:</strong> Este es solo un promedio estimado ($10 USD). El costo de envío puede variar considerablemente según el vendedor, peso, tamaño y destino. <strong>Debes verificar el costo real en Amazon y ajustar este valor antes de calcular.</strong>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <!-- Acordeón de ayuda: Ejemplos de categorías -->
-                        <div class="accordion mt-3" id="accordionCategorias">
+                        </div> 
+                    </div>  
+                </div>
+                    
+            
+                <!-- PASO 2: Categoría -->
+                <div class="card shadow card-custom2 mb-4">
+                    <div class="card-header card-custom textcolor">
+                        <h5><i class="bi bi-2-circle-fill text-warning"></i> Categoría del Producto</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label for="categoria_id" class="form-label"><i class="bi bi-tag-fill"></i> Selecciona la Categoría *</label>
+                                <select class="form-select" id="categoria_id" name="categoria_id" required onchange="mostrarInfoCategoria()">
+                                    <option value="">-- Selecciona una categoría --</option>
+                                    <?php if (isset($categorias) && !empty($categorias)): ?>
+                                        <?php foreach ($categorias as $categoria): ?>
+                                            <option value="<?= $categoria['id'] ?>" data-arancel="<?= $categoria['arancel_porcentaje'] ?>" data-exento="<?= $categoria['exento_iva'] ?>" data-descripcion="<?= esc($categoria['descripcion']) ?>" <?= set_select('categoria_id', $categoria['id'], ($old_input['categoria_id'] ?? '') == $categoria['id']) ?>>
+                                                <?= esc($categoria['nombre']) ?> (Arancel: <?= $categoria['arancel_porcentaje'] ?>%)
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <div id="categoria-info" class="categoria-info text-dark" style="display: none;">
+                                    <h6><i class="bi bi-info-circle text-dark"></i> Información</h6>
+                                    <div class="row text-dark text-center">
+                                        <div class="text-dark col-6">
+                                            <div class="border-end text-dark border-light">
+                                                <h4 class="mb-1" id="categoria-arancel">0%</h4>
+                                                <small>Arancel</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <h4 class="text-dark mb-1" id="categoria-iva">21%</h4>
+                                            <small>IVA</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-dark mt-2"><small id="categoria-descripcion">-</small></div>
+                                </div>
+                                
+                            </div>
+                            <div class="accordion mt-3" id="accordionCategorias">
                             <div class="accordion-item bg-dark border-secondary">
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed bg-dark text-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCategorias">
@@ -343,50 +384,13 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- PASO 2: Categoría -->
-                <div class="card shadow card-custom2 mb-4">
-                    <div class="card-header card-custom textcolor">
-                        <h5><i class="bi bi-2-circle-fill text-warning"></i> Categoría del Producto</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <label for="categoria_id" class="form-label"><i class="bi bi-tag-fill"></i> Selecciona la Categoría *</label>
-                                <select class="form-select" id="categoria_id" name="categoria_id" required onchange="mostrarInfoCategoria()">
-                                    <option value="">-- Selecciona una categoría --</option>
-                                    <?php if (isset($categorias) && !empty($categorias)): ?>
-                                        <?php foreach ($categorias as $categoria): ?>
-                                            <option value="<?= $categoria['id'] ?>" data-arancel="<?= $categoria['arancel_porcentaje'] ?>" data-exento="<?= $categoria['exento_iva'] ?>" data-descripcion="<?= esc($categoria['descripcion']) ?>" <?= set_select('categoria_id', $categoria['id'], ($old_input['categoria_id'] ?? '') == $categoria['id']) ?>>
-                                                <?= esc($categoria['nombre']) ?> (Arancel: <?= $categoria['arancel_porcentaje'] ?>%)
-                                            </option>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <div id="categoria-info" class="categoria-info" style="display: none;">
-                                    <h6><i class="bi bi-info-circle"></i> Información</h6>
-                                    <div class="row text-center">
-                                        <div class="col-6">
-                                            <div class="border-end border-light">
-                                                <h4 class="mb-1" id="categoria-arancel">0%</h4>
-                                                <small>Arancel</small>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <h4 class="mb-1" id="categoria-iva">21%</h4>
-                                            <small>IVA</small>
-                                        </div>
-                                    </div>
-                                    <div class="mt-2"><small id="categoria-descripcion">-</small></div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
+                        <!-- Acordeón de ayuda: Ejemplos de categorías -->
+                        
+
+                
 
                 <!-- PASO 3: Método de Pago -->
                 <div class="card shadow card-custom2 mb-4">
@@ -428,7 +432,7 @@
                 </div>
 
                 <!-- RESULTADO DEL CÁLCULO -->
-                <div class="card shadow mb-4" id="resultado-calculo" style="display: none;">
+                <div class=" mb-4" id="resultado-calculo" style="display: none;">
                     <div class="calculo-resultado">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5><i class="bi bi-calculator"></i> Resultado del Cálculo</h5>
